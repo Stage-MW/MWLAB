@@ -25,12 +25,10 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
-        html {
-            background-color: var(--bg-color); /* Закрашивает системные поля телефона (челку) */
-        }
+        html { background-color: var(--bg-color); }
 
         body {
-            background-color: transparent; /* Оставляет сам сайт прозрачным для анимации */
+            background-color: transparent;
             color: var(--text-main);
             font-family: 'Jura', sans-serif;
             text-transform: uppercase;
@@ -235,6 +233,19 @@
             box-shadow: inset 0 0 50px rgba(0,0,0,0.9), 0 20px 50px rgba(0,0,0,0.5);
         }
 
+        /* ВОДЯНОЙ ЗНАК (WATERMARK) */
+        .watermark {
+            text-align: right;
+            font-family: 'Orbitron', sans-serif;
+            color: rgba(255, 42, 95, 0.4);
+            font-size: 0.8rem;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            letter-spacing: 2px;
+            font-weight: 900;
+        }
+
         /* КАТАЛОГ (АРСЕНАЛ) */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .catalog-item { background: var(--glass-bg); border: 1px solid var(--primary-dim); border-top: 1px solid var(--glass-reflection); padding: 15px; cursor: pointer; position: relative; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); }
@@ -356,6 +367,7 @@
                         <table class="stats-table" id="stats-equip-2"></table>
                     </div>
                 </div>
+                <div class="watermark">MWLAB | STAGE-MW.GITHUB.IO</div>
             </div>
         </main>
 
@@ -375,6 +387,7 @@
                     <canvas id="buildRadarChart"></canvas>
                 </div>
                 <div id="build-tactics" style="margin-top: 20px; font-family: 'Share Tech Mono';"></div>
+                <div class="watermark">MWLAB | STAGE-MW.GITHUB.IO</div>
             </div>
         </main>
 
@@ -500,6 +513,7 @@
             lock_time: { label: "Время захвата (сек)", higherIsBetter: false },
             crit_chance: { label: "Шанс критического урона, %", higherIsBetter: true },
             projectiles: { label: "Выстрелов за атаку, ед", higherIsBetter: false }, 
+            ammo_clip: { label: "Боеприпасы в обойме", higherIsBetter: false },
             anti_jamming: { label: "Помехозащита", higherIsBetter: true },
             air_target: { label: "Атака авиации", isBool: true },
             sub_launch: { label: "Подводный пуск", isBool: true },
@@ -519,6 +533,16 @@
         };
 
         const DB = {
+            "hpj29": { name: "H/PJ-29 (76MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308483, damage_burst: 134550, damage: 2340, reload: 9.80, crit_chance: 30, projectiles: 1, ammo_clip: 50, range: 9.75, max_speed: 874, start_speed: 874, fire_penalty: 35, air_target: 1, img: "img/hpj29.png" },
+            "jrvg1": { name: "JRVG-1 (76 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308162, damage_burst: 107600, damage: 2665, reload: 9.10, detonation_radius: 46, splash_damage: 25, splash_radius: 46, projectiles: 1, ammo_clip: 40, range: 8.23, max_speed: 923, start_speed: 923, fire_penalty: 45, air_target: 1, img: "img/jrvg1.png" },
+            "project447": { name: "PROJECT 447-155", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 355342, damage_burst: 45247, damage: 12740, reload: 7.14, crit_chance: 25, splash_damage: 750, splash_radius: 166, projectiles: 3, range: 13.87, max_speed: 1020, start_speed: 1020, fire_penalty: 40, img: "img/project447.png" },
+            "sh16": { name: "SH-16 (155 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 301241, damage_burst: 36400, damage: 18200, reload: 7.00, projectiles: 2, range: 11.27, max_speed: 933, start_speed: 933, fire_penalty: 40, img: "img/sh16.png" },
+            "centauro155": { name: "CENTAURO 155 (155 MM)", category: "Пушки", country: "Италия", rarity: "Эпический", dpm: 327690, damage_burst: 36319, damage: 31199, reload: 6.65, crit_chance: 20, detonation_radius: 33, splash_damage: 2000, splash_radius: 200, projectiles: 1, range: 9.97, max_speed: 874, start_speed: 874, fire_penalty: 40, img: "img/centauro155.png" },
+            "mark42": { name: "MARK 42 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 292167, damage_burst: 75720, damage: 3055, reload: 5.80, detonation_radius: 33, splash_damage: 100, splash_radius: 66, projectiles: 8, ammo_clip: 3, range: 10.83, max_speed: 923, start_speed: 923, fire_penalty: 35, air_target: 1, img: "img/mark42.png" },
+            "xm1203": { name: "XM1203 NLOS-C (155 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330925, damage_burst: 19304, damage: 14299, reload: 3.50, crit_chance: 70, projectiles: 1, range: 15.60, max_speed: 971, start_speed: 971, fire_penalty: 40, img: "img/xm1203.png" },
+            "xm2001": { name: "XM2001 CRUSADER", category: "Пушки", country: "США", rarity: "Эпический", dpm: 348036, damage_burst: 38400, damage: 19200, reload: 6.44, splash_damage: 1000, splash_radius: 133, projectiles: 2, range: 13.00, max_speed: 1069, start_speed: 1069, fire_penalty: 25, img: "img/xm2001.png" },
+            "a220m": { name: "A-220M (57MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 316765, damage_burst: 36956, damage: 2275, reload: 4.90, crit_chance: 10, detonation_radius: 40, splash_damage: 75, splash_radius: 66, projectiles: 1, ammo_clip: 15, range: 8.67, max_speed: 894, start_speed: 894, fire_penalty: 35, air_target: 1, img: "img/a220m.png" },
+            "a222": { name: "A-222 BEREG (130MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 316173, damage_burst: 30300, damage: 9100, reload: 5.25, splash_damage: 1000, splash_radius: 100, projectiles: 3, range: 13.00, max_speed: 894, start_speed: 894, fire_penalty: 40, img: "img/a222.png" },
             "mark51": { name: "MARK 51 AGS (155 MM)", category: "Пушки", country: "США", rarity: "Легендарный", dpm: 297067, damage_burst: 24310, damage: 11050, reload: 4.06, crit_chance: 20, projectiles: 2, range: 17.33, max_speed: 894, start_speed: 894, fire_penalty: 35, img: "img/mark51.png" },
             "mark45": { name: "MARK 45 MOD 4 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330352, damage_burst: 18720, damage: 4680, reload: 2.80, projectiles: 4, range: 12.13, max_speed: 680, start_speed: 680, fire_penalty: 35, img: "img/mark45.png" },
             "ak130": { name: "AK-130 (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 294000, damage_burst: 21021, damage: 2730, reload: 3.15, crit_chance: 20, projectiles: 7, range: 12.13, max_speed: 680, start_speed: 680, fire_penalty: 35, img: "img/ak130.png" },
@@ -622,8 +646,10 @@
             item.accuracyScore = 100;
 
             if (item.category === "Пушки") {
-                if (item.projectiles > 1) {
-                    let baseDispersion = (item.projectiles - 1) * 0.06; 
+                let shotsCount = Math.max(item.projectiles || 1, item.ammo_clip || 1);
+                
+                if (shotsCount > 1) {
+                    let baseDispersion = (shotsCount - 1) * 0.015; 
                     let distancePenalty = item.range / 10; 
                     item.accuracyScore = Math.max(30, 100 - (baseDispersion * distancePenalty * 100));
                 }
@@ -640,9 +666,9 @@
                 if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
                 if (item.reload < 3.0) score += 30;
                 
-                if (item.projectiles === 1) score += 80; 
-                else if (item.projectiles === 2) score += 30;
-                else if (item.projectiles >= 3) score -= (item.projectiles * 10);
+                if (shotsCount === 1) score += 80; 
+                else if (shotsCount === 2) score += 30;
+                else if (shotsCount >= 3) score -= (Math.min(shotsCount, 10) * 10);
                 
                 if (item.air_target === 1) score += 50;
                 if (item.splash_damage) score += (item.splash_damage / 1000) * 30;
@@ -892,15 +918,17 @@
                 if (item.start_speed >= 200) pros.push("Резкий старт (ПВО не успевает среагировать)"); else if (item.start_speed < 50) cons.push("Критически медленный старт (легко сбивается ПВО)");
                 if (item.lock_time === 0) pros.push("Лазерное наведение (моментальный пуск без ожидания)"); else if (item.lock_time >= 3.0) cons.push(`Критически долгий захват (${item.lock_time} сек)`);
             } else if (item.category === "Пушки") {
+                let shotsCount = Math.max(item.projectiles || 1, item.ammo_clip || 1);
+                
                 if (item.accuracyScore === 100) pros.push("Идеальная кучность (снаряды ложатся точно в цель на любой дистанции)");
-                else if (item.accuracyScore < 75) cons.push(`Критический разброс из-за ${item.projectiles} снарядов (теряет до ${Math.round(100 - item.accuracyScore)}% урона на дистанции)`);
+                else if (item.accuracyScore < 75) cons.push(`Критический разброс из-за очереди в ${shotsCount} выстрелов (теряет до ${Math.round(100 - item.accuracyScore)}% урона на дистанции)`);
                 else cons.push(`Заметный разброс (до ${Math.round(100 - item.accuracyScore)}% промахов по маневрирующей цели на дистанции)`);
                 
                 if (item.max_speed >= 800) pros.push("Отличная баллистика (очень легко брать упреждение)");
                 else if (item.max_speed < 600) cons.push("Медленный полет снаряда (сложно попадать на дистанции)");
                 
-                if (item.projectiles === 1) pros.push("Вся мощь в одном снаряде (идеально для стрельбы из-за укрытия)");
-                else if (item.projectiles >= 5) cons.push("Долгая очередь (враг успеет уйти в укрытие, получив лишь часть урона)");
+                if (shotsCount === 1) pros.push("Вся мощь в одном снаряде (идеально для стрельбы из-за укрытия)");
+                else if (shotsCount >= 5) cons.push(`Долгая очередь (${shotsCount} выстр.) позволяет врагу уйти в укрытие, получив лишь часть урона`);
                 
                 if (item.effectiveDpm > 250000) pros.push(`Подавляющий эффективный DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')} с учетом дистанции)`);
                 if (item.reload <= 3.0) pros.push("Высокая скорострельность (позволяет быстро пристреляться)");
@@ -1006,8 +1034,11 @@
                     else if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек (РЭБ)";
                     else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
                 } else if (e1.category === "Пушки") {
+                    let wShots = Math.max(winner.projectiles || 1, winner.ammo_clip || 1);
+                    let lShots = Math.max(loser.projectiles || 1, loser.ammo_clip || 1);
+
                     if (winner.accuracyScore > loser.accuracyScore + 20) reason = "идеальной кучности (снаряды не улетают в молоко на дистанции)";
-                    else if (winner.projectiles === 1 && loser.projectiles > 2) reason = "одиночных точных выстрелов (враг не успеет спрятаться от урона)";
+                    else if (wShots === 1 && lShots > 2) reason = "одиночных точных выстрелов (враг не успеет спрятаться от урона)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом дистанции и разброса";
                     else if (winner.damage_burst > loser.damage_burst + 15000) reason = "разрушительного Альфа-страйка (урона за выстрел)";
                     else if (loser.range < 9 && winner.range >= 12) reason = "огромного превосходства в дальности (может атаковать безнаказанно)";
