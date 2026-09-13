@@ -33,39 +33,11 @@
             margin: 0;
         }
 
-        /* --- ГЛОБАЛЬНАЯ БЛОКИРОВКА --- */
-        #global-lock-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(3, 7, 11, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            z-index: 999999; display: none; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease;
-        }
-        .lock-container {
-            background: var(--glass-bg); border: 1px solid var(--primary);
-            padding: 50px 40px; text-align: center; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-            box-shadow: 0 0 30px rgba(255, 42, 95, 0.3), inset 0 0 20px rgba(255, 42, 95, 0.1);
-        }
-        .lock-title { font-family: 'Orbitron', sans-serif; font-size: 3rem; color: #fff; margin-bottom: 5px; letter-spacing: 5px; text-shadow: 0 0 15px var(--primary); }
-        .lock-subtitle { font-family: 'Share Tech Mono'; color: #a09095; margin-bottom: 35px; letter-spacing: 2px; }
-        .lock-input {
-            background: rgba(0,0,0,0.6); border: 1px solid var(--primary-dim); color: var(--secondary);
-            padding: 15px; width: 100%; max-width: 300px; font-family: 'Share Tech Mono'; font-size: 1.2rem;
-            text-align: center; outline: none; margin-bottom: 25px; transition: 0.3s;
-        }
-        .lock-input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(255, 42, 95, 0.3); color: #fff; }
-        .lock-btn {
-            background: rgba(255, 42, 95, 0.15); border: 1px solid var(--primary); color: #fff; width: 100%; max-width: 300px;
-            padding: 15px; font-family: 'Jura'; font-weight: bold; font-size: 1.2rem; cursor: pointer; transition: 0.3s;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-        }
-        .lock-btn:hover { background: var(--primary); box-shadow: 0 0 20px var(--primary); color: #000; }
-        #lock-error { color: var(--primary); margin-top: 15px; font-family: 'Share Tech Mono'; font-size: 0.95rem; opacity: 0; transition: 0.3s; font-weight: bold;}
-
         /* --- СТАРТОВАЯ АНИМАЦИЯ --- */
         #intro-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #030408; z-index: 99999;
-            display: none; justify-content: center; align-items: center; /* Изначально скрыт до анлока */
+            display: flex; justify-content: center; align-items: center;
             overflow: hidden; perspective: 1000px;
         }
         #intro-explosion { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 1px; height: 1px; }
@@ -139,8 +111,8 @@
             100% { transform: translateY(-110vh) rotate(var(--f-rotate)); opacity: 0; }
         }
 
-        .app-wrapper { opacity: 0; position: relative; z-index: 10; width: 100%; display: none; }
-        .app-wrapper.active { display: block; animation: appReveal 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .app-wrapper { opacity: 0; position: relative; z-index: 10; width: 100%; }
+        .app-wrapper.active { animation: appReveal 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes appReveal {
             0% { opacity: 0; transform: translateY(40px) scale(0.98); filter: blur(8px); }
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
@@ -291,25 +263,10 @@
     </style>
 </head>
 <body>
-
-    <!-- ЭКРАН БЛОКИРОВКИ -->
-    <div id="global-lock-screen">
-        <div class="lock-container">
-            <div class="lock-title">MWLAB</div>
-            <div class="lock-subtitle">ТЕРМИНАЛ ДОСТУПА [STAGE]</div>
-            <input type="password" id="global-lock-input" class="lock-input" placeholder="ВВЕДИТЕ ПАРОЛЬ" onkeydown="if(event.key === 'Enter') unlockSite()">
-            <br>
-            <button class="lock-btn" onclick="unlockSite()">АВТОРИЗАЦИЯ</button>
-            <div id="lock-error">НЕВЕРНЫЙ ПАРОЛЬ</div>
-        </div>
-    </div>
-
-    <!-- ИНТРО АНИМАЦИЯ (скрыта изначально) -->
     <div id="intro-screen">
         <div id="intro-explosion"></div>
         <div id="intro-text">MWLAB</div>
     </div>
-
     <div id="bg-image"></div>
     <div class="global-glass-overlay"></div>
     <div id="formulas-container"></div>
@@ -326,8 +283,8 @@
                 <p style="margin-top: 20px;"><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (ПУШКИ):</b></p>
                 <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Скрытый разброс (Точность):</b> Многоствольные пушки получают динамический штраф к меткости. Чем дальше цель и чем больше снарядов в залпе, тем больше урона уйдет в "молоко". Одиночные выстрелы имеют 100% точность.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на штраф точности и коэффициент дальности. Орудия ближнего боя теряют баллы, так как большую часть боя не достают до цели.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Альфа-страйк и Баллистика:</b> Разрушительный урон за один залп и скорость полета снаряда крайне важны для стрельбы из-за укрытий и на упреждение.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на процент точности.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Альфа-страйк и Баллистика:</b> Разрушительный урон за один залп и скорость полета снаряда крайне важны для стрельбы из-за укрытий и на упреждение. Одиночные выстрелы дают огромный бонус.</li>
                 </ul>
 
                 <p style="margin-top: 20px;"><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (РАКЕТЫ):</b></p>
@@ -340,7 +297,6 @@
         </div>
     </div>
 
-    <!-- ОСНОВНОЙ КОНТЕНТ (скрыт изначально) -->
     <div class="app-wrapper">
         <nav>
             <button class="nav-btn" onclick="switchMainPage('page-compare')">АНАЛИЗАТОР</button>
@@ -445,46 +401,6 @@
     </div>
 
     <script>
-        // --- ЛОГИКА ЭКРАНА БЛОКИРОВКИ ---
-        const SITE_PASSWORD = "stage"; // <-- ИЗМЕНИ ПАРОЛЬ ЗДЕСЬ, ЕСЛИ НУЖНО
-
-        function unlockSite() {
-            const input = document.getElementById('global-lock-input').value;
-            const err = document.getElementById('lock-error');
-            
-            if (input.toLowerCase() === SITE_PASSWORD.toLowerCase()) {
-                localStorage.setItem('mwlab_auth_token', 'granted');
-                const lockScreen = document.getElementById('global-lock-screen');
-                lockScreen.style.opacity = '0';
-                
-                setTimeout(() => {
-                    lockScreen.style.display = 'none';
-                    document.getElementById('intro-screen').style.display = 'flex'; // Показываем интро
-                    triggerIntro(); // Запускаем красивый взрыв
-                }, 500);
-            } else {
-                err.style.opacity = '1';
-                setTimeout(() => err.style.opacity = '0', 2000);
-            }
-        }
-
-        // Запуск при открытии сайта
-        window.onload = () => { 
-            initApp(); 
-            
-            // Проверка: есть ли у пользователя пропуск в памяти браузера?
-            if (localStorage.getItem('mwlab_auth_token') === 'granted') {
-                // Пускаем сразу к интро
-                document.getElementById('global-lock-screen').style.display = 'none';
-                document.getElementById('intro-screen').style.display = 'flex';
-                triggerIntro();
-            } else {
-                // Блокируем сайт
-                document.getElementById('global-lock-screen').style.display = 'flex';
-            }
-        };
-
-        // --- ОСТАЛЬНАЯ ЛОГИКА САЙТА ---
         function triggerIntro() {
             const introScreen = document.getElementById('intro-screen');
             const explosionContainer = document.getElementById('intro-explosion');
