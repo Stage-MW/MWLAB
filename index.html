@@ -6,7 +6,9 @@
     <meta name="theme-color" content="#03070b">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>MWLAB | АНАЛИЗ ВООРУЖЕНИЯ</title>
+    <!-- Библиотека для графиков -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- НОВОЕ: Библиотека для скриншотов и инфографики -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jura:wght@400;600;700&family=Share+Tech+Mono&family=Orbitron:wght@900&display=swap');
@@ -220,17 +222,6 @@
         .build-slot-container { display: flex; align-items: center; justify-content: center; gap: 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 15px; margin-bottom: 10px; border-radius: 8px; }
         .build-slot-container .search-input { max-width: 300px; }
 
-        /* Враппер для экспорта с фоновым изображением */
-        .export-wrapper { 
-            background: linear-gradient(135deg, rgba(3, 7, 11, 0.85) 0%, rgba(10, 5, 8, 0.95) 100%), url('img/build-bg.jpg'); 
-            background-size: cover; 
-            background-position: center;
-            padding: 30px; 
-            border-radius: 12px; 
-            border: 1px solid var(--primary-dim); 
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.9), 0 20px 50px rgba(0,0,0,0.5);
-        }
-
         /* КАТАЛОГ (АРСЕНАЛ) */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .catalog-item { background: var(--glass-bg); border: 1px solid var(--primary-dim); border-top: 1px solid var(--glass-reflection); padding: 15px; cursor: pointer; position: relative; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); }
@@ -259,6 +250,9 @@
         .modal-content { background: var(--glass-bg); border: 1px solid var(--primary); padding: 30px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); box-shadow: inset 0 0 20px rgba(255, 42, 95, 0.1), 0 20px 50px rgba(0,0,0,0.9); }
         .modal-close { position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--primary); font-size: 1.8rem; cursor: pointer; font-family: 'Jura'; font-weight: bold; transition: 0.3s; }
         .modal-close:hover { transform: scale(1.2); text-shadow: 0 0 10px var(--primary); }
+
+        /* Враппер для экспорта */
+        .export-wrapper { background-color: #03070b; padding: 20px; border-radius: 10px; border: 1px solid var(--primary-dim); }
 
         @media (max-width: 1100px) {
             .compare-grid { display: flex; flex-direction: column; gap: 20px; }
@@ -331,6 +325,7 @@
             <div class="controls-container" style="margin-bottom: 20px;">
                 <button class="nav-btn btn-export" onclick="exportToImage('compare-export-wrapper', 'MWLAB_Анализ')">📸 СКАЧАТЬ ИНФОГРАФИКУ</button>
             </div>
+            <!-- Обертка для скриншота -->
             <div id="compare-export-wrapper" class="export-wrapper">
                 <div class="compare-grid">
                     <div class="equip-card" id="card-equip-1">
@@ -355,6 +350,7 @@
             </div>
         </main>
 
+        <!-- НОВАЯ ВКЛАДКА: КОНСТРУКТОР -->
         <main id="page-builder" class="page">
             <div class="controls-container" style="margin-bottom: 20px;">
                 <button class="nav-btn" onclick="addBuildSlot()">+ ДОБАВИТЬ СЛОТ</button>
@@ -364,6 +360,7 @@
             
             <div id="build-slots" style="max-width: 800px; margin: 0 auto 30px auto;"></div>
 
+            <!-- Обертка для скриншота конструктора -->
             <div id="build-export-wrapper" class="export-wrapper" style="display:none; max-width: 900px; margin: 0 auto;">
                 <div class="verdict-header">АНАЛИЗ СБОРКИ КОРАБЛЯ</div>
                 <div class="analysis-cols" style="flex-wrap: wrap;" id="build-stats-container"></div>
@@ -792,6 +789,7 @@
             renderCategoryBar();
             renderDynamicFilters();
             handleFilter();
+            // Добавим первый пустой слот в конструктор
             addBuildSlot();
         }
 
@@ -1079,7 +1077,7 @@
 
                 totalBurst += item.damage_burst * qty;
                 totalDpm += item.dpm * qty;
-                totalEffDpm += (item.effectiveDpm || item.dpm) * qty;
+                totalEffDpm += (item.effectiveDpm || item.dpm) * qty; // Используем уже рассчитанный эффективный DPM
                 avgSpeed += item.max_speed * qty;
                 itemsCount += qty;
 
@@ -1093,6 +1091,7 @@
 
             document.getElementById('build-export-wrapper').style.display = 'block';
 
+            // Отрисовка статистики
             const statsContainer = document.getElementById('build-stats-container');
             statsContainer.innerHTML = `
                 <div class="analysis-col">
@@ -1114,6 +1113,7 @@
                 </div>
             `;
 
+            // Текстовый вердикт
             let tacticsText = `<div class="final-summary-block"><b style="color:var(--secondary); font-size:1.2rem;">ОЦЕНКА СБОРКИ:</b><br><br>`;
             if (hasAntiJamming) tacticsText += `<span style="color:#00e5ff">[+]</span> Интегрирована защита от ловушек (часть урона неотводима).<br>`;
             if (totalBurst > 100000) tacticsText += `<span style="color:#ff2a5f">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
@@ -1122,6 +1122,7 @@
             tacticsText += `</div>`;
             document.getElementById('build-tactics').innerHTML = tacticsText;
 
+            // Отрисовка Радара сборки
             let canvas = document.getElementById('buildRadarChart');
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
