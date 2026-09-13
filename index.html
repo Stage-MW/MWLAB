@@ -283,8 +283,8 @@
                 <p style="margin-top: 20px;"><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (ПУШКИ):</b></p>
                 <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Скрытый разброс (Точность):</b> Многоствольные пушки получают динамический штраф к меткости. Чем дальше цель и чем больше снарядов в залпе, тем больше урона уйдет в "молоко". Одиночные выстрелы имеют 100% точность.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на штраф точности и коэффициент дальности. Орудия ближнего боя теряют баллы, так как большую часть боя не достают до цели.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Альфа-страйк и Баллистика:</b> Разрушительный урон за один залп и скорость полета снаряда крайне важны для стрельбы из-за укрытий и на упреждение.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на процент точности.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Альфа-страйк и Баллистика:</b> Разрушительный урон за один залп и скорость полета снаряда крайне важны для стрельбы из-за укрытий и на упреждение. Одиночные выстрелы дают огромный бонус.</li>
                 </ul>
 
                 <p style="margin-top: 20px;"><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (РАКЕТЫ):</b></p>
@@ -581,26 +581,26 @@
 
             if (item.category === "Пушки") {
                 if (item.projectiles > 1) {
-                    let baseDispersion = (item.projectiles - 1) * 0.04; 
+                    let baseDispersion = (item.projectiles - 1) * 0.06; 
                     let distancePenalty = item.range / 10; 
                     item.accuracyScore = Math.max(30, 100 - (baseDispersion * distancePenalty * 100));
                 }
 
-                let accuracyMultiplier = item.accuracyScore / 100;
-                let rangeFactor = Math.min(1.2, item.range / 14); 
-                item.effectiveDpm = item.dpm * rangeFactor * accuracyMultiplier;
-
-                score += (item.effectiveDpm / 350000) * 200;
+                item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
+                
+                score += (item.effectiveDpm / 350000) * 250;
                 score += (item.damage_burst / 40000) * 150;
                 score += (item.max_speed / 1200) * 180; 
                 
-                if (item.range >= 15) score += 80;
-                else if (item.range < 9) score -= (9 - item.range) * 20;
+                score += (item.range / 20) * 80;
+                if (item.range < 9) score -= (9 - item.range) * 20;
                 
                 if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
                 if (item.reload < 3.0) score += 30;
                 
-                if (item.projectiles === 1) score += 60; // Огромный бонус за стрельбу из-за укрытия
+                if (item.projectiles === 1) score += 80; 
+                else if (item.projectiles === 2) score += 30;
+                else if (item.projectiles >= 3) score -= (item.projectiles * 10);
                 
                 if (item.air_target === 1) score += 50;
                 if (item.splash_damage) score += (item.splash_damage / 1000) * 30;
@@ -834,9 +834,9 @@
                 if (item.start_speed >= 200) pros.push("Резкий старт (ПВО не успевает среагировать)"); else if (item.start_speed < 50) cons.push("Критически медленный старт (легко сбивается ПВО)");
                 if (item.lock_time === 0) pros.push("Лазерное наведение (моментальный пуск без ожидания)"); else if (item.lock_time >= 3.0) cons.push(`Критически долгий захват (${item.lock_time} сек)`);
             } else if (item.category === "Пушки") {
-                if (item.accuracyScore === 100) pros.push("Идеальная кучность (снаряды ложатся точно в цель)");
+                if (item.accuracyScore === 100) pros.push("Идеальная кучность (снаряды ложатся точно в цель на любой дистанции)");
                 else if (item.accuracyScore < 75) cons.push(`Критический разброс из-за ${item.projectiles} снарядов (теряет до ${Math.round(100 - item.accuracyScore)}% урона на дистанции)`);
-                else cons.push(`Заметный разброс (до ${Math.round(100 - item.accuracyScore)}% промахов по маневрирующей цели)`);
+                else cons.push(`Заметный разброс (до ${Math.round(100 - item.accuracyScore)}% промахов по маневрирующей цели на дистанции)`);
                 
                 if (item.max_speed >= 800) pros.push("Отличная баллистика (очень легко брать упреждение)");
                 else if (item.max_speed < 600) cons.push("Медленный полет снаряда (сложно попадать на дистанции)");
@@ -844,7 +844,7 @@
                 if (item.projectiles === 1) pros.push("Вся мощь в одном снаряде (идеально для стрельбы из-за укрытия)");
                 else if (item.projectiles >= 5) cons.push("Долгая очередь (враг успеет уйти в укрытие, получив лишь часть урона)");
                 
-                if (item.effectiveDpm > 250000) pros.push("Подавляющий эффективный DPM (даже с учетом дистанции)");
+                if (item.effectiveDpm > 250000) pros.push(`Подавляющий эффективный DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')} с учетом дистанции)`);
                 if (item.reload <= 3.0) pros.push("Высокая скорострельность (позволяет быстро пристреляться)");
                 else cons.push("Долгая перезарядка (ошибки прицеливания стоят дорого)");
                 
@@ -948,8 +948,9 @@
                     else if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек (РЭБ)";
                     else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
                 } else if (e1.category === "Пушки") {
-                    if (winner.accuracyScore > loser.accuracyScore + 20) reason = "идеальной кучности (отсутствия потери урона на дистанции из-за разброса)";
-                    else if (winner.projectiles === 1 && loser.projectiles > 2) reason = "одиночных точных выстрелов (снаряды не уходят в 'молоко', когда враг прячется)";
+                    if (winner.accuracyScore > loser.accuracyScore + 20) reason = "идеальной кучности (снаряды не улетают в молоко на дистанции)";
+                    else if (winner.projectiles === 1 && loser.projectiles > 2) reason = "одиночных точных выстрелов (враг не успеет спрятаться от урона)";
+                    else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом дистанции и разброса";
                     else if (winner.damage_burst > loser.damage_burst + 15000) reason = "разрушительного Альфа-страйка (урона за выстрел)";
                     else if (loser.range < 9 && winner.range >= 12) reason = "огромного превосходства в дальности (может атаковать безнаказанно)";
                     else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной баллистики и скорости снаряда";
