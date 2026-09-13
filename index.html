@@ -2,9 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#03070b">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>MWLAB | АНАЛИЗ ВООРУЖЕНИЯ</title>
+    <!-- Библиотека для графиков -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- НОВОЕ: Библиотека для скриншотов и инфографики -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jura:wght@400;600;700&family=Share+Tech+Mono&family=Orbitron:wght@900&display=swap');
 
@@ -22,8 +27,8 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
-        body {
-            background-color: transparent;
+        html, body {
+            background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'Jura', sans-serif;
             text-transform: uppercase;
@@ -79,7 +84,6 @@
             z-index: -4;
             animation: bgBreath 25s ease-in-out infinite alternate;
         }
-
         @keyframes bgBreath { from { transform: scale(1); } to { transform: scale(1.08); } }
 
         .global-glass-overlay {
@@ -127,6 +131,8 @@
             cursor: pointer; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); transition: all 0.3s ease; text-transform: uppercase;
         }
         .nav-btn:hover, .nav-btn.active { background: rgba(255, 42, 95, 0.15); border-color: var(--primary); box-shadow: var(--border-glow); text-shadow: 0 0 8px var(--primary); color: #fff; }
+        .btn-export { border-color: var(--secondary); color: var(--secondary); }
+        .btn-export:hover { border-color: var(--secondary); box-shadow: 0 0 15px rgba(0,229,255,0.4); text-shadow: 0 0 8px var(--secondary); }
         
         .info-btn {
             background: rgba(0, 0, 0, 0.5); border: 1px solid var(--primary); color: var(--primary);
@@ -212,6 +218,10 @@
         .final-summary-block { margin-top: 15px; padding: 20px; text-align: center; border: 2px solid var(--primary); background: rgba(255, 42, 95, 0.05); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); box-shadow: inset 0 0 20px rgba(255, 42, 95, 0.1); }
         .radar-container { width: 100%; max-width: 400px; margin: 0 auto 20px auto; }
 
+        /* КОНСТРУКТОР */
+        .build-slot-container { display: flex; align-items: center; justify-content: center; gap: 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .build-slot-container .search-input { max-width: 300px; }
+
         /* КАТАЛОГ (АРСЕНАЛ) */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .catalog-item { background: var(--glass-bg); border: 1px solid var(--primary-dim); border-top: 1px solid var(--glass-reflection); padding: 15px; cursor: pointer; position: relative; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); }
@@ -241,12 +251,16 @@
         .modal-close { position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--primary); font-size: 1.8rem; cursor: pointer; font-family: 'Jura'; font-weight: bold; transition: 0.3s; }
         .modal-close:hover { transform: scale(1.2); text-shadow: 0 0 10px var(--primary); }
 
+        /* Враппер для экспорта */
+        .export-wrapper { background-color: #03070b; padding: 20px; border-radius: 10px; border: 1px solid var(--primary-dim); }
+
         @media (max-width: 1100px) {
             .compare-grid { display: flex; flex-direction: column; gap: 20px; }
             .equip-card { width: 100%; order: 1; }
             #card-equip-2 { order: 2; }
             .analytics-core { order: 3; width: 100%; margin-top: 10px; }
             .analysis-cols { flex-direction: column; }
+            .build-slot-container { flex-direction: column; }
         }
         @media (max-width: 768px) {
             #intro-text { font-size: 3.5rem; letter-spacing: 5px; }
@@ -276,22 +290,16 @@
     <div id="ibe-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
-            <div style="color: #fff; font-family: 'Jura'; font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid var(--primary-dim); padding-bottom: 10px;">СИСТЕМА РЕЙТИНГА (0 - 1000 БАЛЛОВ)</div>
+            <div style="color: #fff; font-family: 'Jura'; font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid var(--primary-dim); padding-bottom: 10px;">СИСТЕМА РЕЙТИНГА И КОНСТРУКТОР</div>
             <div style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: #a09095;">
                 <p><b>АНАЛИЗАТОР:</b> Сравнивает две единицы вооружения, находя их уникальные тактические преимущества и оценивая потенциал.</p>
+                <p style="margin-top: 10px;"><b>КОНСТРУКТОР СБОРОК:</b> Позволяет имитировать слоты корабля. Выберите пушки и ракеты, укажите их количество, и алгоритм посчитает суммарный эффективный DPM, Альфа-страйк и покажет синергию сборки на графике.</p>
                 
                 <p style="margin-top: 20px;"><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (ПУШКИ):</b></p>
                 <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Скрытый разброс (Точность):</b> Многоствольные пушки получают динамический штраф к меткости. Чем дальше цель и чем больше снарядов в залпе, тем больше урона уйдет в "молоко". Одиночные выстрелы имеют 100% точность.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на процент точности.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Альфа-страйк и Баллистика:</b> Разрушительный урон за один залп и скорость полета снаряда крайне важны для стрельбы из-за укрытий и на упреждение. Одиночные выстрелы дают огромный бонус.</li>
-                </ul>
-
-                <p style="margin-top: 20px;"><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (РАКЕТЫ):</b></p>
-                <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Огневая мощь:</b> Чистый DPM и разовый альфа-страйк.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #ffaa00;">Уникальные механики:</b> Помехозащита (+200), Кластерная БЧ / Осколки (+100-150), Урон по области (+50), Лазерное наведение (+50).</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Штрафные санкции:</b> Мертвая зона и долгое время разгона активно сжигают баллы.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на процент точности и штраф дальности.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Альфа-страйк и Баллистика:</b> Разрушительный урон за один залп и скорость полета снаряда крайне важны для стрельбы из-за укрытий и на упреждение.</li>
                 </ul>
             </div>
         </div>
@@ -300,38 +308,66 @@
     <div class="app-wrapper">
         <nav>
             <button class="nav-btn" onclick="switchMainPage('page-compare')">АНАЛИЗАТОР</button>
+            <button class="nav-btn" onclick="switchMainPage('page-builder')">КОНСТРУКТОР</button>
             <button class="nav-btn active" onclick="switchMainPage('page-catalog')">АРСЕНАЛ</button>
             <button class="nav-btn" onclick="switchMainPage('page-rating')">ТИР-ЛИСТ</button>
-            <button class="info-btn" style="width: auto; padding: 0 15px;" onclick="switchMainPage('page-admin')">⚙️ КАБИНЕТ</button>
+            <button class="info-btn" style="width: auto; padding: 0 15px;" onclick="switchMainPage('page-admin')">⚙️</button>
             <button class="info-btn" style="width: 40px;" onclick="openModal('ibe-modal')">?</button>
         </nav>
 
         <div class="max-lvl-disclaimer">⚠️ ВСЕ ХАРАКТЕРИСТИКИ ПРИВЕДЕНЫ ДЛЯ МАКСИМАЛЬНОГО УРОВНЯ ПРОКАЧКИ</div>
 
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 10;">
+        <div style="padding: 20px; text-align: center; position: relative; z-index: 10;" id="category-bar-wrapper">
             <div class="categories-bar" id="category-bar"></div>
         </div>
 
         <main id="page-compare" class="page">
-            <div class="compare-grid">
-                <div class="equip-card" id="card-equip-1">
-                    <div class="equip-img-container" id="img-equip-1"></div>
-                    <h3 id="name-equip-1" style="margin-bottom:15px; color:#fff; text-align:center; font-size:1.3rem;"></h3>
-                    <table class="stats-table" id="stats-equip-1"></table>
-                </div>
-                
-                <div class="analytics-core">
-                    <div class="verdict-header">VS</div>
-                    <div id="verdict-screen" style="font-family: 'Share Tech Mono'; text-align: center; color: #a09095; margin-top: 10px;">
-                        [ ВЫБЕРИТЕ ДВЕ ЕДИНИЦЫ ИЗ БАЗЫ ]
+            <div class="controls-container" style="margin-bottom: 20px;">
+                <button class="nav-btn btn-export" onclick="exportToImage('compare-export-wrapper', 'MWLAB_Анализ')">📸 СКАЧАТЬ ИНФОГРАФИКУ</button>
+            </div>
+            <!-- Обертка для скриншота -->
+            <div id="compare-export-wrapper" class="export-wrapper">
+                <div class="compare-grid">
+                    <div class="equip-card" id="card-equip-1">
+                        <div class="equip-img-container" id="img-equip-1"></div>
+                        <h3 id="name-equip-1" style="margin-bottom:15px; color:#fff; text-align:center; font-size:1.3rem;"></h3>
+                        <table class="stats-table" id="stats-equip-1"></table>
+                    </div>
+                    
+                    <div class="analytics-core">
+                        <div class="verdict-header">VS</div>
+                        <div id="verdict-screen" style="font-family: 'Share Tech Mono'; text-align: center; color: #a09095; margin-top: 10px;">
+                            [ ВЫБЕРИТЕ ДВЕ ЕДИНИЦЫ ИЗ БАЗЫ ]
+                        </div>
+                    </div>
+
+                    <div class="equip-card" id="card-equip-2">
+                        <div class="equip-img-container" id="img-equip-2"></div>
+                        <h3 id="name-equip-2" style="margin-bottom:15px; color:#fff; text-align:center; font-size:1.3rem;"></h3>
+                        <table class="stats-table" id="stats-equip-2"></table>
                     </div>
                 </div>
+            </div>
+        </main>
 
-                <div class="equip-card" id="card-equip-2">
-                    <div class="equip-img-container" id="img-equip-2"></div>
-                    <h3 id="name-equip-2" style="margin-bottom:15px; color:#fff; text-align:center; font-size:1.3rem;"></h3>
-                    <table class="stats-table" id="stats-equip-2"></table>
+        <!-- НОВАЯ ВКЛАДКА: КОНСТРУКТОР -->
+        <main id="page-builder" class="page">
+            <div class="controls-container" style="margin-bottom: 20px;">
+                <button class="nav-btn" onclick="addBuildSlot()">+ ДОБАВИТЬ СЛОТ</button>
+                <button class="nav-btn" onclick="calculateBuild()">РАССЧИТАТЬ СБОРКУ</button>
+                <button class="nav-btn btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')">📸 СКАЧАТЬ СБОРКУ</button>
+            </div>
+            
+            <div id="build-slots" style="max-width: 800px; margin: 0 auto 30px auto;"></div>
+
+            <!-- Обертка для скриншота конструктора -->
+            <div id="build-export-wrapper" class="export-wrapper" style="display:none; max-width: 900px; margin: 0 auto;">
+                <div class="verdict-header">АНАЛИЗ СБОРКИ КОРАБЛЯ</div>
+                <div class="analysis-cols" style="flex-wrap: wrap;" id="build-stats-container"></div>
+                <div class="radar-container" style="position: relative; height: 350px; margin-top: 20px;">
+                    <canvas id="buildRadarChart"></canvas>
                 </div>
+                <div id="build-tactics" style="margin-top: 20px; font-family: 'Share Tech Mono';"></div>
             </div>
         </main>
 
@@ -476,7 +512,6 @@
         };
 
         const DB = {
-            // ----- ПУШКИ -----
             "mark51": { name: "MARK 51 AGS (155 MM)", category: "Пушки", country: "США", rarity: "Легендарный", dpm: 297067, damage_burst: 24310, damage: 11050, reload: 4.06, crit_chance: 20, projectiles: 2, range: 17.33, max_speed: 894, start_speed: 894, fire_penalty: 35, img: "img/mark51.png" },
             "mark45": { name: "MARK 45 MOD 4 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330352, damage_burst: 18720, damage: 4680, reload: 2.80, projectiles: 4, range: 12.13, max_speed: 680, start_speed: 680, fire_penalty: 35, img: "img/mark45.png" },
             "ak130": { name: "AK-130 (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 294000, damage_burst: 21021, damage: 2730, reload: 3.15, crit_chance: 20, projectiles: 7, range: 12.13, max_speed: 680, start_speed: 680, fire_penalty: 35, img: "img/ak130.png" },
@@ -730,15 +765,32 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             
-            if(pageId === 'page-compare') document.querySelectorAll('.nav-btn')[0].classList.add('active');
-            if(pageId === 'page-catalog') { document.querySelectorAll('.nav-btn')[1].classList.add('active'); compareQueue = []; handleFilter(); }
-            if(pageId === 'page-rating') { document.querySelectorAll('.nav-btn')[2].classList.add('active'); handleFilter(); }
+            if(pageId === 'page-compare') {
+                document.querySelectorAll('.nav-btn')[0].classList.add('active');
+                document.getElementById('category-bar-wrapper').style.display = 'block';
+            }
+            if(pageId === 'page-builder') {
+                document.querySelectorAll('.nav-btn')[1].classList.add('active');
+                document.getElementById('category-bar-wrapper').style.display = 'none';
+            }
+            if(pageId === 'page-catalog') { 
+                document.querySelectorAll('.nav-btn')[2].classList.add('active'); 
+                document.getElementById('category-bar-wrapper').style.display = 'block';
+                compareQueue = []; handleFilter(); 
+            }
+            if(pageId === 'page-rating') { 
+                document.querySelectorAll('.nav-btn')[3].classList.add('active'); 
+                document.getElementById('category-bar-wrapper').style.display = 'block';
+                handleFilter(); 
+            }
         }
 
         function initApp() {
             renderCategoryBar();
             renderDynamicFilters();
             handleFilter();
+            // Добавим первый пустой слот в конструктор
+            addBuildSlot();
         }
 
         function handleCatalogClick(itemId) {
@@ -968,6 +1020,158 @@
             let finalVerdictHTML = `<div class="final-summary-block"><div style="font-family:'Share Tech Mono'; font-size:0.95rem; line-height: 1.6; text-transform: none;">${summaryText}</div>${visualsHTML}</div>`;
             document.getElementById('verdict-screen').innerHTML = analysisCols + finalVerdictHTML;
             setTimeout(() => { drawRadarChart(e1, e2); }, 100);
+        }
+
+        /* --- ЛОГИКА КОНСТРУКТОРА СБОРОК --- */
+        let slotCounter = 0;
+        
+        function getOptionsHtml() {
+            let html = '';
+            CATEGORIES.forEach(cat => {
+                html += `<optgroup label="${cat}">`;
+                for (let key in DB) {
+                    if (DB[key].category === cat) {
+                        html += `<option value="${key}">${DB[key].name}</option>`;
+                    }
+                }
+                html += `</optgroup>`;
+            });
+            return html;
+        }
+
+        function addBuildSlot() {
+            const container = document.getElementById('build-slots');
+            const slotId = 'slot-' + slotCounter++;
+            const slotHtml = `
+                <div class="build-slot-container" id="${slotId}">
+                    <div style="color: var(--secondary); font-family: 'Share Tech Mono';">ОСНАЩЕНИЕ:</div>
+                    <select class="search-input slot-item">${getOptionsHtml()}</select>
+                    <select class="search-input slot-qty" style="width: 80px;">
+                        <option value="1">x1</option><option value="2">x2</option>
+                        <option value="3">x3</option><option value="4">x4</option>
+                    </select>
+                    <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--primary); font-size:1.5rem; cursor:pointer; font-family:'Jura'; font-weight:bold;">×</button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', slotHtml);
+        }
+
+        function calculateBuild() {
+            const slots = document.querySelectorAll('.build-slot-container');
+            if (slots.length === 0) return showToast("ДОБАВЬТЕ ХОТЯ БЫ ОДИН СЛОТ", true);
+
+            let totalBurst = 0;
+            let totalDpm = 0;
+            let totalEffDpm = 0;
+            let avgSpeed = 0;
+            let maxRange = 0;
+            let itemsCount = 0;
+            let hasAir = false;
+            let hasSub = false;
+            let hasAntiJamming = false;
+
+            slots.forEach(slot => {
+                const itemKey = slot.querySelector('.slot-item').value;
+                const qty = parseInt(slot.querySelector('.slot-qty').value);
+                const item = DB[itemKey];
+
+                totalBurst += item.damage_burst * qty;
+                totalDpm += item.dpm * qty;
+                totalEffDpm += (item.effectiveDpm || item.dpm) * qty; // Используем уже рассчитанный эффективный DPM
+                avgSpeed += item.max_speed * qty;
+                itemsCount += qty;
+
+                if (item.range > maxRange) maxRange = item.range;
+                if (item.air_target === 1) hasAir = true;
+                if (item.sub_launch === 1) hasSub = true;
+                if (item.anti_jamming === 1) hasAntiJamming = true;
+            });
+
+            if (itemsCount > 0) avgSpeed = avgSpeed / itemsCount;
+
+            document.getElementById('build-export-wrapper').style.display = 'block';
+
+            // Отрисовка статистики
+            const statsContainer = document.getElementById('build-stats-container');
+            statsContainer.innerHTML = `
+                <div class="analysis-col">
+                    <div class="col-title">ОГНЕВАЯ МОЩЬ</div>
+                    <div style="font-family:'Share Tech Mono'; color:#e0f2f1; font-size:1.1rem; line-height:1.6; text-transform:none;">
+                        Урон в минуту: <b style="color:var(--secondary)">${Math.round(totalDpm).toLocaleString('ru')}</b><br>
+                        Эффективный DPM: <b style="color:#ffaa00">${Math.round(totalEffDpm).toLocaleString('ru')}</b><br>
+                        Урон за залп (Альфа): <b style="color:var(--primary)">${Math.round(totalBurst).toLocaleString('ru')}</b>
+                    </div>
+                </div>
+                <div class="analysis-col">
+                    <div class="col-title">ТАКТИЧЕСКИЕ ДАННЫЕ</div>
+                    <div style="font-family:'Share Tech Mono'; color:#e0f2f1; font-size:1.1rem; line-height:1.6; text-transform:none;">
+                        Дальность боя: <b style="color:#fff">${maxRange} км</b><br>
+                        Средняя баллистика: <b style="color:#fff">${Math.round(avgSpeed)} уз.</b><br>
+                        ПВО возможности: ${hasAir ? '<b style="color:var(--secondary)">ЕСТЬ</b>' : '<b style="color:#555">НЕТ</b>'}<br>
+                        Удары из-под воды: ${hasSub ? '<b style="color:var(--secondary)">ЕСТЬ</b>' : '<b style="color:#555">НЕТ</b>'}
+                    </div>
+                </div>
+            `;
+
+            // Текстовый вердикт
+            let tacticsText = `<div class="final-summary-block"><b style="color:var(--secondary); font-size:1.2rem;">ОЦЕНКА СБОРКИ:</b><br><br>`;
+            if (hasAntiJamming) tacticsText += `<span style="color:#00e5ff">[+]</span> Интегрирована защита от ловушек (часть урона неотводима).<br>`;
+            if (totalBurst > 100000) tacticsText += `<span style="color:#ff2a5f">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
+            if (totalEffDpm > 500000) tacticsText += `<span style="color:#ffaa00">[!]</span> Колоссальный эффективный DPM. Сборка распилит любого в открытом бою.<br>`;
+            if (!hasAir) tacticsText += `<span style="color:#ff2a5f">[-]</span> Сборка уязвима с воздуха, требуется сильное ПВО на корабле.<br>`;
+            tacticsText += `</div>`;
+            document.getElementById('build-tactics').innerHTML = tacticsText;
+
+            // Отрисовка Радара сборки
+            let canvas = document.getElementById('buildRadarChart');
+            let ctx = canvas.getContext('2d');
+            if(window.buildRadarInstance) window.buildRadarInstance.destroy();
+            
+            window.buildRadarInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Эффект. DPM', 'Альфа-страйк', 'Дальность', 'Баллистика (Скор.)', 'Универсальность'],
+                    datasets: [{
+                        label: "СБОРКА",
+                        data: [
+                            Math.min(100, (totalEffDpm / 800000) * 100),
+                            Math.min(100, (totalBurst / 150000) * 100),
+                            Math.min(100, (maxRange / 18) * 100),
+                            Math.min(100, (avgSpeed / 1000) * 100),
+                            ((hasAir ? 50 : 0) + (hasSub ? 30 : 0) + (hasAntiJamming ? 20 : 0))
+                        ],
+                        backgroundColor: 'rgba(0, 229, 255, 0.2)', borderColor: '#00e5ff', pointBackgroundColor: '#00e5ff', borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(255, 255, 255, 0.1)' }, grid: { color: 'rgba(255, 255, 255, 0.1)' }, pointLabels: { color: '#a09095', font: { family: 'Jura', size: 14 } }, ticks: { display: false } } },
+                    plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false
+                }
+            });
+            showToast("СБОРКА РАССЧИТАНА");
+        }
+
+        /* --- ГЕНЕРАТОР ИНФОГРАФИКИ --- */
+        function exportToImage(elementId, filename) {
+            const el = document.getElementById(elementId);
+            if (!el || el.style.display === 'none') return showToast("НЕТ ДАННЫХ ДЛЯ ЭКСПОРТА", true);
+            
+            showToast("ГЕНЕРАЦИЯ ИНФОГРАФИКИ...");
+            
+            html2canvas(el, {
+                backgroundColor: '#03070b',
+                scale: 2,
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `${filename}_${new Date().getTime()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast("УСПЕШНО СОХРАНЕНО");
+            }).catch(err => {
+                showToast("ОШИБКА ГЕНЕРАЦИИ", true);
+            });
         }
 
         window.onload = () => { initApp(); triggerIntro(); };
