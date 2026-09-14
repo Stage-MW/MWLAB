@@ -417,6 +417,7 @@
             <div class="controls-container">
                 <input type="text" class="search-input" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК ПО НАЗВАНИЮ..." oninput="handleSearch(this.value)">
                 <select class="filter-select" id="filter-country-catalog" onchange="handleFilter()">
+                    <option value="none" selected>СОРТИРОВКА: НЕТ</option>
                     <option value="">ВСЕ СТРАНЫ</option>
                     <option value="Великобритания">Великобритания</option>
                     <option value="Германия">Германия</option>
@@ -441,6 +442,7 @@
                     <option value="Редкий">Редкий</option>
                 </select>
                 <select class="filter-select" id="sort-catalog" onchange="handleFilter()">
+                    <option value="none" selected>СОРТИРОВКА: НЕТ</option>
                     <option value="rating">ТОП: РЕЙТИНГ МЕТЫ</option>
                     <option value="dpm">ТОП: УРОН В МИНУТУ</option>
                     <option value="burst">ТОП: АЛЬФА-СТРАЙК</option>
@@ -868,7 +870,8 @@
                 if (sortType === 'dpm') return b.dpm - a.dpm;
                 if (sortType === 'burst') return b.damage_burst - a.damage_burst;
                 if (sortType === 'speed') return b.max_speed - a.max_speed;
-                return b.rating - a.rating;
+                if (sortType === 'rating') return b.rating - a.rating;
+                return a.name.localeCompare(b.name);
             });
 
             renderCatalogUI(items);
