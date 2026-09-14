@@ -312,16 +312,37 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
             <div style="color: #fff; font-family: 'Jura'; font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid var(--primary-dim); padding-bottom: 10px;">СИСТЕМА РЕЙТИНГА И КОНСТРУКТОР</div>
-            <div style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: #a09095;">
+            
+            <div style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: #a09095; margin-bottom: 20px;">
                 <p><b>АНАЛИЗАТОР:</b> Сравнивает две единицы вооружения, находя их уникальные тактические преимущества и оценивая потенциал.</p>
                 <p style="margin-top: 10px;"><b>КОНСТРУКТОР СБОРОК:</b> Позволяет имитировать слоты корабля. Выберите пушки и ракеты, укажите их количество, и алгоритм посчитает суммарный эффективный DPM, Альфа-страйк и покажет синергию сборки на графике.</p>
-                
-                <p style="margin-top: 20px;"><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (ПУШКИ):</b></p>
+            </div>
+
+            <!-- Вкладки модального окна -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 15px;">
+                <button class="cat-btn-main active" id="btn-modal-cannons" onclick="switchModalTab('cannons')">ПУШКИ</button>
+                <button class="cat-btn-main" id="btn-modal-missiles" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
+            </div>
+
+            <!-- Инфо: Пушки -->
+            <div id="info-cannons" style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: #a09095; display: block;">
+                <p><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (ПУШКИ):</b></p>
                 <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Скрытый разброс (Точность):</b> Многоствольные пушки получают динамический штраф к меткости. Чем дальше цель и чем больше снарядов в залпе, тем больше урона уйдет в "молоко". 2 выстрела имеют идеальную кучность.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на процент точности (рассчитанный для эффективной дистанции боя с учетом скорости полета снаряда).</li>
                     <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Эффективная Альфа:</b> Огромные барабаны (как у автопушек) жестко штрафуются, так как их урон размазан по времени. Чем короче очередь, тем выше оценка Альфа-страйка.</li>
                     <li style="margin-bottom: 8px;"><b style="color: #ffaa00;">Сплэш-урон:</b> Пушки с уроном по области получают бонус, так как могут случайно сбивать вылетающие из врага ракеты при стрельбе по корпусу. Огромный радиус взрыва дает сверхбонус.</li>
+                </ul>
+            </div>
+
+            <!-- Инфо: Ракеты -->
+            <div id="info-missiles" style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: #a09095; display: none;">
+                <p><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (РАКЕТЫ):</b></p>
+                <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
+                    <li style="margin-bottom: 8px;"><b style="color: #00e5ff;">Защита от помех (РЭБ):</b> Ракеты, не сбрасываемые тепловыми ловушками, получают максимальный бонус к рейтингу, так как гарантируют урон.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Прорыв ПВО:</b> Оценивается прочность (HP) ракеты, стартовая скорость (ПВО не успевает среагировать) и количество ракет в одном залпе (рой перегружает защиту).</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #ffaa00;">Кластерная БЧ:</b> Способность ракеты разделяться на осколки обходит ПВО и наносит урон даже при уничтожении основного носителя.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Время захвата и Зоны:</b> Лазерное наведение (0 секунд) дает значительный буст. Долгий лок (более 2 сек) и наличие "мертвой зоны" пуска сильно штрафуются.</li>
                 </ul>
             </div>
         </div>
@@ -550,7 +571,7 @@
             "l52a1": { name: "L/52A1 (155 MM)", category: "Пушки", country: "Германия", rarity: "Эпический", dpm: 336421, damage_burst: 47099, damage: 14949, reload: 7.70, splash_damage: 750, splash_radius: 133, projectiles: 3, range: 13.87, max_speed: 874, start_speed: 874, fire_penalty: 40, img: "img/l52a1.png" },
             "danam2": { name: "DANA-M2 (152 MM)", category: "Пушки", country: "Европейский Союз", rarity: "Эпический", dpm: 335670, damage_burst: 31609, damage: 14299, reload: 5.25, crit_chance: 20, detonation_radius: 6, splash_damage: 75, splash_radius: 133, projectiles: 2, range: 10.83, max_speed: 874, start_speed: 874, fire_penalty: 40, img: "img/danam2.png" },
             "cupid": { name: "CUPID RAILGUN", category: "Пушки", country: "США", rarity: "Эпический", dpm: 334273, damage_burst: 27299, damage: 27299, reload: 4.20, projectiles: 1, range: 17.33, max_speed: 971, start_speed: 971, fire_penalty: 35, img: "img/cupid.png" },
-            "hpj29": { name: "H/PJ-29 (76MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308483, damage_burst: 134550, damage: 2340, reload: 9.80, crit_chance: 30, projectiles: 1, ammo_clip: 50, range: 9.75, max_speed: 874, start_speed: 874, fire_penalty: 35, img: "img/hpj29.png" },
+            "hpj29": { name: "H/PJ-29 (76MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308483, damage_burst: 134550, damage: 2340, reload: 9.80, crit_chance: 30, projectiles: 1, ammo_clip: 50, range: 9.75, max_speed: 874, start_speed: 874, fire_penalty: 35, air_target: 1, img: "img/hpj29.png" },
             "jrvg1": { name: "JRVG-1 (76 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308162, damage_burst: 107600, damage: 2665, reload: 9.10, detonation_radius: 46, splash_damage: 25, splash_radius: 46, projectiles: 1, ammo_clip: 40, range: 8.23, max_speed: 923, start_speed: 923, fire_penalty: 45, air_target: 1, img: "img/jrvg1.png" },
             "project447": { name: "PROJECT 447-155", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 355342, damage_burst: 45247, damage: 12740, reload: 7.14, crit_chance: 25, splash_damage: 750, splash_radius: 166, projectiles: 3, range: 13.87, max_speed: 1020, start_speed: 1020, fire_penalty: 40, img: "img/project447.png" },
             "sh16": { name: "SH-16 (155 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 301241, damage_burst: 36400, damage: 18200, reload: 7.00, projectiles: 2, range: 11.27, max_speed: 933, start_speed: 933, fire_penalty: 40, img: "img/sh16.png" },
@@ -754,6 +775,21 @@
 
         function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+        function switchModalTab(tab) {
+            document.getElementById('info-cannons').style.display = 'none';
+            document.getElementById('info-missiles').style.display = 'none';
+            document.getElementById('btn-modal-cannons').classList.remove('active');
+            document.getElementById('btn-modal-missiles').classList.remove('active');
+            
+            if(tab === 'cannons') {
+                document.getElementById('info-cannons').style.display = 'block';
+                document.getElementById('btn-modal-cannons').classList.add('active');
+            } else {
+                document.getElementById('info-missiles').style.display = 'block';
+                document.getElementById('btn-modal-missiles').classList.add('active');
+            }
+        }
 
         function showToast(msg, isErr = false) {
             const c = document.getElementById('toast-container');
@@ -1089,6 +1125,9 @@
                     else if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек (РЭБ)";
                     else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
                 } else if (e1.category === "Пушки") {
+                    let wShots = Math.max(winner.projectiles || 1, winner.ammo_clip || 1);
+                    let lShots = Math.max(loser.projectiles || 1, loser.ammo_clip || 1);
+
                     if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной точности и баллистики на дистанции";
                     else if (winner.dpm > loser.dpm + 30000 && winner.accuracyScore < 60) reason = "огромного базового DPM, стирающего врагов в ближнем бою";
                     else if (winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "разрушительного Эффективного Альфа-страйка (без долгого барабана)";
