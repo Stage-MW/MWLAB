@@ -329,7 +329,7 @@
                 <p><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (ПУШКИ):</b></p>
                 <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Автонаведение и Укрытия:</b> Все пушки сводятся ровно в центр корпуса врага, поэтому <b>разброса не существует</b>. Урон теряется, только если маневренная цель уворачивается от медленных снарядов на большой дистанции, либо если центр корабля спрятан за скалой (очередь полетит в препятствие).</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на шанс попадания (зависит от скорости полета снаряда и дальности). <span style="color:#fff;">Орудия с колоссальным базовым DPM получают преимущество в Ближнем бою.</span></li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Эффективный DPM:</b> Базовый DPM умножается на шанс попадания (зависит от скорости полета снаряда и дальности). <span style="color:#fff;">Орудия с колоссальным базовым DPM (например, дробовики или зенитки) получают огромное преимущество в Ближнем бою.</span></li>
                     <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Эффективная Альфа (Тактика):</b> Огромные барабаны (как у автопушек) жестко штрафуются, так как для нанесения урона нужно долго держать цель в прицеле и стоять открытым. <span style="color:#fff;">Чем короче очередь (1-2 выстрела), тем выше оценка для снайперской тактики "Выстрелил-спрятался".</span></li>
                     <li style="margin-bottom: 8px;"><b style="color: #ffaa00;">Сплэш-урон:</b> Пушки с уроном по области получают бонус, так как могут случайно сбивать вылетающие из врага ракеты при стрельбе по корпусу. Огромный радиус взрыва дает сверхбонус.</li>
                 </ul>
@@ -693,7 +693,7 @@
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
                 
-                // РАСЧЕТ ТОЧНОСТИ (Уклонение цели от медленных снарядов на дистанции, РАЗБРОСА НЕТ)
+                // РАСЧЕТ ТОЧНОСТИ (Уклонение цели от медленных снарядов на дистанции)
                 let speedFactor = 800 / item.max_speed; 
                 let effectiveDistance = item.range * 0.6; 
                 let evasionPenalty = (effectiveDistance * speedFactor * 1.2);
@@ -701,11 +701,11 @@
 
                 item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
                 
-                // БАЗОВЫЕ ОЧКИ
-                score += (item.dpm / 400000) * 100; 
-                score += (item.effectiveDpm / 400000) * 200; 
+                // БАЗОВЫЕ ОЧКИ (DPM и урон на дистанции)
+                score += (item.dpm / 400000) * 120; // Огромное преимущество ДПМ пушек вблизи
+                score += (item.effectiveDpm / 400000) * 180; // Реальный урон вдаль
                 
-                // ЭФФЕКТИВНАЯ АЛЬФА (Барабаны жестко штрафуются)
+                // ЭФФЕКТИВНАЯ АЛЬФА (Барабаны штрафуются за время вне укрытия)
                 let alphaMultiplier = 1;
                 if (hasClip) {
                     if (item.ammo_clip >= 10) alphaMultiplier = 0.2;
@@ -714,34 +714,44 @@
                 } else {
                     if (pCount === 2) alphaMultiplier = 0.95;
                     else if (pCount === 3) alphaMultiplier = 0.85;
-                    else if (pCount > 3) alphaMultiplier = Math.max(0.1, 1 - (pCount * 0.04));
+                    else if (pCount > 3) alphaMultiplier = Math.max(0.5, 1 - (pCount * 0.05));
                 }
                 
                 item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
                 score += (item.effectiveBurst / 50000) * 150;
 
-                score += (item.max_speed / 1200) * 130; 
+                score += (item.max_speed / 1200) * 100; 
                 score += (item.range / 20) * 100; 
                 
-                if (item.range < 9) score -= (9 - item.range) * 20; 
+                // ЖЕСТКИЙ ШТРАФ ЗА НИЗКУЮ ДАЛЬНОСТЬ (Дробовикам нужно подставляться)
+                if (item.range < 8) {
+                    score -= (8 - item.range) * 35; 
+                } else if (item.range >= 12) {
+                    score += 25; // Бонус снайперам
+                }
                 
                 if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
-                if (item.reload < 3.0) score += 20;
+                if (item.reload <= 3.5) score += 20;
                 
-                if (shotsCount === 1) score += 40; 
-                else if (shotsCount === 2) score += 30; // 2 выстрела
-                else if (shotsCount === 3) score += 15; 
-                else if (shotsCount >= 4) score -= Math.min(50, shotsCount * 1.5);
+                // БОНУСЫ ЗА ТАКТИКУ
+                if (hasClip) {
+                    score -= Math.min(40, item.ammo_clip * 1.5); // Штраф барабана
+                } else {
+                    if (pCount === 1) score += 40; 
+                    else if (pCount === 2) score += 30; 
+                    else if (pCount === 3) score += 15; 
+                    else if (pCount >= 4) score -= Math.min(30, pCount * 2);
+                }
                 
                 if (item.air_target === 1) score += 40;
                 
-                // СБАЛАНСИРОВАННЫЙ СПЛЭШ
+                // СПЛЭШ
                 if (item.splash_damage > 0) {
                     score += 5; 
                     score += (item.splash_damage / 1000) * 5; 
                 }
                 if (item.splash_radius > 0) {
-                    score += (item.splash_radius / 50) * 3.75; // 200 метров = 15 баллов
+                    score += (item.splash_radius / 50) * 3.75; 
                 }
                 if (item.detonation_radius > 0) score += 10;
 
@@ -1011,7 +1021,7 @@
                 
                 if (item.accuracyScore < 75) cons.push(`Потеря урона на дистанции (до ${Math.round(100 - item.accuracyScore)}% промахов из-за уклонения маневренной цели)`);
                 
-                if (item.dpm > 300000 && item.accuracyScore < 80) pros.push(`Разрывающая мощь в ближнем бою (реализует весь огромный DPM ${Math.round(item.dpm).toLocaleString('ru')} в упор)`);
+                if (item.dpm > 300000 && item.accuracyScore < 80) pros.push(`Абсолютный монстр ближнего боя (реализует весь огромный DPM ${Math.round(item.dpm).toLocaleString('ru')} в упор)`);
 
                 if (item.splash_radius >= 100) pros.push(`Огромный радиус взрыва (${item.splash_radius} м) — эффективно сбривает вражеские ракеты при их вылете из шахт!`);
                 else if (item.splash_damage > 0) pros.push("Урон по области (сплэш цепляет и уничтожает вражеские ракеты прямо при их пуске)");
@@ -1149,8 +1159,7 @@
                     else if (winner.splash_damage > 0 && (!loser.splash_damage || loser.splash_damage === 0)) reason = "наличия сплэш-урона (сбивает вражеские ракеты на вылете)";
                 }
 
-                let percentDiff = (((winner.rating - loser.rating) / loser.rating) * 100).toFixed(1);
-                summaryText = `<span style="color:var(--secondary); font-size: 1.2rem; display:block; margin-bottom: 5px;">ТАКТИЧЕСКОЕ ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:#fff;">В текущей мете это вооружение объективно эффективнее на <b style="color:var(--primary)">${percentDiff}%</b> за счет ${reason} (Рейтинг: ${winner.rating} vs ${loser.rating}).</span>`;
+                summaryText = `<span style="color:var(--secondary); font-size: 1.2rem; display:block; margin-bottom: 5px;">ТАКТИЧЕСКОЕ ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:#fff;">В текущей мете это вооружение объективно сильнее за счет ${reason} (Рейтинг: ${winner.rating} vs ${loser.rating} из 1000).</span>`;
             }
 
             let visualsHTML = `
