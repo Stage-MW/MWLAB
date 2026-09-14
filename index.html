@@ -330,6 +330,7 @@
                 <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Автонаведение (Зенитки):</b> Пушки с параметром "Боеприпасы в обойме" (барабанные) сводятся ровно в центр корпуса врага. Из-за этой привязки, если центр корабля спрятан за скалой, очередь полетит в препятствие. У классических пушек такой проблемы нет.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Мета закрытых карт (6-16 км):</b> Дальность сверх 12 км не дает огромного преимущества из-за обилия островов. Однако пушки с дальностью ниже 7 км получают штраф за излишний риск при сближении. Урон вдаль падает только из-за уклонения врага от медленных снарядов (разброса нет).</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Критический урон:</b> Крит дает ровно +50% к базовому урону снаряда. Алгоритм рассчитывает средний прирост DPS на основе шанса крита и добавляет этот множитель к Эффективному DPM.</li>
                     <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Эффективная Альфа (Тактика):</b> Огромные барабаны (как у автопушек) жестко штрафуются, так как для нанесения урона нужно долго держать цель в прицеле и стоять открытым. <span style="color:#fff;">Чем короче очередь (1-2 выстрела), тем выше оценка для снайперской тактики "Выстрелил-спрятался".</span></li>
                     <li style="margin-bottom: 8px;"><b style="color: #ffaa00;">Сплэш-урон:</b> Пушки с уроном по области получают бонус, так как могут случайно сбивать вылетающие из врага ракеты при стрельбе по корпусу. Огромный радиус взрыва дает сверхбонус.</li>
                 </ul>
@@ -692,18 +693,24 @@
             if (item.category === "Пушки") {
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
+
+                // Считаем бонус от критического урона (50% бонуса к базе)
+                let critMult = 1;
+                if (item.crit_chance && item.crit_chance > 0) {
+                    critMult = 1 + (item.crit_chance / 100) * 0.5;
+                }
                 
-                // РАСЧЕТ ПОПАДАНИЙ: Зависит ТОЛЬКО от скорости снаряда (уклонение цели на дистанции). РАЗБРОСА НЕТ.
+                // РАСЧЕТ ПОПАДАНИЙ (Уклонение цели на дистанции, разброса нет)
                 let speedFactor = 800 / item.max_speed; 
                 let effectiveDistance = item.range * 0.6; 
                 let evasionPenalty = (effectiveDistance * speedFactor * 1.2);
                 item.accuracyScore = Math.max(25, 100 - evasionPenalty); 
 
-                item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
+                // Применяем шанс попадания и КРИТ к DPM
+                item.effectiveDpm = item.dpm * (item.accuracyScore / 100) * critMult;
                 
-                // БАЗОВЫЕ ОЧКИ
-                score += (item.dpm / 400000) * 120; // Огромное преимущество ДПМ пушек вблизи
-                score += (item.effectiveDpm / 400000) * 180; // Реальный урон вдаль
+                score += (item.dpm / 400000) * 100; 
+                score += (item.effectiveDpm / 400000) * 200; 
                 
                 // ЭФФЕКТИВНАЯ АЛЬФА
                 let alphaMultiplier = 1;
@@ -717,16 +724,16 @@
                     else if (pCount > 3) alphaMultiplier = Math.max(0.1, 1 - (pCount * 0.04));
                 }
                 
-                item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
-                score += (item.effectiveBurst / 50000) * 180; // Увеличен вес Альфы
+                // Применяем крит к Альфе
+                item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier * critMult;
+                score += (item.effectiveBurst / 50000) * 180;
 
                 score += (item.max_speed / 1200) * 130; 
-                score += (item.range / 20) * 40; // Сильно снижен базовый вес дальности
+                score += (item.range / 20) * 40; 
                 
-                if (item.range < 7) score -= (7 - item.range) * 20; // Мягкий штраф
-                else if (item.range >= 13) score += 10; // Небольшой бонус
+                if (item.range < 7) score -= (7 - item.range) * 20; 
+                else if (item.range >= 13) score += 10; 
                 
-                if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
                 if (item.reload < 3.0) score += 20;
                 
                 // БОНУСЫ ЗА ТАКТИКУ
@@ -1015,6 +1022,11 @@
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
                 
+                if (item.crit_chance && item.crit_chance > 0) {
+                    let maxCritBurst = Math.round(item.damage_burst * 1.5).toLocaleString('ru');
+                    pros.push(`Критический урон: шанс ${item.crit_chance}% нанести +50% урона (разгоняет макс. залп до ${maxCritBurst})`);
+                }
+
                 if (item.accuracyScore < 75) cons.push(`Потеря урона на дистанции (до ${Math.round(100 - item.accuracyScore)}% промахов из-за уклонения маневренной цели)`);
                 
                 if (item.dpm > 300000 && item.accuracyScore < 80) pros.push(`Абсолютный монстр ближнего боя (реализует весь огромный DPM ${Math.round(item.dpm).toLocaleString('ru')} в упор)`);
