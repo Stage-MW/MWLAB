@@ -564,7 +564,7 @@
                 <ul style="margin-left: 20px; color: var(--text-muted);">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
                     <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость и количество в залпе.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО. У отводимых (РЭБ) ракет при сбросе ловушками часть осколков (~40%) долетает в цель, нанося около 20% от основного урона.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО. У отводимых (РЭБ) ракет при сбросе ловушками есть 15% шанс прохождения урона, который составит 10% от максимального.</li>
                     <li style="margin-bottom: 8px;"><b style="color: #fff;">Время захвата:</b> Лазерное наведение дает буст. Мертвая зона сильно штрафуется.</li>
                 </ul>
             </div>
@@ -831,15 +831,21 @@
                     if (item.anti_jamming === 1) {
                         score += 100; 
                     } else {
-                        score += 35; 
+                        score += 10; // Нерф кластерной БЧ
                     }
                 }
                 
                 score += (item.projectiles * 45); 
-                score += (item.hp / 400) * 120; 
-                score += (item.start_speed / 400) * 80; 
-                score += (item.max_speed / 600) * 50; 
+                // Новая логика прочности, скорости и разгона
+                score += (item.hp / 400) * 160; 
+                score += (item.start_speed / 400) * 120; 
+                score -= (item.accel_time * 25); 
+                score += (item.max_speed / 600) * 100; 
                 
+                // Кап дальности
+                let cappedRange = Math.min(item.range, 10);
+                score += (cappedRange / 10) * 20;
+
                 if (item.reload <= 8.0) score += (8.0 - item.reload) * 15;
 
                 if (item.splash_damage) score += (item.splash_damage / 5000) * 30; 
@@ -852,7 +858,6 @@
                 
                 if (item.lock_time === 0) { score += 50; } else if (item.lock_time > 1.5) { score -= ((item.lock_time - 1.5) * 30); }
                 
-                score -= (item.accel_time * 12); 
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
                 if (item.min_range > 0) score -= (item.min_range * 30); 
                 return score;
@@ -1136,7 +1141,7 @@
                 if (item.air_target === 1) pros.push("Многоцелевая (может поражать авиацию)");
                 if (item.sub_launch === 1) pros.push("Подводный пуск (атака из-под воды)");
                 if (item.cluster === 1 || item.fragmentation_damage > 0) {
-                    if (item.anti_jamming === 0) pros.push("Частичный урон сквозь РЭБ (при сбросе ловушками ~40% осколков долетят, нанеся ~20% урона)"); 
+                    if (item.anti_jamming === 0) pros.push("Частичный урон сквозь РЭБ (при сбросе ловушками шанс 15% нанести 10% урона)"); 
                     else pros.push("Кластерная БЧ (ПВО не сбивает мелкие осколки, гарантия урона)");
                 }
                 if (item.dpm > 250000) pros.push("Колоссальный математический DPM");
