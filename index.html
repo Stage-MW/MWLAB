@@ -50,10 +50,21 @@
             min-height: 100vh;
         }
 
+        /* Пылинки / частицы на фоне для атмосферы */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-image: radial-gradient(circle at center, rgba(66, 245, 227, 0.05) 0%, transparent 60%);
             z-index: -2; pointer-events: none;
+        }
+
+        /* --- ГЛОБАЛЬНЫЕ ИСКРЫ (SPARKS) --- */
+        #sparks-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; overflow: hidden; }
+        .spark { position: absolute; bottom: -20px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 12px 2px var(--primary); opacity: 0; animation: spark-fly linear forwards; }
+        @keyframes spark-fly {
+            0% { opacity: 0; transform: translate(0, 0) scale(0); }
+            15% { opacity: 1; transform: translate(calc(var(--dx) * 0.2), -15vh) scale(1); }
+            80% { opacity: 0.8; }
+            100% { opacity: 0; transform: translate(var(--dx), -120vh) scale(0); }
         }
 
         /* --- BOOT SEQUENCE (INTRO) --- */
@@ -132,16 +143,6 @@
         
         /* Свечение за персонажем */
         .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(66, 245, 227, 0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
-
-        /* BLUE SPARKS PARTICLES */
-        #sparks-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: hidden; }
-        .spark { position: absolute; bottom: -20px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 12px 2px var(--primary); opacity: 0; animation: spark-fly linear forwards; }
-        @keyframes spark-fly {
-            0% { opacity: 0; transform: translate(0, 0) scale(0); }
-            15% { opacity: 1; transform: translate(calc(var(--dx) * 0.2), -15vh) scale(1); }
-            80% { opacity: 0.8; }
-            100% { opacity: 0; transform: translate(var(--dx), -120vh) scale(0); }
-        }
 
         /* --- CONTROLS & FILTERS --- */
         .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -310,6 +311,9 @@
 </head>
 <body>
 
+    <!-- ГЛОБАЛЬНЫЕ ИСКРЫ -->
+    <div id="sparks-container"></div>
+
     <div id="intro-screen">
         <div id="intro-logo">MWLAB</div>
     </div>
@@ -332,11 +336,10 @@
 
         <!-- --- ГЛАВНАЯ СТРАНИЦА --- -->
         <main id="page-home" class="page active">
-            <div id="sparks-container"></div>
             <div class="home-container">
                 <div class="home-text-side">
-                    <h1 class="home-title">MWLAB</h1>
-                    <p class="home-subtitle">ANALYSIS DATABASE</p>
+                    <h1 class="home-title">MWLABS</h1>
+                    <p class="home-subtitle">TACTICAL DATABASE</p>
                     <div class="home-divider"></div>
                     <p class="home-desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
                     <button class="cat-btn-main active" style="margin-top:40px; font-size: 1.1rem; padding: 15px 40px; border:none;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
@@ -363,7 +366,7 @@
                     
                     <div class="analytics-core glass-panel">
                         <div class="center-logo">MWLAB</div>
-                        <div class="center-subtitle">ANALYSIS</div>
+                        <div class="center-subtitle">TACTICAL ANALYSIS</div>
                         <div id="verdict-screen" style="width: 100%; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; align-items: center; color: var(--text-muted);">
                             <p style="font-family:'Jura'; font-size:1.1rem;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
                         </div>
@@ -500,12 +503,11 @@
     <div id="toast-container"></div>
 
     <script>
-        // Искры на главном экране
+        // Искры на всем сайте
         function spawnSpark() {
-            const homePage = document.getElementById('page-home');
-            if (!homePage.classList.contains('active')) return;
-            
             const container = document.getElementById('sparks-container');
+            if (!container) return;
+            
             const spark = document.createElement('div');
             spark.className = 'spark';
             
@@ -540,7 +542,7 @@
                 document.getElementById('admin-dashboard').style.display = 'block';
                 document.getElementById('visit-counter').innerText = siteVisits;
                 showToast("ДОСТУП РАЗРЕШЕН");
-            } else { showToast('ОШИБКА ДОСТУПА', true); }
+            } else { showToast('ОШИБКА АВТОРИЗАЦИИ', true); }
         }
 
         const CATEGORIES = ["Ракеты", "Пушки"];
@@ -886,7 +888,6 @@
             if (btnElement) {
                 btnElement.classList.add('active');
             } else {
-                // Ищем кнопку, если вызов был без this (например, из JS)
                 const activeBtn = document.querySelector(`nav [onclick*="${pageId}"]`);
                 if (activeBtn) activeBtn.classList.add('active');
             }
@@ -1057,7 +1058,7 @@
                 if (item.effectiveDpm > 250000 && totalShots <= 4) pros.push(`Подавляющий эффект. DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')})`);
                 
                 if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
-                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры в упор`);
+                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры от островов`);
                 
                 if (item.air_target === 1) pros.push("Универсальное орудие ПВО");
             }
@@ -1114,21 +1115,21 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: e1.name, data: d1, backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6 },
-                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6 }
+                        { label: e1.name, data: d1, backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 3 },
+                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 3 }
                     ]
                 },
                 options: {
                     scales: { 
                         r: { 
                             min: 0, max: 100, 
-                            angleLines: { color: 'rgba(66, 245, 227, 0.2)' }, 
-                            grid: { color: 'rgba(66, 245, 227, 0.1)', circular: true }, 
-                            pointLabels: { color: '#42f5e3', font: { family: 'Share Tech Mono', size: 12 } }, 
+                            angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, 
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, 
+                            pointLabels: { color: '#e2f1f8', font: { family: 'Inter', size: 11 } }, 
                             ticks: { display: false } 
                         } 
                     },
-                    plugins: { legend: { display: true, position: 'top', labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 13 }, padding: 20 } } }, 
+                    plugins: { legend: { display: false } }, 
                     responsive: true, maintainAspectRatio: false
                 }
             });
@@ -1168,7 +1169,7 @@
             if (Math.abs(e1.rating - e2.rating) < 15) {
                 let diff = Math.abs(e1.rating - e2.rating);
                 let pDiff = ((diff / Math.min(e1.rating, e2.rating)) * 100).toFixed(1);
-                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%). Выбор зависит от тактики.</span>`;
+                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%).</span>`;
                 card1.classList.add('card-tie'); card2.classList.add('card-tie');
             } else {
                 const winner = e1.rating > e2.rating ? e1 : e2; const loser = e1.rating > e2.rating ? e2 : e1;
@@ -1189,7 +1190,7 @@
 
                     if (loser.range < 6.5 && winner.range >= 10) reason = `превосходства в дальности`;
                     else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `мощи в ближнем бою`;
-                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (урон за секунду)";
+                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (огромный урон за секунду)";
                     else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру";
                     else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной баллистики (нет промахов вдаль)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом попаданий";
@@ -1287,13 +1288,13 @@
                     <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:1.1rem; line-height:1.6; text-transform:none;">
                         Урон в минуту: <b style="color:var(--primary); text-shadow: var(--hud-glow);">${Math.round(totalDpm).toLocaleString('ru')}</b><br>
                         Эффективный DPM: <b style="color:#ffaa00">${Math.round(totalEffDpm).toLocaleString('ru')}</b><br>
-                        Альфа-страйк: <b style="color:var(--secondary); text-shadow: 0 0 10px rgba(255,60,90,0.4);">${Math.round(totalBurst).toLocaleString('ru')}</b>
+                        Альфа-страйк: <b style="color:#fff">${Math.round(totalBurst).toLocaleString('ru')}</b>
                     </div>
                 </div>
                 <div class="analysis-col glass-panel">
                     <div class="col-title">ТАКТИЧЕСКИЕ ДАННЫЕ</div>
                     <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:1.1rem; line-height:1.6; text-transform:none;">
-                        Дальность боя: <b style="color:#fff">${maxRange} км</b><br>
+                        Дальность: <b style="color:#fff">${maxRange} км</b><br>
                         Средняя баллистика: <b style="color:#fff">${Math.round(avgSpeed)} уз.</b><br>
                         ПВО: ${hasAir ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}<br>
                         Удары из-под воды: ${hasSub ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}
@@ -1303,9 +1304,9 @@
 
             let tacticsText = `<div class="final-summary-block glass-panel"><b style="color:var(--primary); font-size:1.2rem; font-family:'Inter'; font-weight:900;">ОЦЕНКА СБОРКИ:</b><br><br>`;
             if (hasAntiJamming) tacticsText += `<span style="color:var(--primary)">[+]</span> Интегрирована защита от ловушек (часть урона неотводима).<br>`;
-            if (totalBurst > 100000) tacticsText += `<span style="color:var(--secondary)">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
+            if (totalBurst > 100000) tacticsText += `<span style="color:#fff">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
             if (totalEffDpm > 500000) tacticsText += `<span style="color:#ffaa00">[!]</span> Колоссальный эффективный DPM. Сборка распилит любого в открытом бою.<br>`;
-            if (!hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Сборка уязвима с воздуха, требуется сильное ПВО на корабле.<br>`;
+            if (!hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Сборка уязвима с воздуха, требуется ПВО на корабле.<br>`;
             tacticsText += `</div>`;
             document.getElementById('build-tactics').innerHTML = tacticsText;
 
@@ -1313,7 +1314,7 @@
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
             
-            Chart.defaults.color = '#7890a8';
+            Chart.defaults.color = '#c4d8e2';
             Chart.defaults.font.family = 'Share Tech Mono';
 
             window.buildRadarInstance = new Chart(ctx, {
