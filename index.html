@@ -563,9 +563,10 @@
             <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость и количество в залпе.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО. У отводимых (РЭБ) ракет при сбросе ловушками есть 15% шанс прохождения урона, который составит 10% от максимального.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Время захвата:</b> Лазерное наведение дает буст. Мертвая зона сильно штрафуется.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Траектория:</b> Высокая огибает скалы, но её легче сбить ПВО (летит сверху вниз). Низкая прячется от ПВО, но может врезаться в укрытие.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%, а урон составит 10% от базы.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
                 </ul>
             </div>
         </div>
@@ -831,18 +832,24 @@
                     if (item.anti_jamming === 1) {
                         score += 100; 
                     } else {
-                        score += 10; // Нерф кластерной БЧ
+                        score += 10; // Бонус за 20% шанс пробить 10% урона сквозь ловушки
                     }
                 }
+
+                // Влияние траектории на выживаемость от ПВО
+                if (item.trajectory === "Высокая") {
+                    score -= 15; // Штраф: пикирует сверху вниз, давая ПВО много времени
+                } else if (item.trajectory === "Низкая") {
+                    score += 15; // Бонус: летит низко, ПВО тяжело перехватить
+                }
                 
-                score += (item.projectiles * 45); 
-                // Новая логика прочности, скорости и разгона
-                score += (item.hp / 400) * 160; 
-                score += (item.start_speed / 400) * 120; 
-                score -= (item.accel_time * 25); 
+                score += (item.projectiles * 45); // Перегруз ПВО (чем больше ракет в залпе, тем лучше)
+                score += (item.hp / 400) * 160;   // Прочность критически важна
+                score += (item.start_speed / 400) * 120; // Рывок со старта
+                score -= (item.accel_time * 25);  // Чем дольше разгон, тем хуже
                 score += (item.max_speed / 600) * 100; 
                 
-                // Кап дальности
+                // Кап дальности (бои идут до 10 км)
                 let cappedRange = Math.min(item.range, 10);
                 score += (cappedRange / 10) * 20;
 
@@ -856,7 +863,11 @@
                 if (item.air_target === 1) score += 50;
                 if (item.sub_launch === 1) score += 50;
                 
-                if (item.lock_time === 0) { score += 50; } else if (item.lock_time > 1.5) { score -= ((item.lock_time - 1.5) * 30); }
+                if (item.lock_time === 0) { 
+                    score += 40; // Лазер: можно выцеливать края корабля, но минус за прямую траекторию
+                } else if (item.lock_time > 1.5) { 
+                    score -= ((item.lock_time - 1.5) * 30); 
+                }
                 
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
                 if (item.min_range > 0) score -= (item.min_range * 30); 
@@ -1140,15 +1151,33 @@
                 if (item.anti_jamming === 1) pros.push("Абсолютная защита от ловушек (РЭБ)"); else cons.push("Сбрасывается вражескими ловушками");
                 if (item.air_target === 1) pros.push("Многоцелевая (может поражать авиацию)");
                 if (item.sub_launch === 1) pros.push("Подводный пуск (атака из-под воды)");
+                
                 if (item.cluster === 1 || item.fragmentation_damage > 0) {
-                    if (item.anti_jamming === 0) pros.push("Частичный урон сквозь РЭБ (при сбросе ловушками шанс 15% нанести 10% урона)"); 
+                    if (item.anti_jamming === 0) pros.push("Частичный урон сквозь РЭБ (при сбросе ловушками шанс 20% нанести 10% урона)"); 
                     else pros.push("Кластерная БЧ (ПВО не сбивает мелкие осколки, гарантия урона)");
                 }
+
+                if (item.trajectory === "Высокая") {
+                    pros.push("Высокая траектория (ракета может перелетать через препятствия)");
+                    cons.push("Уязвима для ПВО (из-за пикирования сверху вниз ПВО имеет больше времени на перехват)");
+                } else if (item.trajectory === "Низкая") {
+                    pros.push("Низкая траектория (быстрее достигает цели, ПВО сложнее ее сбить)");
+                    cons.push("Риск врезаться в скалы/укрытия на закрытых картах");
+                }
+                
                 if (item.dpm > 250000) pros.push("Колоссальный математический DPM");
                 if (item.damage_burst >= 40000) pros.push("Разрушительный альфа-страйк (урон за залп)");
-                if (item.projectiles > 1) pros.push(`Залп из ${item.projectiles} ракет (шанс перегруза ПВО)`);
-                if (item.start_speed >= 200) pros.push("Резкий старт (ПВО не успевает среагировать)"); else if (item.start_speed < 50) cons.push("Критически медленный старт (сбивается ПВО)");
-                if (item.lock_time === 0) pros.push("Лазерное наведение (моментальный пуск)"); else if (item.lock_time >= 3.0) cons.push(`Долгий захват цели (${item.lock_time} сек)`);
+                if (item.projectiles > 1) pros.push(`Залп из ${item.projectiles} ед. (помогает перегрузить ПВО врага)`);
+                
+                if (item.start_speed >= 200) pros.push("Резкий старт (ПВО не успевает среагировать в ближнем бою)"); 
+                else if (item.start_speed < 50) cons.push("Критически медленный старт (легко сбивается ПВО)");
+                
+                if (item.lock_time === 0) {
+                    pros.push("Лазерное наведение (моментальный пуск, позволяет выцеливать торчащие из-за скал части корабля)");
+                    cons.push("Летит по прямой траектории (ПВО гораздо легче сбить такую ракету)");
+                } else if (item.lock_time >= 3.0) {
+                    cons.push(`Долгий захват цели (${item.lock_time} сек)`);
+                }
             } else if (item.category === "Пушки") {
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
