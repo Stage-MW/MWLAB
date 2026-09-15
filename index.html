@@ -106,7 +106,7 @@
         .app-wrapper { opacity: 0; position: relative; z-index: 10; width: 100%; transition: opacity 1s ease; }
         .app-wrapper.active { opacity: 1; }
 
-        /* --- GLASSMORPHISM --- */
+        /* --- GLASSMORPHISM CLASS --- */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
@@ -141,9 +141,17 @@
         .info-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 20px;}
         .info-btn:hover { color: var(--primary); transform: scale(1.1); text-shadow: var(--hud-glow); }
 
-        .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
-        .page.active { display: block; animation: fadeUp 0.5s ease-out forwards; }
-        @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+        .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative; opacity: 0; transform: scale(0.98); filter: blur(5px);}
+        .page.active { display: block; animation: pageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes pageFadeIn { 
+            0% { opacity: 0; transform: scale(0.98) translateY(15px); filter: blur(5px); } 
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } 
+        }
+        @keyframes pageFadeOut { 
+            0% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } 
+            100% { opacity: 0; transform: scale(0.98) translateY(-15px); filter: blur(5px); } 
+        }
 
         .max-lvl-disclaimer { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; font-family: 'Inter'; font-weight: 500;}
 
@@ -156,12 +164,9 @@
         .home-subtitle { font-family: 'Share Tech Mono'; color: #fff; font-size: 1.5rem; letter-spacing: 5px; opacity: 0.9; margin-bottom: 20px;}
         .home-divider { width: 100px; height: 4px; background: var(--primary); box-shadow: var(--hud-glow); margin-bottom: 25px; border-radius: 2px;}
         .home-desc { font-family: 'Jura'; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; max-width: 80%; text-transform: none;}
-        
         .home-image-side { flex: 1; display: flex; justify-content: flex-end; align-items: center; height: 100%; position: relative;}
         .home-image-side img { max-width: 100%; max-height: 80vh; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)) drop-shadow(0 0 20px rgba(66, 245, 227, 0.3)); z-index: 5;}
         .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(66, 245, 227, 0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
-        .wml-particle { position: absolute; font-family: 'Orbitron', sans-serif; color: var(--primary); font-weight: 900; text-shadow: 0 0 15px var(--primary); pointer-events: none; opacity: 0; animation: floatWML linear forwards; }
-        @keyframes floatWML { 0% { opacity: 0; transform: translateY(50px) scale(0.5); filter: blur(2px); } 20% { opacity: 0.8; filter: blur(0px); } 80% { opacity: 0.8; filter: drop-shadow(0 0 8px var(--primary)); } 100% { opacity: 0; transform: translateY(-200px) scale(1.5); filter: blur(4px); } }
 
         /* --- CONTROLS --- */
         .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;}
@@ -198,18 +203,24 @@
         .card-winner { border-color: var(--primary); box-shadow: 0 10px 40px rgba(66,245,227,0.1), inset 0 0 20px rgba(66,245,227,0.05); }
         .card-loser { opacity: 0.8; }
 
-        .weapon-showcase { position: relative; width: 100%; height: 230px; margin-bottom: 20px; display: flex; justify-content: center; align-items: flex-end; }
+        .weapon-showcase { position: relative; width: 100%; height: 200px; margin-bottom: 20px; display: flex; justify-content: center; align-items: flex-end; perspective: 1000px;}
         .equip-img-container { 
             width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center bottom; 
-            position: absolute; bottom: 15px; z-index: 2; transition: opacity 0.3s ease;
+            position: absolute; bottom: 20px; z-index: 3; transition: opacity 0.3s ease;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.8));
         }
         .floating-weapon { animation: floatItem 4s ease-in-out infinite; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.8)); }
         @keyframes floatItem { 0%, 100% { transform: translateY(0); filter: drop-shadow(0 15px 15px rgba(0,0,0,0.8)); } 50% { transform: translateY(-12px); filter: drop-shadow(0 25px 20px rgba(66, 245, 227, 0.4)); } }
         
-        .holo-base { position: absolute; bottom: 0; width: 60%; height: 20px; background: radial-gradient(ellipse at center, rgba(66,245,227,0.3) 0%, transparent 70%); filter: blur(5px); z-index: 1; animation: pulseBase 4s ease-in-out infinite; }
+        .holo-base { position: absolute; bottom: 0; width: 50%; height: 15px; background: radial-gradient(ellipse at center, var(--primary) 0%, transparent 70%); filter: blur(2px); z-index: 1; opacity: 0.8; box-shadow: 0 0 20px var(--primary); animation: pulseBase 4s ease-in-out infinite; }
+        .holo-rays { position: absolute; bottom: 7px; width: 80%; height: 120%; background: linear-gradient(to top, rgba(66,245,227,0.2) 0%, transparent 80%); clip-path: polygon(30% 100%, 70% 100%, 100% 0, 0 0); z-index: 2; opacity: 0.6; animation: holoFlicker 2.5s infinite alternate; pointer-events: none; }
+        .holo-scanline { position: absolute; width: 100%; height: 2px; background: #fff; box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); z-index: 4; opacity: 0.5; animation: holoScan 3s linear infinite; }
+        
         @keyframes pulseBase { 0%, 100% { transform: scaleX(1); opacity: 0.5; } 50% { transform: scaleX(0.8); opacity: 1; background: radial-gradient(ellipse at center, rgba(66,245,227,0.6) 0%, transparent 70%);} }
+        @keyframes holoFlicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } 20% { opacity: 0.4; } 80% { opacity: 0.7; } }
+        @keyframes holoScan { 0% { top: 10%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 90%; opacity: 0; } }
 
-        .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; text-align: center;}
+        .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 15px; text-align: center;}
 
         /* --- ANALYTICS CORE --- */
         .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); width: 100%; position: relative;}
@@ -232,7 +243,6 @@
 
         .meta-legend { margin-top: 15px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px; font-family: 'Jura'; line-height: 1.5;}
 
-        /* ANIMATION FOR VS CLASH */
         .glitch-anim { animation: glitch 0.3s infinite; }
         @keyframes glitch { 0% { transform: translate(2px, 2px); } 25% { transform: translate(-2px, -2px); } 50% { transform: translate(2px, -2px); } 75% { transform: translate(-2px, 2px); } 100% { transform: translate(2px, 2px); } }
 
@@ -240,22 +250,36 @@
         .build-slot-container { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary); width: 100%; }
         .export-wrapper { padding: 40px; width: 100%;}
 
+        /* --- КАСКАДНАЯ АНИМАЦИЯ ПОЯВЛЕНИЯ (STAGGERED) --- */
+        @keyframes itemFadeIn {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(3px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
         /* --- CATALOG --- */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; width: 100%;}
-        .catalog-item { padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .catalog-item:hover { border-color: var(--primary); transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.6), var(--hud-glow); }
+        .catalog-item { 
+            padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            opacity: 0; animation: itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .catalog-item:hover { border-color: var(--primary); transform: translateY(-8px) !important; box-shadow: 0 15px 30px rgba(0,0,0,0.6), var(--hud-glow); }
         .catalog-item.selected { border-color: var(--primary); background: var(--primary-dim); box-shadow: var(--hud-glow); }
         .catalog-item.selected::after { content: "ВЫБРАНО"; position: absolute; top: 15px; right: 15px; background: var(--primary); color: #000; font-family: 'Inter'; font-size: 0.7rem; font-weight: 900; padding: 4px 10px; border-radius: 20px; }
         .catalog-item-img { width: 100%; height: 120px; margin-bottom: 25px; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: transparent; border: none; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.7)); transition: 0.3s; }
-        .catalog-item:hover .catalog-item-img { transform: scale(1.05); }
+        .catalog-item:hover .catalog-item-img { transform: scale(1.05); filter: drop-shadow(0 15px 15px rgba(66,245,227,0.3));}
         .cat-item-name { color: #fff; font-size: 1.1rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 10px; width: 100%;}
         .cat-item-meta { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; width: 100%;}
         .cat-meta-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px;}
 
         /* --- RATING --- */
         .rating-container { max-width: 800px; margin: 0 auto; width: 100%;}
-        .rating-item { display: flex; align-items: center; margin-bottom: 20px; padding: 20px 30px; transition: all 0.3s ease; border-left: 4px solid transparent; width: 100%; }
-        .rating-item:hover { border-color: var(--primary); transform: translateX(10px); background: rgba(255,255,255,0.02); }
+        .rating-item { 
+            display: flex; align-items: center; margin-bottom: 20px; padding: 20px 30px; 
+            transition: all 0.3s ease; border-left: 4px solid transparent; width: 100%;
+            opacity: 0; animation: itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .rating-item:hover { border-color: var(--primary); transform: translateX(10px) !important; background: rgba(255,255,255,0.02); }
         .rating-rank { font-size: 2rem; color: #fff; width: 60px; font-family: 'Inter'; font-weight: 900; opacity: 0.5;}
         .rating-img { width: 140px; height: 70px; margin: 0 20px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));}
         .rating-info { flex-grow: 1; display: flex; flex-direction: column; gap: 8px;}
@@ -354,6 +378,7 @@
 </head>
 <body>
 
+    <!-- ГЛОБАЛЬНЫЕ ИСКРЫ И ОГРОМНЫЕ БУКВЫ MWL (ФОН) -->
     <div id="sparks-container"></div>
     <div id="global-mwl-wrapper" class="right">
         <div id="global-mwl-text">MWL</div>
@@ -379,6 +404,7 @@
             <div class="categories-bar" id="category-bar"></div>
         </div>
 
+        <!-- --- ГЛАВНАЯ СТРАНИЦА --- -->
         <main id="page-home" class="page active">
             <div class="home-container">
                 <div class="home-text-side">
@@ -390,6 +416,7 @@
                 </div>
                 <div class="home-image-side" id="home-image-side">
                     <div class="home-image-glow"></div>
+                    <!-- СЮДА ЗАГРУЗИТСЯ ТВОЯ КАРТИНКА (должна лежать в папке img с названием hero.png) -->
                     <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 0 20px rgba(66,245,227,0.3));" onerror="this.style.display='none'">
                 </div>
             </div>
@@ -403,6 +430,8 @@
                 <div class="compare-grid">
                     <div class="equip-card glass-panel" id="card-equip-1">
                         <div class="weapon-showcase">
+                            <div class="holo-rays" id="holo-rays-1" style="display:none;"></div>
+                            <div class="holo-scanline" id="holo-scan-1" style="display:none;"></div>
                             <div class="equip-img-container" id="img-equip-1"></div>
                             <div class="holo-base" id="holo-1" style="display:none;"></div>
                         </div>
@@ -420,6 +449,8 @@
 
                     <div class="equip-card glass-panel" id="card-equip-2">
                         <div class="weapon-showcase">
+                            <div class="holo-rays" id="holo-rays-2" style="display:none;"></div>
+                            <div class="holo-scanline" id="holo-scan-2" style="display:none;"></div>
                             <div class="equip-img-container" id="img-equip-2"></div>
                             <div class="holo-base" id="holo-2" style="display:none;"></div>
                         </div>
@@ -593,11 +624,20 @@
         let currentCategory = "Ракеты";
         let searchQuery = "";
         
-        const MAX_STATS = {
-            damage_burst: 180000, dpm: 660000, damage: 60000, accuracy: 100,
-            reload: 25, lock_time: 5, crit_chance: 100, projectiles: 16, ammo_clip: 70,
-            splash_damage: 10000, splash_radius: 700, fragmentation_damage: 25000, detonation_radius: 100,
-            hp: 400, start_speed: 900, max_speed: 1200, accel_time: 12, range: 25, min_range: 5, fire_penalty: 60
+        // Раздельные эталоны характеристик для корректного рендера графиков
+        const CATEGORY_MAX_STATS = {
+            "Пушки": {
+                damage_burst: 170000, dpm: 660000, damage: 50000, accuracy: 100,
+                reload: 12, crit_chance: 100, projectiles: 16, ammo_clip: 75,
+                splash_damage: 5000, splash_radius: 300, detonation_radius: 50,
+                start_speed: 1200, max_speed: 1200, range: 20, fire_penalty: 50
+            },
+            "Ракеты": {
+                damage_burst: 60000, dpm: 320000, damage: 60000, accuracy: 100,
+                reload: 25, lock_time: 4.5, projectiles: 4, 
+                splash_damage: 10000, splash_radius: 700, fragmentation_damage: 25000, detonation_radius: 100,
+                hp: 400, start_speed: 400, max_speed: 650, accel_time: 12, range: 16, min_range: 4, fire_penalty: 60
+            }
         };
 
         const STATS_LOGIC = {
@@ -655,8 +695,8 @@
             "koalitsiya": { name: "KOALITSIYA-F (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 315162, damage_burst: 19435, damage: 8450, accuracy: 100, reload: 3.50, crit_chance: 30, projectiles: 2, range: 11.27, max_speed: 777, start_speed: 777, fire_penalty: 40, img: "img/Koalitsiya.png" },
             "l52a1": { name: "L/52A1 (155 MM)", category: "Пушки", country: "Германия", rarity: "Эпический", dpm: 336421, damage_burst: 47099, damage: 14949, accuracy: 100, reload: 7.70, splash_damage: 750, splash_radius: 133, projectiles: 3, range: 13.87, max_speed: 874, start_speed: 874, fire_penalty: 40, img: "img/L52A1.png" },
             "mark42": { name: "MARK 42 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 292167, damage_burst: 75720, damage: 3055, accuracy: 100, reload: 5.80, detonation_radius: 33, splash_damage: 100, splash_radius: 66, projectiles: 8, ammo_clip: 3, range: 10.83, max_speed: 923, start_speed: 923, fire_penalty: 35, air_target: 1, img: "img/Mark42.png" },
-            "mark45": { name: "MARK 45 MOD 4 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330352, damage_burst: 18720, damage: 4680, accuracy: 100, reload: 2.80, projectiles: 4, range: 12.13, max_speed: 680, start_speed: 680, fire_penalty: 35, img: "img/Mark45Mod4.png" },
-            "mark45mod4b": { name: "MARK-45 MOD 4B (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 255857, damage_burst: 14328, damage: 1560, accuracy: 100, reload: 2.10, crit_chance: 20, detonation_radius: 20, splash_damage: 75, splash_radius: 166, projectiles: 8, range: 10.40, max_speed: 826, start_speed: 826, fire_penalty: 35, air_target: 1, img: "img/Mark45Mod4B.png" },
+            "mark45": { name: "MARK 45 MOD 4 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330352, damage_burst: 18720, damage: 4680, accuracy: 100, reload: 2.80, projectiles: 4, range: 12.13, max_speed: 680, start_speed: 680, fire_penalty: 35, img: "img/Mark45MoD4.png" },
+            "mark45mod4b": { name: "MARK-45 MOD 4B (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 255857, damage_burst: 14328, damage: 1560, accuracy: 100, reload: 2.10, crit_chance: 20, detonation_radius: 20, splash_damage: 75, splash_radius: 166, projectiles: 8, range: 10.40, max_speed: 826, start_speed: 826, fire_penalty: 35, air_target: 1, img: "img/Mark45MoD4B.png" },
             "mark71": { name: "MARK-71 (203 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 345812, damage_burst: 35100, damage: 35100, accuracy: 100, reload: 6.09, projectiles: 1, range: 13.87, max_speed: 826, start_speed: 826, fire_penalty: 40, img: "img/Mark71.png" },
             "mark5512": { name: "MARK 55/12 (305 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 289591, damage_burst: 47300, damage: 46800, accuracy: 100, reload: 9.80, splash_damage: 500, splash_radius: 166, projectiles: 1, range: 14.73, max_speed: 777, start_speed: 777, fire_penalty: 40, img: "img/Mark5512.png" },
             "mk8mod1": { name: "MK8 MOD 1 (155 MM)", category: "Пушки", country: "Великобритания", rarity: "Эпический", dpm: 319084, damage_burst: 46799, damage: 15599, accuracy: 100, reload: 8.40, projectiles: 3, range: 12.13, max_speed: 826, start_speed: 826, fire_penalty: 40, img: "img/MK8Mod1.png" },
@@ -855,8 +895,8 @@
                 btn.innerText = cat;
                 btn.onclick = () => { 
                     currentCategory = cat; compareQueue = []; 
-                    document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
-                    document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
+                    document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
+                    document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
                     document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
                     renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
                 };
@@ -921,34 +961,46 @@
         function syncFilters() { document.getElementById('search-input-rating').value = document.getElementById('search-input-catalog').value; }
 
         function switchMainPage(pageId, btnElement) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const currentPage = document.querySelector('.page.active');
+            if (currentPage && currentPage.id === pageId) return;
+
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            
-            if (btnElement) {
-                btnElement.classList.add('active');
-            } else {
+            if (btnElement) btnElement.classList.add('active');
+            else {
                 const activeBtn = document.querySelector(`nav [onclick*="${pageId}"]`);
                 if (activeBtn) activeBtn.classList.add('active');
             }
-            
-            if(pageId === 'page-compare' || pageId === 'page-catalog' || pageId === 'page-rating') {
-                document.getElementById('category-bar-wrapper').style.display = 'block';
-            } else {
-                document.getElementById('category-bar-wrapper').style.display = 'none';
-            }
-            
-            if(pageId === 'page-catalog' || pageId === 'page-rating') { 
-                compareQueue = []; handleFilter(); 
-            }
 
-            const mwlBg = document.getElementById('global-mwl-wrapper');
-            if (mwlBg) {
-                if (pageId === 'page-home') {
-                    mwlBg.className = 'right';
+            const executeSwitch = () => {
+                if(currentPage) currentPage.classList.remove('active');
+                const newPage = document.getElementById(pageId);
+                newPage.classList.add('active');
+                
+                if(pageId === 'page-compare' || pageId === 'page-catalog' || pageId === 'page-rating') {
+                    document.getElementById('category-bar-wrapper').style.display = 'block';
                 } else {
-                    mwlBg.className = 'center';
+                    document.getElementById('category-bar-wrapper').style.display = 'none';
                 }
+                
+                if(pageId === 'page-catalog' || pageId === 'page-rating') { 
+                    compareQueue = []; handleFilter(); 
+                }
+
+                const mwlBg = document.getElementById('global-mwl-wrapper');
+                if (mwlBg) {
+                    if (pageId === 'page-home') { mwlBg.className = 'right'; } 
+                    else { mwlBg.className = 'center'; }
+                }
+            };
+
+            if (currentPage) {
+                currentPage.style.animation = 'pageFadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                setTimeout(() => {
+                    currentPage.style.animation = ''; 
+                    executeSwitch();
+                }, 200);
+            } else {
+                executeSwitch();
             }
         }
 
@@ -971,13 +1023,16 @@
                 
                 switchMainPage('page-compare', document.getElementById('nav-compare'));
                 
-                // Анимация "загрузки" перед выдачей результата
-                document.getElementById('name-equip-1').innerText = "ЗАГРУЗКА...";
-                document.getElementById('name-equip-2').innerText = "ЗАГРУЗКА...";
+                document.getElementById('name-equip-1').innerText = "ОБРАБОТКА...";
+                document.getElementById('name-equip-2').innerText = "ОБРАБОТКА...";
                 document.getElementById('img-equip-1').style.backgroundImage = 'none';
                 document.getElementById('img-equip-2').style.backgroundImage = 'none';
                 document.getElementById('holo-1').style.display = 'none';
+                document.getElementById('holo-rays-1').style.display = 'none';
+                document.getElementById('holo-scan-1').style.display = 'none';
                 document.getElementById('holo-2').style.display = 'none';
+                document.getElementById('holo-rays-2').style.display = 'none';
+                document.getElementById('holo-scan-2').style.display = 'none';
                 document.getElementById('stats-equip-1').innerHTML = '';
                 document.getElementById('stats-equip-2').innerHTML = '';
                 
@@ -991,7 +1046,7 @@
                     updateEquipView(1, id1); updateEquipView(2, id2);
                     runAnalysis(id1, id2);
                     showToast("АНАЛИЗ ЗАВЕРШЕН");
-                }, 1200);
+                }, 1500);
                 
                 compareQueue = []; handleFilter();
             }
@@ -999,11 +1054,12 @@
 
         function renderCatalogUI(filteredItems) {
             const c = document.getElementById('catalog-content'); c.innerHTML = ''; 
-            filteredItems.forEach(s => {
+            filteredItems.forEach((s, index) => {
                 const sel = compareQueue.includes(s.id) ? 'selected' : '';
+                const delay = index * 0.03; 
                 c.innerHTML += `
-                    <div class="catalog-item glass-panel ${sel}" onclick="handleCatalogClick('${s.id}')">
-                        <div class="catalog-item-img floating-weapon" style="background-image: url('${s.img}')"></div>
+                    <div class="catalog-item glass-panel ${sel}" style="animation-delay: ${delay}s" onclick="handleCatalogClick('${s.id}')">
+                        <div class="catalog-item-img" style="background-image: url('${s.img}')"></div>
                         <div class="cat-item-name">${s.name}</div>
                         <div class="cat-item-meta">
                             <div class="cat-meta-row"><span>ФРАКЦИЯ</span> <span style="color:#fff">${s.country}</span></div>
@@ -1019,13 +1075,15 @@
                 let color = 'var(--primary)';
                 if (item.rating >= 800) color = '#fff'; 
                 else if (item.rating < 500) color = 'var(--text-muted)'; 
+                
+                const delay = index * 0.05;
 
-                setTimeout(() => { const bar = document.getElementById(`bar-${item.id}`); if(bar) bar.style.width = `${(item.rating / 1000) * 100}%`; }, 50);
+                setTimeout(() => { const bar = document.getElementById(`bar-${item.id}`); if(bar) bar.style.width = `${(item.rating / 1000) * 100}%`; }, 100 + (index * 50));
 
                 c.innerHTML += `
-                    <div class="rating-item glass-panel">
+                    <div class="rating-item glass-panel" style="animation-delay: ${delay}s">
                         <div class="rating-rank" style="color: ${color}">0${index + 1}</div>
-                        <div class="rating-img floating-weapon" style="background-image: url('${item.img}')"></div>
+                        <div class="rating-img" style="background-image: url('${item.img}')"></div>
                         <div class="rating-info">
                             <div class="rating-title">${item.name} <span style="font-size:0.8rem; color:var(--text-muted); font-family:'Jura';">[${item.country}]</span></div>
                             <div class="rating-bar-bg"><div class="rating-bar-fill" id="bar-${item.id}" style="width: 0%; background: ${color}; box-shadow: 0 0 10px ${color}"></div></div>
@@ -1040,8 +1098,12 @@
             document.getElementById(`name-equip-${side}`).innerText = item.name;
             const imgEl = document.getElementById(`img-equip-${side}`);
             imgEl.style.backgroundImage = `url('${item.img}')`;
-            imgEl.classList.add('floating-weapon');
+            
             document.getElementById(`holo-${side}`).style.display = 'block';
+            document.getElementById(`holo-rays-${side}`).style.display = 'block';
+            document.getElementById(`holo-scan-${side}`).style.display = 'block';
+            
+            let catMax = CATEGORY_MAX_STATS[item.category] || CATEGORY_MAX_STATS["Пушки"];
             
             let html = '';
             for (let key in STATS_LOGIC) {
@@ -1055,7 +1117,7 @@
                 if (key === 'air_target' || key === 'sub_launch') val = val === 1 ? "ДА" : "НЕТ";
                 if (key === 'fire_penalty' || key === 'accuracy' || key === 'dispersion') val = `${val}%`;
 
-                let max = MAX_STATS[key] || 100;
+                let max = catMax[key] || 100;
                 let pct = 0;
                 if (typeof rawVal === 'number' && STATS_LOGIC[key].higherIsBetter) {
                     pct = Math.min(100, (rawVal / max) * 100);
@@ -1154,27 +1216,29 @@
 
             if (e1.category === "Ракеты") {
                 labels = ['Урон/мин', 'Альфа', 'Живучесть', 'Скорость', 'Скорострельность', 'Дальность'];
+                let catMax = CATEGORY_MAX_STATS["Ракеты"];
                 d1 = [
-                    Math.min(100, (e1.dpm / 320000) * 100) || 0, Math.min(100, (e1.damage_burst / 60000) * 100) || 0,
-                    Math.min(100, (e1.hp / 400) * 100) || 0, Math.min(100, (e1.max_speed / 650) * 100) || 0,
-                    Math.max(0, 100 - (e1.reload / 25) * 100) || 0, Math.min(100, (e1.range / 16) * 100) || 0
+                    Math.min(100, (e1.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.damage_burst / catMax.damage_burst) * 100) || 0,
+                    Math.min(100, (e1.hp / catMax.hp) * 100) || 0, Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0,
+                    Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0
                 ];
                 d2 = [
-                    Math.min(100, (e2.dpm / 320000) * 100) || 0, Math.min(100, (e2.damage_burst / 60000) * 100) || 0,
-                    Math.min(100, (e2.hp / 400) * 100) || 0, Math.min(100, (e2.max_speed / 650) * 100) || 0,
-                    Math.max(0, 100 - (e2.reload / 25) * 100) || 0, Math.min(100, (e2.range / 16) * 100) || 0
+                    Math.min(100, (e2.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.damage_burst / catMax.damage_burst) * 100) || 0,
+                    Math.min(100, (e2.hp / catMax.hp) * 100) || 0, Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0,
+                    Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0
                 ];
             } else {
                 labels = ['Эффект. DPM', 'Эффект. Альфа', 'Скор. снаряда', 'Попадания', 'Скорострельность', 'Дальность'];
+                let catMax = CATEGORY_MAX_STATS["Пушки"];
                 d1 = [
-                    Math.min(100, (e1.effectiveDpm / 350000) * 100) || 0, Math.min(100, (e1.effectiveBurst / 50000) * 100) || 0,
-                    Math.min(100, (e1.max_speed / 1200) * 100) || 0, e1.accuracyScore || 100,
-                    Math.max(0, 100 - (e1.reload / 10) * 100) || 0, Math.min(100, (e1.range / 20) * 100) || 0
+                    Math.min(100, (e1.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.effectiveBurst / catMax.damage_burst) * 100) || 0,
+                    Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0, e1.accuracyScore || 100,
+                    Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0
                 ];
                 d2 = [
-                    Math.min(100, (e2.effectiveDpm / 350000) * 100) || 0, Math.min(100, (e2.effectiveBurst / 50000) * 100) || 0,
-                    Math.min(100, (e2.max_speed / 1200) * 100) || 0, e2.accuracyScore || 100,
-                    Math.max(0, 100 - (e2.reload / 10) * 100) || 0, Math.min(100, (e2.range / 20) * 100) || 0
+                    Math.min(100, (e2.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.effectiveBurst / catMax.damage_burst) * 100) || 0,
+                    Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0, e2.accuracyScore || 100,
+                    Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0
                 ];
             }
 
@@ -1200,7 +1264,13 @@
                             ticks: { display: false } 
                         } 
                     },
-                    plugins: { legend: { display: true, position: 'bottom', labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 12 }, padding: 15 } } }, 
+                    plugins: { 
+                        legend: { 
+                            display: true, 
+                            position: 'bottom', 
+                            labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 12 }, padding: 15 } 
+                        } 
+                    }, 
                     responsive: true, maintainAspectRatio: false
                 }
             });
@@ -1269,11 +1339,12 @@
                     else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости снаряда";
                 }
 
-                summaryText = `<span style="color:var(--primary); font-size: 1.3rem; display:block; margin-bottom: 8px; font-family:'Orbitron'; letter-spacing:1px;">ТАКТИЧЕСКОЕ ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:var(--text-main);">В мете закрытых карт (5-10км) это вооружение эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b> за счет ${reason}.</span>`;
+                summaryText = `<span style="color:var(--primary); font-size: 1.3rem; display:block; margin-bottom: 8px; font-family:'Inter'; font-weight:900;">ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:var(--text-main);">В мете закрытых карт (5-10км) это оружие эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b> за счет ${reason}.</span>`;
             }
 
             let metaLegend = `
                 <div class="meta-legend">
+                    <b style="color:#fff;">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
                     <span style="color:#fff;">0-5%</span>: Тактический паритет | 
                     <span style="color:var(--primary);">5-15%</span>: Уверенное преимущество | 
                     <span style="color:var(--secondary);">>15%</span>: Абсолютное доминирование
@@ -1396,6 +1467,7 @@
             Chart.defaults.color = '#7890a8';
             Chart.defaults.font.family = 'Share Tech Mono';
 
+            // Берем смешанный максимум для билдера, так как там и пушки, и ракеты могут быть
             window.buildRadarInstance = new Chart(ctx, {
                 type: 'radar',
                 data: {
@@ -1420,19 +1492,18 @@
             showToast("СИСТЕМЫ РАССЧИТАНЫ");
         }
 
-        /* --- ГЕНЕРАТОР ИНФОГРАФИКИ (ПОФИКСЕНО ДЛЯ ТЕЛЕФОНОВ) --- */
+        /* --- ГЕНЕРАТОР ИНФОГРАФИКИ (ФИКС ДЛЯ МОБИЛОК) --- */
         function exportToImage(elementId, filename) {
             const el = document.getElementById(elementId);
             if (!el || el.style.display === 'none') return showToast("ОШИБКА: НЕТ ДАННЫХ", true);
             
             showToast("ФОРМИРОВАНИЕ ОТЧЕТА...");
             
-            // Фикс для iOS/Safari: скролл вверх и отключение blur для корректного рендера
             const originalScrollY = window.scrollY;
             window.scrollTo(0, 0);
             
             const glassPanels = el.querySelectorAll('.glass-panel');
-            glassPanels.forEach(p => p.style.backdropFilter = 'none');
+            glassPanels.forEach(p => { p.style.backdropFilter = 'none'; p.style.webkitBackdropFilter = 'none'; });
             
             setTimeout(() => {
                 html2canvas(el, {
@@ -1442,8 +1513,7 @@
                     allowTaint: true,
                     scrollY: -window.scrollY
                 }).then(canvas => {
-                    // Возвращаем блюр и скролл
-                    glassPanels.forEach(p => p.style.backdropFilter = '');
+                    glassPanels.forEach(p => { p.style.backdropFilter = ''; p.style.webkitBackdropFilter = ''; });
                     window.scrollTo(0, originalScrollY);
                     
                     let link = document.createElement('a');
@@ -1452,11 +1522,11 @@
                     link.click();
                     showToast("ОТЧЕТ СОХРАНЕН");
                 }).catch(err => {
-                    glassPanels.forEach(p => p.style.backdropFilter = '');
+                    glassPanels.forEach(p => { p.style.backdropFilter = ''; p.style.webkitBackdropFilter = ''; });
                     window.scrollTo(0, originalScrollY);
                     showToast("ОШИБКА ЭКСПОРТА", true);
                 });
-            }, 300); // Небольшая задержка для применения стилей
+            }, 300);
         }
 
         window.onload = () => { initApp(); triggerIntro(); };
