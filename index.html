@@ -561,7 +561,7 @@
         const DB = {
             // ----- ПУШКИ -----
             "erstensho": { name: "ERS TENSHO (127 MM)", category: "Пушки", country: "Япония", rarity: "Эпический", dpm: 348000, damage_burst: 34800, damage: 33800, reload: 5.60, detonation_radius: 6, splash_damage: 1000, splash_radius: 200, projectiles: 1, range: 17.33, max_speed: 874, start_speed: 874, fire_penalty: 35, img: "img/erstensho.png" },
-            "bae155": { name: "BAE SYSTEMS 155/39 TMP (155 MM)", category: "Пушки", country: "Великобритания", rarity: "Эпический", dpm: 372794, damage_burst: 42250, damage: 16900, reload: 6.30, crit_chance: 50, projectiles: 2, range: 11.70, max_speed: 777, start_speed: 777, fire_penalty: 40, img: "img/bae155.png" },
+            "bae155": { name: "BAE SYSTEMS 155/39 TMF (155 MM)", category: "Пушки", country: "Великобритания", rarity: "Эпический", dpm: 372794, damage_burst: 42250, damage: 16900, reload: 6.30, crit_chance: 50, projectiles: 2, range: 11.70, max_speed: 777, start_speed: 777, fire_penalty: 40, img: "img/bae155.png" },
             "denshogun": { name: "DEN SHO GUN (203 MM)", category: "Пушки", country: "Япония", rarity: "Легендарный", dpm: 299104, damage_burst: 50100, damage: 24050, reload: 9.10, detonation_radius: 13, splash_damage: 1000, splash_radius: 200, projectiles: 2, range: 17.33, max_speed: 855, start_speed: 855, fire_penalty: 35, img: "img/denshogun.png" },
             "oerlikon": { name: "OERLIKON GDF-4 (35 MM)", category: "Пушки", country: "Европейский Союз", rarity: "Легендарный", dpm: 316274, damage_burst: 27674, damage: 1819, reload: 3.85, detonation_radius: 26, splash_damage: 25, splash_radius: 66, projectiles: 1, ammo_clip: 15, range: 8.67, max_speed: 777, start_speed: 777, fire_penalty: 35, air_target: 1, img: "img/oerlikon.png" },
             "sahi209": { name: "SAHI-209 BLOCK-II", category: "Пушки", country: "Турция", rarity: "Эпический", dpm: 298424, damage_burst: 28599, damage: 14299, reload: 4.55, detonation_radius: 26, splash_damage: 25, splash_radius: 66, projectiles: 2, range: 17.33, max_speed: 894, start_speed: 894, fire_penalty: 35, img: "img/sahi209.png" },
@@ -607,6 +607,7 @@
             "boforsl50": { name: "BOFORS L/50 (120 MM)", category: "Пушки", country: "Швеция", rarity: "Эпический", dpm: 353888, damage_burst: 25480, damage: 6370, reload: 3.78, projectiles: 4, range: 11.70, max_speed: 874, start_speed: 874, fire_penalty: 35, img: "img/boforsl50.png" },
             "rg30": { name: "RG-30 BUCKSHOT", category: "Пушки", country: "США", rarity: "Легендарный", dpm: 608400, damage_burst: 44616, damage: 2535, reload: 3.50, crit_chance: 20, detonation_radius: 13, dispersion: 30, projectiles: 16, range: 6.07, max_speed: 631, start_speed: 631, fire_penalty: 35, img: "img/rg30.png" },
             "mark71": { name: "MARK-71 (203 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 345812, damage_burst: 35100, damage: 35100, reload: 6.09, projectiles: 1, range: 13.87, max_speed: 826, start_speed: 826, fire_penalty: 40, img: "img/mark71.png" },
+            "edurailgun": { name: "EDU RAILGUN (155 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 346756, damage_burst: 33462, damage: 10140, reload: 4.90, crit_chance: 20, projectiles: 3, range: 17.33, max_speed: 894, start_speed: 894, fire_penalty: 35, img: "img/edurailgun.png" },
 
             // ----- РАКЕТЫ -----
             "zircon": { name: "3M22 ZIRCON", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 41600, dpm: 289714, reload: 8.40, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 300, start_speed: 388, max_speed: 583, accel_time: 1.43, range: 15.60, fire_penalty: 40, img: "img/zircon.png" },
@@ -729,6 +730,7 @@
                 if (item.range < 7) score -= (7 - item.range) * 20; 
                 else if (item.range >= 13) score += 10; 
                 
+                if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
                 if (item.reload < 3.0) score += 20;
                 
                 if (hasClip) {
@@ -1154,14 +1156,14 @@
                     else if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек (РЭБ)";
                     else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
                 } else if (e1.category === "Пушки") {
-                    let wClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
-                    let lClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
+                    let wHasClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
+                    let lHasClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
                     let wTotalShots = (winner.projectiles || 1) * (winner.ammo_clip || 1);
 
                     if (loser.range < 7 && winner.range >= 11) reason = `превосходства в дальности (позволяет безнаказанно атаковать, пока враг пытается сблизиться)`;
                     else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `ультимативной мощи в ближнем бою (перестреляет врага лоб-в-лоб)`;
                     else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (наносит огромный урон за мгновение и позволяет уйти в укрытие)";
-                    else if (!wClip && lClip) reason = "отсутствия привязки к центру (снаряды не летят в скалу) и удобства игры от укрытий";
+                    else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру (снаряды не летят в скалу) и удобства игры от укрытий";
                     else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной баллистики (снаряды быстрее достигают цели на дистанции)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом попаданий на дистанции";
                     else if (wTotalShots > 2 && winner.damage_burst > loser.damage_burst + 15000) reason = "огромной плотности огня (наносит колоссальный урон за полную разрядку)";
