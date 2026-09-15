@@ -141,16 +141,12 @@
         .info-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 20px;}
         .info-btn:hover { color: var(--primary); transform: scale(1.1); text-shadow: var(--hud-glow); }
 
-        .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative; opacity: 0; transform: scale(0.98); filter: blur(5px);}
-        .page.active { display: block; animation: pageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
-        @keyframes pageFadeIn { 
-            0% { opacity: 0; transform: scale(0.98) translateY(15px); filter: blur(5px); } 
-            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } 
-        }
-        @keyframes pageFadeOut { 
-            0% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } 
-            100% { opacity: 0; transform: scale(0.98) translateY(-15px); filter: blur(5px); } 
+        /* СТРАНИЦЫ БЕЗ ЗАТУХАНИЙ */
+        .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
+        .page.active { display: block; animation: pageInstantIn 0.3s ease-out forwards; }
+        @keyframes pageInstantIn { 
+            0% { opacity: 0; transform: translateY(10px); } 
+            100% { opacity: 1; transform: translateY(0); } 
         }
 
         .max-lvl-disclaimer { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; font-family: 'Inter'; font-weight: 500;}
@@ -167,8 +163,6 @@
         .home-image-side { flex: 1; display: flex; justify-content: flex-end; align-items: center; height: 100%; position: relative;}
         .home-image-side img { max-width: 100%; max-height: 80vh; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)) drop-shadow(0 0 20px rgba(66, 245, 227, 0.3)); z-index: 5;}
         .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(66, 245, 227, 0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
-        .wml-particle { position: absolute; font-family: 'Orbitron', sans-serif; color: var(--primary); font-weight: 900; text-shadow: 0 0 15px var(--primary); pointer-events: none; opacity: 0; animation: floatWML linear forwards; }
-        @keyframes floatWML { 0% { opacity: 0; transform: translateY(50px) scale(0.5); filter: blur(2px); } 20% { opacity: 0.8; filter: blur(0px); } 80% { opacity: 0.8; filter: drop-shadow(0 0 8px var(--primary)); } 100% { opacity: 0; transform: translateY(-200px) scale(1.5); filter: blur(4px); } }
 
         /* --- CONTROLS --- */
         .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;}
@@ -199,7 +193,7 @@
         .val-lose { color: var(--text-muted); opacity: 0.8; }
         .bar-lose { background: rgba(255,255,255,0.1); }
 
-        /* --- COMPARE GRID & FLOATING WEAPONS --- */
+        /* --- COMPARE GRID --- */
         .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; width: 100%;}
         .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.05); }
         .card-winner { border-color: var(--primary); box-shadow: 0 10px 40px rgba(66,245,227,0.1), inset 0 0 20px rgba(66,245,227,0.05); }
@@ -245,14 +239,11 @@
 
         .meta-legend { margin-top: 15px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px; font-family: 'Jura'; line-height: 1.5;}
 
-        .glitch-anim { animation: glitch 0.3s infinite; }
-        @keyframes glitch { 0% { transform: translate(2px, 2px); } 25% { transform: translate(-2px, -2px); } 50% { transform: translate(2px, -2px); } 75% { transform: translate(-2px, 2px); } 100% { transform: translate(2px, 2px); } }
-
         /* --- BUILDER & EXPORT --- */
         .build-slot-container { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary); width: 100%; }
         .export-wrapper { padding: 40px; width: 100%;}
 
-        /* --- КАСКАДНАЯ АНИМАЦИЯ ПОЯВЛЕНИЯ (STAGGERED) --- */
+        /* --- КАСКАДНАЯ АНИМАЦИЯ --- */
         @keyframes itemFadeIn {
             0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(3px); }
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
@@ -333,7 +324,7 @@
             #card-equip-1 { order: 2; }
             #card-equip-2 { order: 3; }
             .equip-card { padding: 20px 15px; }
-            .weapon-showcase { height: 180px; }
+            .weapon-showcase { height: 160px; }
             .equip-img-container { bottom: 15px; }
             .item-title { font-size: 1.1rem; }
             
@@ -770,11 +761,9 @@
             "mdcn": { name: "MDCN", category: "Ракеты", country: "Франция", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 33800, dpm: 247726, reload: 7.70, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 38, max_speed: 563, accel_time: 2.70, range: 13.87, fire_penalty: 40, sub_launch: 1, img: "img/mdcn.png" }
         };
 
-        function calculateRating(item) {
-            let score = 100;
-            item.accuracyScore = 100;
-
-            if (item.category === "Пушки") {
+        const RATING_CALCULATORS = {
+            "Пушки": function(item) {
+                let score = 100;
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
                 let totalShots = pCount * (item.ammo_clip || 1); 
@@ -820,35 +809,61 @@
                 }
                 
                 if (item.air_target === 1) score += 40;
-                
                 if (item.splash_damage > 0) { score += 5; score += (item.splash_damage / 1000) * 5; }
                 if (item.splash_radius > 0) { score += (item.splash_radius / 50) * 3.75; }
                 if (item.detonation_radius > 0) score += 10;
                 score -= (item.fire_penalty * 0.5);
-            } else {
+                return score;
+            },
+            "Ракеты": function(item) {
+                let score = 100;
                 item.effectiveDpm = item.dpm;
                 item.effectiveBurst = item.damage_burst;
+                item.accuracyScore = 100;
+
+                score += 150; 
                 score += (item.dpm / 300000) * 250; 
                 score += (item.damage_burst / 60000) * 100; 
                 score += item.anti_jamming === 1 ? 200 : 0; 
+                
                 let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
-                if (hasCluster) { score += 100; if (item.anti_jamming === 0) score += 50; }
-                score += (item.projectiles * 30); 
-                score += (item.hp / 400) * 80; 
-                score += (item.start_speed / 400) * 50; 
-                score += (item.max_speed / 600) * 30; 
+                if (hasCluster) { 
+                    if (item.anti_jamming === 1) {
+                        score += 100; 
+                    } else {
+                        score += 35; 
+                    }
+                }
+                
+                score += (item.projectiles * 45); 
+                score += (item.hp / 400) * 120; 
+                score += (item.start_speed / 400) * 80; 
+                score += (item.max_speed / 600) * 50; 
+                
+                if (item.reload <= 8.0) score += (8.0 - item.reload) * 15;
+
                 if (item.splash_damage) score += (item.splash_damage / 5000) * 30; 
                 if (item.splash_radius) score += (item.splash_radius / 300) * 20; 
                 if (item.detonation_radius) score += (item.detonation_radius / 20) * 15;
                 if (item.fragmentation_damage) score += (item.fragmentation_damage / 25000) * 40;
+                
                 if (item.air_target === 1) score += 50;
                 if (item.sub_launch === 1) score += 50;
-                if (item.lock_time === 0) { score += 50; } else if (item.lock_time > 2.0) { score -= ((item.lock_time - 2.0) * 25); }
-                score -= (item.accel_time * 30);
+                
+                if (item.lock_time === 0) { score += 50; } else if (item.lock_time > 1.5) { score -= ((item.lock_time - 1.5) * 30); }
+                
+                score -= (item.accel_time * 12); 
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
-                if (item.min_range > 0) score -= (item.min_range * 50);
+                if (item.min_range > 0) score -= (item.min_range * 30); 
+                return score;
             }
-            return Math.min(1000, Math.max(50, Math.round(score)));
+        };
+
+        function calculateRating(item) {
+            if (RATING_CALCULATORS[item.category]) {
+                return Math.min(1000, Math.max(50, Math.round(RATING_CALCULATORS[item.category](item))));
+            }
+            return 500;
         }
 
         for (let key in DB) { DB[key].rating = calculateRating(DB[key]); }
@@ -971,36 +986,24 @@
                 if (activeBtn) activeBtn.classList.add('active');
             }
 
-            const executeSwitch = () => {
-                if(currentPage) currentPage.classList.remove('active');
-                const newPage = document.getElementById(pageId);
-                newPage.classList.add('active');
-                
-                if(pageId === 'page-compare' || pageId === 'page-catalog' || pageId === 'page-rating') {
-                    document.getElementById('category-bar-wrapper').style.display = 'block';
-                } else {
-                    document.getElementById('category-bar-wrapper').style.display = 'none';
-                }
-                
-                if(pageId === 'page-catalog' || pageId === 'page-rating') { 
-                    compareQueue = []; handleFilter(); 
-                }
-
-                const mwlBg = document.getElementById('global-mwl-wrapper');
-                if (mwlBg) {
-                    if (pageId === 'page-home') { mwlBg.className = 'right'; } 
-                    else { mwlBg.className = 'center'; }
-                }
-            };
-
-            if (currentPage) {
-                currentPage.style.animation = 'pageFadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                setTimeout(() => {
-                    currentPage.style.animation = ''; 
-                    executeSwitch();
-                }, 200);
+            if(currentPage) currentPage.classList.remove('active');
+            const newPage = document.getElementById(pageId);
+            newPage.classList.add('active');
+            
+            if(pageId === 'page-compare' || pageId === 'page-catalog' || pageId === 'page-rating') {
+                document.getElementById('category-bar-wrapper').style.display = 'block';
             } else {
-                executeSwitch();
+                document.getElementById('category-bar-wrapper').style.display = 'none';
+            }
+            
+            if(pageId === 'page-catalog' || pageId === 'page-rating') { 
+                compareQueue = []; handleFilter(); 
+            }
+
+            const mwlBg = document.getElementById('global-mwl-wrapper');
+            if (mwlBg) {
+                if (pageId === 'page-home') { mwlBg.className = 'right'; } 
+                else { mwlBg.className = 'center'; }
             }
         }
 
@@ -1015,41 +1018,27 @@
         function handleCatalogClick(itemId) {
             const item = DB[itemId];
             if (compareQueue.length === 0) {
-                compareQueue.push(itemId); handleFilter(); 
+                compareQueue.push(itemId); 
+                document.querySelectorAll('.catalog-item').forEach(el => {
+                    if(el.dataset.id === itemId) el.classList.add('selected');
+                    else el.classList.remove('selected');
+                });
                 showToast(`ЗАХВАТ СЛОТА 1: ${item.name}`);
             } else if (compareQueue.length === 1) {
-                if (compareQueue[0] === itemId) { compareQueue = []; handleFilter(); return; }
+                if (compareQueue[0] === itemId) { 
+                    compareQueue = []; 
+                    document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('selected'));
+                    return; 
+                }
                 const id1 = compareQueue[0]; const id2 = itemId;
                 
+                updateEquipView(1, id1); updateEquipView(2, id2);
+                runAnalysis(id1, id2);
                 switchMainPage('page-compare', document.getElementById('nav-compare'));
+                showToast("АНАЛИЗ ЗАВЕРШЕН");
                 
-                document.getElementById('name-equip-1').innerText = "ОБРАБОТКА...";
-                document.getElementById('name-equip-2').innerText = "ОБРАБОТКА...";
-                document.getElementById('img-equip-1').style.backgroundImage = 'none';
-                document.getElementById('img-equip-2').style.backgroundImage = 'none';
-                document.getElementById('holo-1').style.display = 'none';
-                document.getElementById('holo-rays-1').style.display = 'none';
-                document.getElementById('holo-scan-1').style.display = 'none';
-                document.getElementById('holo-2').style.display = 'none';
-                document.getElementById('holo-rays-2').style.display = 'none';
-                document.getElementById('holo-scan-2').style.display = 'none';
-                document.getElementById('stats-equip-1').innerHTML = '';
-                document.getElementById('stats-equip-2').innerHTML = '';
-                
-                document.getElementById('verdict-screen').innerHTML = `
-                    <div class="glitch-anim" style="color:var(--primary); font-size:1.8rem; font-family:'Orbitron'; font-weight:900; text-align:center; text-shadow: var(--hud-glow);">
-                        <div style="font-size: 3rem; margin-bottom: 15px;">⟳</div>
-                        PROCESSING DATA...
-                    </div>
-                `;
-
-                setTimeout(() => {
-                    updateEquipView(1, id1); updateEquipView(2, id2);
-                    runAnalysis(id1, id2);
-                    showToast("АНАЛИЗ ЗАВЕРШЕН");
-                }, 1500);
-                
-                compareQueue = []; handleFilter();
+                compareQueue = []; 
+                document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('selected'));
             }
         }
 
@@ -1059,7 +1048,7 @@
                 const sel = compareQueue.includes(s.id) ? 'selected' : '';
                 const delay = index * 0.03; 
                 c.innerHTML += `
-                    <div class="catalog-item glass-panel ${sel}" style="animation-delay: ${delay}s" onclick="handleCatalogClick('${s.id}')">
+                    <div class="catalog-item glass-panel ${sel}" data-id="${s.id}" style="animation-delay: ${delay}s" onclick="handleCatalogClick('${s.id}')">
                         <div class="catalog-item-img" style="background-image: url('${s.img}')"></div>
                         <div class="cat-item-name">${s.name}</div>
                         <div class="cat-item-meta">
@@ -1285,7 +1274,7 @@
 
             for (let key in STATS_LOGIC) {
                 if (e1[key] === undefined && e2[key] === undefined) continue;
-                if (e1.category === 'Пушки' && key === 'start_speed') continue; 
+                if (e1.category === 'Пушки' && key === 'start_speed') continue;
                 
                 const el1 = document.getElementById(`val-1-${key}`); const el2 = document.getElementById(`val-2-${key}`);
                 const bar1 = document.getElementById(`bar-1-${key}`); const bar2 = document.getElementById(`bar-2-${key}`);
