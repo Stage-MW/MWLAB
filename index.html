@@ -32,7 +32,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
-        html { background-color: var(--bg-base); scroll-behavior: smooth; }
+        html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; }
 
         /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
@@ -50,14 +50,6 @@
             min-height: 100vh;
         }
 
-        /* --- ФОНЫ ДЛЯ СТРАНИЦ (Твои изображения) --- */
-        /* Сюда можно добавить картинки на задний фон, раскомментировав строки */
-        /*
-        #page-compare { background-image: url('img/bg-compare.jpg'); background-size: cover; background-attachment: fixed; }
-        #page-catalog { background-image: url('img/bg-catalog.jpg'); background-size: cover; background-attachment: fixed; }
-        */
-
-        /* Пылинки / частицы на фоне для атмосферы */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-image: radial-gradient(circle at center, rgba(66, 245, 227, 0.05) 0%, transparent 60%);
@@ -100,6 +92,7 @@
         }
         .nav-logo-small {
             font-family: 'Inter'; font-weight: 900; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px; margin-right: auto;
+            text-shadow: var(--hud-glow);
         }
         .nav-btn {
             background: none; border: none; color: var(--text-muted);
@@ -114,13 +107,41 @@
         .nav-btn.active::after { width: 100%; }
 
         .info-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 20px;}
-        .info-btn:hover { color: var(--primary); transform: scale(1.1); }
+        .info-btn:hover { color: var(--primary); transform: scale(1.1); text-shadow: var(--hud-glow); }
 
         .page { display: none; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
         .page.active { display: block; animation: fadeUp 0.5s ease-out forwards; }
         @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
 
         .max-lvl-disclaimer { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; font-family: 'Inter'; font-weight: 500;}
+
+        /* --- HOME PAGE (MAIN) --- */
+        #page-home { height: calc(100vh - 80px); padding: 0 5%; overflow: hidden; display: none; }
+        #page-home.active { display: flex; align-items: center; justify-content: space-between; }
+        
+        .home-container { display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; position: relative; z-index: 5;}
+        
+        .home-text-side { flex: 1; max-width: 50%; padding-right: 20px; }
+        .home-title { font-family: 'Inter'; font-weight: 900; font-size: 6vw; line-height: 1; color: var(--primary); text-shadow: var(--hud-glow); letter-spacing: -2px; margin-bottom: 10px; }
+        .home-subtitle { font-family: 'Share Tech Mono'; color: #fff; font-size: 1.5rem; letter-spacing: 5px; opacity: 0.9; margin-bottom: 20px;}
+        .home-divider { width: 100px; height: 4px; background: var(--primary); box-shadow: var(--hud-glow); margin-bottom: 25px; border-radius: 2px;}
+        .home-desc { font-family: 'Jura'; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; max-width: 80%; text-transform: none;}
+        
+        .home-image-side { flex: 1; display: flex; justify-content: flex-end; align-items: center; height: 100%; position: relative;}
+        .home-image-side img { max-width: 100%; max-height: 80vh; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)) drop-shadow(0 0 20px rgba(66, 245, 227, 0.3)); z-index: 5;}
+        
+        /* Свечение за персонажем */
+        .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(66, 245, 227, 0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
+
+        /* BLUE SPARKS PARTICLES */
+        #sparks-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: hidden; }
+        .spark { position: absolute; bottom: -20px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 12px 2px var(--primary); opacity: 0; animation: spark-fly linear forwards; }
+        @keyframes spark-fly {
+            0% { opacity: 0; transform: translate(0, 0) scale(0); }
+            15% { opacity: 1; transform: translate(calc(var(--dx) * 0.2), -15vh) scale(1); }
+            80% { opacity: 0.8; }
+            100% { opacity: 0; transform: translate(var(--dx), -120vh) scale(0); }
+        }
 
         /* --- CONTROLS & FILTERS --- */
         .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -159,7 +180,7 @@
         .stat-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; position: relative; }
         .stat-bar-fill { height: 100%; background: var(--text-muted); border-radius: 2px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        .val-win { color: var(--primary); }
+        .val-win { color: var(--primary); text-shadow: var(--hud-glow);}
         .bar-win { background: var(--primary); box-shadow: var(--hud-glow); }
         .val-lose { color: var(--text-muted); opacity: 0.8; }
         .bar-lose { background: rgba(255,255,255,0.1); }
@@ -174,7 +195,6 @@
         .equip-img-container { 
             width: 100%; height: 160px; margin-bottom: 20px; 
             background-size: contain; background-repeat: no-repeat; background-position: center; 
-            /* БЕЗ ФОНА КАК В РЕФЕРЕНСЕ */
             background-color: transparent; border: none; box-shadow: none; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8));
         }
         
@@ -183,11 +203,7 @@
         /* --- ANALYTICS CORE (VS SECTION) --- */
         .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
         
-        /* Главное лого MWLAB в центре */
-        .center-logo {
-            font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px;
-            margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow);
-        }
+        .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px; margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow); }
         .center-subtitle { font-family: 'Share Tech Mono'; color: #fff; letter-spacing: 5px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.7;}
 
         .analysis-cols { display: flex; gap: 20px; width: 100%; margin-bottom: 20px; }
@@ -218,7 +234,7 @@
         /* --- CATALOG (ARSENAL) --- */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
         .catalog-item { 
-            padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s ease; 
+            padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             display: flex; flex-direction: column; align-items: center; text-align: center;
         }
         .catalog-item:hover { border-color: var(--primary); transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.6), var(--hud-glow); }
@@ -276,6 +292,10 @@
             #card-equip-2 { order: 2; }
             .analytics-core { order: 3; }
             .analysis-cols { flex-direction: column; }
+            #page-home.active { flex-direction: column; justify-content: center; text-align: center; }
+            .home-text-side { max-width: 100%; padding-right: 0; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center;}
+            .home-title { font-size: 4rem; }
+            .home-image-side { width: 100%; justify-content: center;}
         }
         @media (max-width: 768px) {
             nav { padding: 15px; justify-content: center; gap: 15px;}
@@ -295,21 +315,39 @@
     </div>
 
     <div class="app-wrapper">
-        <nav>
+        <nav class="glass-panel" style="border-radius: 0; border-left:none; border-right:none; border-top:none;">
             <div class="nav-logo-small">MWLAB</div>
-            <button class="nav-btn" onclick="switchMainPage('page-compare')">Анализатор</button>
-            <button class="nav-btn" onclick="switchMainPage('page-builder')">Конструктор</button>
-            <button class="nav-btn active" onclick="switchMainPage('page-catalog')">Арсенал</button>
-            <button class="nav-btn" onclick="switchMainPage('page-rating')">Тир-лист</button>
+            <button class="nav-btn active" id="nav-home" onclick="switchMainPage('page-home', this)">Главная</button>
+            <button class="nav-btn" id="nav-compare" onclick="switchMainPage('page-compare', this)">Анализатор</button>
+            <button class="nav-btn" id="nav-builder" onclick="switchMainPage('page-builder', this)">Конструктор</button>
+            <button class="nav-btn" id="nav-catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
+            <button class="nav-btn" id="nav-rating" onclick="switchMainPage('page-rating', this)">Тир-лист</button>
             <button class="info-btn" onclick="switchMainPage('page-admin')" title="Админ">⚙</button>
             <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
         </nav>
 
-        <div class="max-lvl-disclaimer">ОБНОВЛЕНО ПОД ТЕКУЩУЮ МЕТУ (МАКС. УРОВЕНЬ)</div>
-
-        <div style="padding: 0 20px; text-align: center; position: relative; z-index: 10;" id="category-bar-wrapper">
+        <div style="padding: 20px 20px 0 20px; text-align: center; position: relative; z-index: 10; display: none;" id="category-bar-wrapper">
             <div class="categories-bar" id="category-bar"></div>
         </div>
+
+        <!-- --- ГЛАВНАЯ СТРАНИЦА --- -->
+        <main id="page-home" class="page active">
+            <div id="sparks-container"></div>
+            <div class="home-container">
+                <div class="home-text-side">
+                    <h1 class="home-title">MWLABS</h1>
+                    <p class="home-subtitle">TACTICAL DATABASE</p>
+                    <div class="home-divider"></div>
+                    <p class="home-desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
+                    <button class="cat-btn-main active" style="margin-top:40px; font-size: 1.1rem; padding: 15px 40px; border:none;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
+                </div>
+                <div class="home-image-side">
+                    <div class="home-image-glow"></div>
+                    <!-- СЮДА ЗАГРУЗИТСЯ ТВОЯ КАРТИНКА (должна лежать в папке img с названием hero.png) -->
+                    <img src="img/hero.png" alt="" id="home-hero-image" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </main>
 
         <main id="page-compare" class="page">
             <div class="controls-container">
@@ -359,7 +397,7 @@
             </div>
         </main>
 
-        <main id="page-catalog" class="page active">
+        <main id="page-catalog" class="page">
             <div class="controls-container">
                 <input type="text" class="search-input glass-panel" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК..." oninput="handleSearch(this.value)">
                 <select class="filter-select glass-panel" id="filter-country-catalog" onchange="handleFilter()">
@@ -462,6 +500,29 @@
     <div id="toast-container"></div>
 
     <script>
+        // Искры на главном экране
+        function spawnSpark() {
+            const homePage = document.getElementById('page-home');
+            if (!homePage.classList.contains('active')) return;
+            
+            const container = document.getElementById('sparks-container');
+            const spark = document.createElement('div');
+            spark.className = 'spark';
+            
+            const size = Math.random() * 4 + 2; 
+            spark.style.width = size + 'px';
+            spark.style.height = size + 'px';
+            spark.style.left = Math.random() * 100 + '%';
+            
+            const duration = Math.random() * 4 + 3;
+            spark.style.animationDuration = duration + 's';
+            spark.style.setProperty('--dx', (Math.random() * 200 - 100) + 'px');
+            
+            container.appendChild(spark);
+            setTimeout(() => { if(spark.parentNode) spark.remove() }, duration * 1000);
+        }
+        setInterval(spawnSpark, 200);
+
         function triggerIntro() {
             setTimeout(() => {
                 const introScreen = document.getElementById('intro-screen');
@@ -486,7 +547,6 @@
         let currentCategory = "Ракеты";
         let searchQuery = "";
         
-        // Массив максимальных значений для отрисовки шкал (progress bars)
         const MAX_STATS = {
             damage_burst: 180000, dpm: 660000, damage: 60000, accuracy: 100,
             reload: 25, lock_time: 5, crit_chance: 100, projectiles: 16, ammo_clip: 70,
@@ -818,28 +878,27 @@
 
         function syncFilters() { document.getElementById('search-input-rating').value = document.getElementById('search-input-catalog').value; }
 
-        function switchMainPage(pageId) {
+        function switchMainPage(pageId, btnElement) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             
-            if(pageId === 'page-compare') {
-                document.querySelectorAll('.nav-btn')[0].classList.add('active');
-                document.getElementById('category-bar-wrapper').style.display = 'block';
+            if (btnElement) {
+                btnElement.classList.add('active');
+            } else {
+                // Ищем кнопку, если вызов был без this (например, из JS)
+                const activeBtn = document.querySelector(`nav [onclick*="${pageId}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
             }
-            if(pageId === 'page-builder') {
-                document.querySelectorAll('.nav-btn')[1].classList.add('active');
+            
+            if(pageId === 'page-compare' || pageId === 'page-catalog' || pageId === 'page-rating') {
+                document.getElementById('category-bar-wrapper').style.display = 'block';
+            } else {
                 document.getElementById('category-bar-wrapper').style.display = 'none';
             }
-            if(pageId === 'page-catalog') { 
-                document.querySelectorAll('.nav-btn')[2].classList.add('active'); 
-                document.getElementById('category-bar-wrapper').style.display = 'block';
+            
+            if(pageId === 'page-catalog' || pageId === 'page-rating') { 
                 compareQueue = []; handleFilter(); 
-            }
-            if(pageId === 'page-rating') { 
-                document.querySelectorAll('.nav-btn')[3].classList.add('active'); 
-                document.getElementById('category-bar-wrapper').style.display = 'block';
-                handleFilter(); 
             }
         }
 
@@ -848,6 +907,7 @@
             renderDynamicFilters();
             handleFilter();
             addBuildSlot();
+            switchMainPage('page-home', document.getElementById('nav-home'));
         }
 
         function handleCatalogClick(itemId) {
@@ -861,7 +921,7 @@
                 
                 updateEquipView(1, id1); updateEquipView(2, id2);
                 runAnalysis(id1, id2);
-                switchMainPage('page-compare');
+                switchMainPage('page-compare', document.getElementById('nav-compare'));
                 showToast("АНАЛИЗ ЗАВЕРШЕН");
                 compareQueue = []; handleFilter();
             }
@@ -928,7 +988,7 @@
                 if (typeof rawVal === 'number' && STATS_LOGIC[key].higherIsBetter) {
                     pct = Math.min(100, (rawVal / max) * 100);
                 } else if (typeof rawVal === 'number' && !STATS_LOGIC[key].higherIsBetter) {
-                    pct = Math.min(100, (rawVal / max) * 100);
+                    pct = Math.max(0, 100 - Math.min(100, (rawVal / max) * 100)); // Reverse scale
                 }
 
                 html += `
@@ -997,7 +1057,7 @@
                 if (item.effectiveDpm > 250000 && totalShots <= 4) pros.push(`Подавляющий эффект. DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')})`);
                 
                 if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
-                else if (item.range < 6.5) cons.push(`Малая дальность (${item.range} км) — требует игры от островов`);
+                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры в упор`);
                 
                 if (item.air_target === 1) pros.push("Универсальное орудие ПВО");
             }
@@ -1054,21 +1114,21 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: e1.name, data: d1, backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 3 },
-                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 3 }
+                        { label: e1.name, data: d1, backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6 },
+                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6 }
                     ]
                 },
                 options: {
                     scales: { 
                         r: { 
                             min: 0, max: 100, 
-                            angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, 
-                            grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, 
-                            pointLabels: { color: '#e2f1f8', font: { family: 'Inter', size: 11 } }, 
+                            angleLines: { color: 'rgba(66, 245, 227, 0.2)' }, 
+                            grid: { color: 'rgba(66, 245, 227, 0.1)', circular: true }, 
+                            pointLabels: { color: '#42f5e3', font: { family: 'Share Tech Mono', size: 12 } }, 
                             ticks: { display: false } 
                         } 
                     },
-                    plugins: { legend: { display: false } }, 
+                    plugins: { legend: { display: true, position: 'top', labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 13 }, padding: 20 } } }, 
                     responsive: true, maintainAspectRatio: false
                 }
             });
@@ -1108,7 +1168,7 @@
             if (Math.abs(e1.rating - e2.rating) < 15) {
                 let diff = Math.abs(e1.rating - e2.rating);
                 let pDiff = ((diff / Math.min(e1.rating, e2.rating)) * 100).toFixed(1);
-                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%).</span>`;
+                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%). Выбор зависит от тактики.</span>`;
                 card1.classList.add('card-tie'); card2.classList.add('card-tie');
             } else {
                 const winner = e1.rating > e2.rating ? e1 : e2; const loser = e1.rating > e2.rating ? e2 : e1;
@@ -1127,7 +1187,7 @@
                     let lHasClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
                     let wTotalShots = (winner.projectiles || 1) * (winner.ammo_clip || 1);
 
-                    if (loser.range < 7 && winner.range >= 11) reason = `превосходства в дальности`;
+                    if (loser.range < 6.5 && winner.range >= 10) reason = `превосходства в дальности`;
                     else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `мощи в ближнем бою`;
                     else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (урон за секунду)";
                     else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру";
@@ -1137,7 +1197,7 @@
                     else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости снаряда";
                 }
 
-                summaryText = `<span style="color:var(--primary); font-size: 1.3rem; display:block; margin-bottom: 8px; font-family:'Inter'; font-weight:900;">ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:var(--text-main);">Эффективнее на <b style="color:var(--primary); font-size:1.2rem;">${percentDiff}%</b> за счет ${reason} (Индекс: ${winner.rating} vs ${loser.rating}).</span>`;
+                summaryText = `<span style="color:var(--primary); font-size: 1.3rem; display:block; margin-bottom: 8px; font-family:'Orbitron'; letter-spacing:1px;">ТАКТИЧЕСКОЕ ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:var(--text-main);">В мете закрытых карт (5-10км) это вооружение эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b> за счет ${reason} (Индекс: ${winner.rating} vs ${loser.rating}).</span>`;
             }
 
             let visualsHTML = `
@@ -1227,13 +1287,13 @@
                     <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:1.1rem; line-height:1.6; text-transform:none;">
                         Урон в минуту: <b style="color:var(--primary); text-shadow: var(--hud-glow);">${Math.round(totalDpm).toLocaleString('ru')}</b><br>
                         Эффективный DPM: <b style="color:#ffaa00">${Math.round(totalEffDpm).toLocaleString('ru')}</b><br>
-                        Альфа-страйк: <b style="color:#fff">${Math.round(totalBurst).toLocaleString('ru')}</b>
+                        Альфа-страйк: <b style="color:var(--secondary); text-shadow: 0 0 10px rgba(255,60,90,0.4);">${Math.round(totalBurst).toLocaleString('ru')}</b>
                     </div>
                 </div>
                 <div class="analysis-col glass-panel">
                     <div class="col-title">ТАКТИЧЕСКИЕ ДАННЫЕ</div>
                     <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:1.1rem; line-height:1.6; text-transform:none;">
-                        Дальность: <b style="color:#fff">${maxRange} км</b><br>
+                        Дальность боя: <b style="color:#fff">${maxRange} км</b><br>
                         Средняя баллистика: <b style="color:#fff">${Math.round(avgSpeed)} уз.</b><br>
                         ПВО: ${hasAir ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}<br>
                         Удары из-под воды: ${hasSub ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}
@@ -1243,9 +1303,9 @@
 
             let tacticsText = `<div class="final-summary-block glass-panel"><b style="color:var(--primary); font-size:1.2rem; font-family:'Inter'; font-weight:900;">ОЦЕНКА СБОРКИ:</b><br><br>`;
             if (hasAntiJamming) tacticsText += `<span style="color:var(--primary)">[+]</span> Интегрирована защита от ловушек (часть урона неотводима).<br>`;
-            if (totalBurst > 100000) tacticsText += `<span style="color:#fff">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
+            if (totalBurst > 100000) tacticsText += `<span style="color:var(--secondary)">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
             if (totalEffDpm > 500000) tacticsText += `<span style="color:#ffaa00">[!]</span> Колоссальный эффективный DPM. Сборка распилит любого в открытом бою.<br>`;
-            if (!hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Сборка уязвима с воздуха, требуется ПВО на корабле.<br>`;
+            if (!hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Сборка уязвима с воздуха, требуется сильное ПВО на корабле.<br>`;
             tacticsText += `</div>`;
             document.getElementById('build-tactics').innerHTML = tacticsText;
 
@@ -1253,7 +1313,7 @@
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
             
-            Chart.defaults.color = '#c4d8e2';
+            Chart.defaults.color = '#7890a8';
             Chart.defaults.font.family = 'Share Tech Mono';
 
             window.buildRadarInstance = new Chart(ctx, {
