@@ -705,9 +705,15 @@
                 score += (item.effectiveDpm / 400000) * 180; 
                 
                 let alphaMultiplier = 1;
-                if (totalShots === 2) alphaMultiplier = 0.95;
-                else if (totalShots === 3) alphaMultiplier = 0.85;
-                else if (totalShots > 3) alphaMultiplier = Math.max(0.1, 1 - (totalShots * 0.04));
+                if (hasClip) {
+                    if (item.ammo_clip >= 10) alphaMultiplier = 0.2;
+                    else if (item.ammo_clip > 3) alphaMultiplier = 0.5;
+                    else alphaMultiplier = 0.8;
+                } else {
+                    if (totalShots === 2) alphaMultiplier = 0.95;
+                    else if (totalShots === 3) alphaMultiplier = 0.85;
+                    else if (totalShots > 3) alphaMultiplier = Math.max(0.1, 1 - (totalShots * 0.04));
+                }
                 
                 item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
                 score += (item.effectiveBurst / 50000) * 180;
@@ -721,13 +727,11 @@
                 if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
                 if (item.reload < 3.0) score += 20;
                 
+                // БОНУСЫ ЗА ТАКТИКУ
                 if (hasClip) {
                     score -= Math.min(40, item.ammo_clip * 1.5); 
                 } else {
-                    if (pCount === 1) score += 40; 
-                    else if (pCount === 2) score += 30; 
-                    else if (pCount === 3) score += 15; 
-                    else if (pCount >= 4) score -= Math.min(50, pCount * 1.5);
+                    score += (40 - ((pCount - 1) * 5));
                 }
                 
                 if (item.air_target === 1) score += 40;
