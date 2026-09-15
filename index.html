@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#071017">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>MWLAB | TACTICAL TERMINAL</title>
@@ -30,9 +30,9 @@
             --hud-glow: 0 0 15px rgba(66, 245, 227, 0.4);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
-        html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; }
+        html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; width: 100%; }
 
         /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
@@ -46,6 +46,7 @@
             font-family: 'Jura', sans-serif;
             text-transform: uppercase;
             overflow-x: hidden;
+            width: 100%;
             position: relative;
             min-height: 100vh;
         }
@@ -122,8 +123,8 @@
         nav { 
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 30px; 
             padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.05); 
-            background: rgba(5, 10, 16, 0.8); backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 100;
+            background: rgba(5, 10, 16, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100; width: 100%;
         }
         .nav-logo-small {
             font-family: 'Inter'; font-weight: 900; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px; margin-right: auto;
@@ -144,7 +145,7 @@
         .info-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 20px;}
         .info-btn:hover { color: var(--primary); transform: scale(1.1); text-shadow: var(--hud-glow); }
 
-        .page { display: none; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
+        .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
         .page.active { display: block; animation: fadeUp 0.5s ease-out forwards; }
         @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
 
@@ -181,17 +182,17 @@
         }
 
         /* --- CONTROLS & FILTERS --- */
-        .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;}
         .search-input, .filter-select { 
             background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; 
             padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Jura'; font-weight: 600;
-            font-size: 0.95rem; border-radius: 8px; outline: none; transition: 0.3s;
+            font-size: 0.95rem; border-radius: 8px; outline: none; transition: 0.3s; appearance: none; -webkit-appearance: none;
         }
         .search-input::placeholder { color: var(--text-muted); }
         .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(66, 245, 227, 0.2); }
         .filter-select option { background: var(--bg-base); color: #fff; }
 
-        .categories-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+        .categories-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; width: 100%;}
         .cat-btn-main { 
             background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); 
             padding: 10px 35px; border-radius: 30px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
@@ -209,9 +210,9 @@
         }
 
         /* --- STAT BARS --- */
-        .stats-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
-        .stat-row { display: flex; flex-direction: column; gap: 4px; }
-        .stat-header { display: flex; justify-content: space-between; font-family: 'Jura'; font-size: 0.85rem; font-weight: 600; }
+        .stats-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; width: 100%; }
+        .stat-row { display: flex; flex-direction: column; gap: 4px; width: 100%;}
+        .stat-header { display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Jura'; font-size: 0.85rem; font-weight: 600; }
         .stat-name { color: var(--text-muted); }
         .stat-value { color: #fff; }
         .stat-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; position: relative; }
@@ -223,7 +224,7 @@
         .bar-lose { background: rgba(255,255,255,0.1); }
 
         /* --- COMPARE GRID --- */
-        .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; }
+        .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; width: 100%;}
         
         .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.05); }
         .card-winner { border-color: var(--primary); box-shadow: 0 10px 40px rgba(66,245,227,0.1), inset 0 0 20px rgba(66,245,227,0.05); }
@@ -235,17 +236,17 @@
             background-color: transparent; border: none; box-shadow: none; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8));
         }
         
-        .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; text-align: center;}
 
         /* --- ANALYTICS CORE --- */
-        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); width: 100%; }
         
-        .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px; margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow); }
-        .center-subtitle { font-family: 'Share Tech Mono'; color: #fff; letter-spacing: 5px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.7;}
+        .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px; margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow); text-align: center;}
+        .center-subtitle { font-family: 'Share Tech Mono'; color: #fff; letter-spacing: 5px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.7; text-align: center;}
 
         .analysis-cols { display: flex; gap: 20px; width: 100%; margin-bottom: 20px; }
         .analysis-col { flex: 1; padding: 15px; border-left: 2px solid var(--primary-dim); }
-        .col-title { font-family: 'Inter'; font-weight: 700; color: #fff; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase;}
+        .col-title { font-family: 'Inter'; font-weight: 700; color: #fff; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; text-align: center;}
         
         .pro-item { color: var(--text-main); font-family: 'Jura'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
         .pro-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: var(--hud-glow); }
@@ -263,13 +264,13 @@
         /* --- BUILDER (CONSTRUCTOR) --- */
         .build-slot-container { 
             display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; margin-bottom: 15px; 
-            border-left: 4px solid var(--primary);
+            border-left: 4px solid var(--primary); width: 100%;
         }
 
-        .export-wrapper { padding: 40px; }
+        .export-wrapper { padding: 40px; width: 100%;}
 
         /* --- CATALOG (ARSENAL) --- */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; width: 100%;}
         .catalog-item { 
             padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -289,15 +290,15 @@
         }
         .catalog-item:hover .catalog-item-img { transform: scale(1.05); }
 
-        .cat-item-name { color: #fff; font-size: 1.1rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 10px;}
+        .cat-item-name { color: #fff; font-size: 1.1rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 10px; width: 100%;}
         .cat-item-meta { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; width: 100%;}
         .cat-meta-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px;}
 
         /* --- RATING --- */
-        .rating-container { max-width: 800px; margin: 0 auto; }
+        .rating-container { max-width: 800px; margin: 0 auto; width: 100%;}
         .rating-item { 
             display: flex; align-items: center; margin-bottom: 20px; padding: 20px 30px; 
-            transition: all 0.3s ease; border-left: 4px solid transparent;
+            transition: all 0.3s ease; border-left: 4px solid transparent; width: 100%;
         }
         .rating-item:hover { border-color: var(--primary); transform: translateX(10px); background: rgba(255,255,255,0.02); }
         .rating-rank { font-size: 2rem; color: #fff; width: 60px; font-family: 'Inter'; font-weight: 900; opacity: 0.5;}
@@ -309,9 +310,9 @@
         .rating-score { font-size: 1.5rem; font-family: 'Share Tech Mono'; font-weight: bold; width: 80px; text-align: right;}
 
         /* --- MODALS & TOASTS --- */
-        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
         .toast { 
-            background: rgba(11, 22, 36, 0.9); border: 1px solid var(--primary); border-radius: 8px;
+            background: rgba(11, 22, 36, 0.95); border: 1px solid var(--primary); border-radius: 8px;
             color: var(--primary); padding: 15px 25px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; text-align: center; 
             opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
         }
@@ -320,33 +321,92 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 10, 16, 0.85); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s ease; backdrop-filter: blur(8px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-content { padding: 40px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border-top: 3px solid var(--primary); }
-        .modal-close { position: absolute; top: 20px; right: 25px; background: transparent; border: none; color: var(--text-muted); font-size: 2rem; cursor: pointer; transition: 0.3s; }
+        .modal-close { position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--text-muted); font-size: 2.5rem; line-height: 1; cursor: pointer; transition: 0.3s; padding: 0;}
         .modal-close:hover { color: var(--primary); transform: scale(1.1); }
 
+        /* =========================================
+           MOBILE & TABLET RESPONSIVE QUERIES
+           ========================================= */
+
         @media (max-width: 1200px) {
-            .compare-grid { display: flex; flex-direction: column; gap: 20px; }
-            .equip-card { order: 1; }
+            .compare-grid { grid-template-columns: 1fr 1fr; gap: 20px;}
+            .analytics-core { grid-column: 1 / -1; order: 3; }
+            #card-equip-1 { order: 1; }
             #card-equip-2 { order: 2; }
-            .analytics-core { order: 3; }
-            .analysis-cols { flex-direction: column; }
-            #page-home.active { flex-direction: column; justify-content: center; text-align: center; }
+            
+            #page-home.active { flex-direction: column; justify-content: center; text-align: center; overflow-y: auto;}
+            .home-container { flex-direction: column; }
             .home-text-side { max-width: 100%; padding-right: 0; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center;}
-            .home-title { font-size: 4rem; }
-            .home-image-side { width: 100%; justify-content: center;}
+            .home-title { font-size: 5rem; }
+            .home-desc { max-width: 100%; }
+            .home-image-side { width: 100%; justify-content: center; min-height: 40vh;}
             
             #global-mwl-wrapper.right { left: 50%; }
             #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 35vw; }
         }
+
         @media (max-width: 768px) {
-            nav { padding: 15px; justify-content: center; gap: 15px;}
-            .nav-logo-small { width: 100%; text-align: center; margin: 0; margin-bottom: 10px;}
-            .catalog-grid { grid-template-columns: 1fr; }
-            .rating-item { flex-direction: column; text-align: center; }
-            .rating-img { margin: 15px 0; width: 200px; height: 100px;}
-            .rating-score { text-align: center; margin-top: 10px;}
-            .rating-rank { text-align: center; width: auto;}
+            .page { padding: 15px 10px; }
             
-            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 45vw; }
+            /* Nav Mobile */
+            nav { padding: 15px 10px; justify-content: center; gap: 8px; border-radius: 0; }
+            .nav-logo-small { width: 100%; text-align: center; margin: 0 0 10px 0; font-size: 1.8rem;}
+            .nav-btn { flex: 1 1 30%; font-size: 0.75rem; padding: 10px 5px; text-align: center; }
+            .info-btn { flex: 1 1 40%; margin-left: 0; height: 35px; font-size: 1.1rem;}
+
+            /* Compare Mobile */
+            .compare-grid { grid-template-columns: 1fr; gap: 15px; }
+            .analytics-core { grid-column: 1 / -1; order: 1; padding: 25px 15px; }
+            #card-equip-1 { order: 2; }
+            #card-equip-2 { order: 3; }
+            .equip-card { padding: 20px 15px; }
+            .equip-img-container { height: 130px; }
+            .item-title { font-size: 1.1rem; }
+            
+            .analysis-cols { flex-direction: column; gap: 15px; }
+            .analysis-col { border-left: none; border-top: 2px solid var(--primary-dim); padding: 15px 5px 5px 5px; }
+            .center-logo { font-size: 2.8rem; margin-bottom: 0;}
+            .center-subtitle { font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 20px;}
+            .radar-container { height: 200px; }
+            
+            /* Controls Mobile */
+            .controls-container { flex-direction: column; width: 100%; gap: 10px; margin-bottom: 15px;}
+            .search-input, .filter-select { max-width: 100%; width: 100%; font-size: 0.9rem; padding: 12px 15px; }
+            .cat-btn-main { width: 100%; font-size: 0.9rem; padding: 12px; border-radius: 8px;}
+            .categories-bar { flex-direction: column; width: 100%; gap: 10px;}
+
+            /* Catalog Mobile (2 Columns) */
+            .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+            .catalog-item { padding: 15px 10px 10px 10px; border-radius: 12px;}
+            .catalog-item-img { height: 80px; margin-bottom: 15px; }
+            .cat-item-name { font-size: 0.85rem; margin-bottom: 10px; line-height: 1.2;}
+            .cat-meta-row { flex-direction: column; font-size: 0.7rem; gap: 2px; text-align: center; border-bottom: none;}
+            .catalog-item.selected::after { font-size: 0.5rem; padding: 3px 6px; top: 10px; right: 10px; }
+
+            /* Rating Mobile */
+            .rating-item { flex-direction: column; text-align: center; padding: 20px 15px; border-radius: 12px; border-left: none; border-top: 2px solid var(--primary-dim);}
+            .rating-rank { width: 100%; text-align: center; font-size: 2rem; margin-bottom: 5px;}
+            .rating-img { width: 100%; max-width: 250px; height: 100px; margin: 10px 0; }
+            .rating-info { width: 100%; align-items: center; }
+            .rating-title { font-size: 1rem; }
+            .rating-score { width: 100%; text-align: center; margin-top: 10px; font-size: 1.8rem;}
+
+            /* Builder Mobile */
+            .build-slot-container { flex-direction: column; gap: 10px; padding: 15px; border-left: none; border-top: 3px solid var(--primary); border-radius: 12px;}
+            .build-slot-container .search-input { max-width: 100%; width: 100%; }
+            .export-wrapper { padding: 20px 15px; }
+            
+            /* Home Mobile */
+            #page-home { padding: 0 15px 40px 15px; height: auto; min-height: calc(100vh - 120px); overflow-y: auto;}
+            .home-title { font-size: 3.5rem; margin-top: 20px; }
+            .home-subtitle { font-size: 1rem; letter-spacing: 3px; }
+            .home-desc { font-size: 0.95rem; }
+            .home-image-side img { max-height: 45vh; }
+            
+            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 50vw; }
+            
+            .modal-content { padding: 25px 15px; }
+            .modal-close { top: 5px; right: 15px; font-size: 2.5rem; }
         }
     </style>
 </head>
@@ -374,7 +434,7 @@
             <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
         </nav>
 
-        <div style="padding: 20px 20px 0 20px; text-align: center; position: relative; z-index: 10; display: none;" id="category-bar-wrapper">
+        <div style="padding: 15px 15px 0 15px; text-align: center; position: relative; z-index: 10; display: none;" id="category-bar-wrapper">
             <div class="categories-bar" id="category-bar"></div>
         </div>
 
@@ -386,7 +446,7 @@
                     <p class="home-subtitle">TACTICAL DATABASE</p>
                     <div class="home-divider"></div>
                     <p class="home-desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
-                    <button class="cat-btn-main active" style="margin-top:40px; font-size: 1.1rem; padding: 15px 40px; border:none;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
+                    <button class="cat-btn-main active" style="margin-top:30px; font-size: 1rem; padding: 12px 30px; border:none;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
                 </div>
                 <div class="home-image-side" id="home-image-side">
                     <div class="home-image-glow"></div>
@@ -412,7 +472,7 @@
                         <div class="center-logo">MWLAB</div>
                         <div class="center-subtitle">TACTICAL ANALYSIS</div>
                         <div id="verdict-screen" style="width: 100%; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; align-items: center; color: var(--text-muted);">
-                            <p style="font-family:'Jura'; font-size:1.1rem;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
+                            <p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
                         </div>
                     </div>
 
@@ -432,15 +492,15 @@
                 <button class="cat-btn-main btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ</button>
             </div>
             
-            <div id="build-slots" style="max-width: 800px; margin: 0 auto 30px auto;"></div>
+            <div id="build-slots" style="max-width: 800px; margin: 0 auto 30px auto; width:100%;"></div>
 
-            <div id="build-export-wrapper" class="export-wrapper glass-panel" style="display:none; max-width: 900px; margin: 0 auto; padding: 40px;">
-                <h2 style="text-align: center; color: #fff; font-family: 'Inter'; font-size: 2rem; margin-bottom: 30px;">ОЦЕНКА СБОРКИ КОРАБЛЯ</h2>
+            <div id="build-export-wrapper" class="export-wrapper glass-panel" style="display:none; max-width: 900px; margin: 0 auto; width:100%;">
+                <h2 style="text-align: center; color: #fff; font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 20px;">ОЦЕНКА СБОРКИ КОРАБЛЯ</h2>
                 <div class="analysis-cols" style="flex-wrap: wrap;" id="build-stats-container"></div>
-                <div class="radar-container" style="position: relative; height: 350px; margin-top: 20px;">
+                <div class="radar-container" style="position: relative; height: 300px; margin-top: 20px;">
                     <canvas id="buildRadarChart"></canvas>
                 </div>
-                <div id="build-tactics" style="margin-top: 30px; font-family: 'Jura';"></div>
+                <div id="build-tactics" style="margin-top: 20px; font-family: 'Jura';"></div>
             </div>
         </main>
 
@@ -493,16 +553,16 @@
         </main>
 
         <main id="page-admin" class="page">
-            <div class="glass-panel" style="max-width: 500px; margin: 0 auto; padding: 40px; text-align: center;">
-                <h2 style="color:#fff; font-family:'Inter'; margin-bottom: 30px;">ДОСТУП АДМИНА</h2>
+            <div class="glass-panel" style="max-width: 400px; margin: 0 auto; padding: 30px; text-align: center; width: 100%;">
+                <h2 style="color:#fff; font-family:'Inter'; margin-bottom: 25px; font-size:1.5rem;">ДОСТУП АДМИНА</h2>
                 <div id="admin-auth">
-                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="new-password" placeholder="ПИН-КОД" style="margin-bottom: 20px; text-align:center;">
+                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="new-password" placeholder="ПИН-КОД" style="margin-bottom: 20px; text-align:center; width: 100%;">
                     <br>
-                    <button class="cat-btn-main active" style="border:none;" onclick="checkAdmin()">ВХОД</button>
+                    <button class="cat-btn-main active" style="border:none; width:100%;" onclick="checkAdmin()">ВХОД</button>
                 </div>
                 <div id="admin-dashboard" style="display: none;">
-                    <p style="color:var(--text-muted); margin-bottom: 10px;">ПОСЕЩЕНИЯ САЙТА (Локально)</p>
-                    <div style="font-size: 4rem; color: var(--primary); font-family: 'Share Tech Mono'; font-weight: bold; text-shadow: var(--hud-glow);" id="visit-counter">0</div>
+                    <p style="color:var(--text-muted); margin-bottom: 10px;">ПОСЕЩЕНИЯ САЙТА</p>
+                    <div style="font-size: 3.5rem; color: var(--primary); font-family: 'Share Tech Mono'; font-weight: bold; text-shadow: var(--hud-glow);" id="visit-counter">0</div>
                 </div>
             </div>
         </main>
@@ -512,33 +572,33 @@
     <div id="ibe-modal" class="modal-overlay">
         <div class="modal-content glass-panel">
             <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
-            <h2 style="color: #fff; font-family: 'Inter'; font-size: 1.8rem; margin-bottom: 20px;">БАЗА ЗНАНИЙ MWLAB</h2>
+            <h2 style="color: #fff; font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 15px;">БАЗА ЗНАНИЙ MWLAB</h2>
             
-            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 25px;">
-                <b>Анализатор:</b> Сравнивает вооружение, находя тактические преимущества в мете 5-10 км.<br>
-                <b>Конструктор:</b> Симулирует реальную сборку корабля, высчитывая общую синергию.
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                <b>Анализатор:</b> Сравнивает вооружение в мете 5-10 км.<br>
+                <b>Конструктор:</b> Симулирует реальную сборку корабля.
             </p>
 
-            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none;" onclick="switchModalTab('cannons')">ПУШКИ</button>
-                <button class="cat-btn-main" id="btn-modal-missiles" style="border:none;" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none; flex-grow:1;" onclick="switchModalTab('cannons')">ПУШКИ</button>
+                <button class="cat-btn-main" id="btn-modal-missiles" style="border:none; flex-grow:1;" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
             </div>
 
-            <div id="info-cannons" style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6;">
+            <div id="info-cannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
-                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
-                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
-                    <li style="margin-bottom: 10px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
-                    <li style="margin-bottom: 10px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон, если каждый снаряд даст крит.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон с учетом крита.</li>
                 </ul>
             </div>
 
-            <div id="info-missiles" style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6; display: none;">
+            <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
-                    <li style="margin-bottom: 10px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
-                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость и количество в залпе.</li>
-                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО.</li>
-                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Время захвата:</b> Лазерное наведение дает буст. Мертвая зона сильно штрафуется.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость и количество в залпе.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Время захвата:</b> Лазерное наведение дает буст. Мертвая зона сильно штрафуется.</li>
                 </ul>
             </div>
         </div>
@@ -568,33 +628,6 @@
             setTimeout(() => { if(spark.parentNode) spark.remove() }, duration * 1000);
         }
         setInterval(spawnSpark, 200);
-
-        // Генерация падающих/всплывающих букв WML только на Главной
-        function spawnWMLLetters() {
-            const homePage = document.getElementById('page-home');
-            const imgSide = document.getElementById('home-image-side');
-            if (!homePage || !imgSide || !homePage.classList.contains('active')) return;
-            
-            const letter = document.createElement('div');
-            letter.className = 'wml-particle';
-            
-            const chars = ['W', 'M', 'L'];
-            letter.innerText = chars[Math.floor(Math.random() * chars.length)];
-            
-            // Распределяем буквы по правой части
-            letter.style.left = (Math.random() * 90 + 5) + '%';
-            letter.style.top = (Math.random() * 90 + 5) + '%';
-            
-            letter.style.fontSize = (Math.random() * 1.5 + 0.8) + 'rem';
-            letter.style.zIndex = Math.random() > 0.5 ? 2 : 6; // То за картинкой, то перед ней
-            
-            const duration = Math.random() * 3 + 2;
-            letter.style.animationDuration = duration + 's';
-            
-            imgSide.appendChild(letter);
-            setTimeout(() => { if(letter.parentNode) letter.remove() }, duration * 1000);
-        }
-        setInterval(spawnWMLLetters, 250);
 
         function triggerIntro() {
             setTimeout(() => {
@@ -674,7 +707,7 @@
             "cupid": { name: "CUPID RAILGUN", category: "Пушки", country: "США", rarity: "Эпический", dpm: 334273, damage_burst: 27299, damage: 27299, accuracy: 100, reload: 4.20, projectiles: 1, range: 17.33, max_speed: 971, start_speed: 971, fire_penalty: 35, img: "img/CupidRailgun.png" },
             "hpj29": { name: "H/PJ-29 (76MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308483, damage_burst: 134550, damage: 2340, accuracy: 100, reload: 9.80, crit_chance: 30, projectiles: 1, ammo_clip: 50, range: 9.75, max_speed: 874, start_speed: 874, fire_penalty: 35, air_target: 1, img: "img/HPJ29.png" },
             "jrvg1": { name: "JRVG-1 (76 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308162, damage_burst: 107600, damage: 2665, accuracy: 100, reload: 9.10, detonation_radius: 46, splash_damage: 25, splash_radius: 46, projectiles: 1, ammo_clip: 40, range: 8.23, max_speed: 923, start_speed: 923, fire_penalty: 45, air_target: 1, img: "img/JRVG1.png" },
-            "project447": { name: "PROJECT 447-155", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 355342, damage_burst: 45247, damage: 12740, accuracy: 100, reload: 7.14, crit_chance: 25, splash_damage: 750, splash_radius: 166, projectiles: 3, range: 13.87, max_speed: 1020, start_speed: 1020, fire_penalty: 40, img: "img/Project447.png" },
+            "project447": { name: "PROJECT 447-155", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 355342, damage_burst: 45247, damage: 12740, accuracy: 100, reload: 7.14, crit_chance: 25, splash_damage: 750, splash_radius: 166, projectiles: 3, range: 13.87, max_speed: 1020, start_speed: 1020, fire_penalty: 40, img: "img/Project447.png" },
             "sh16": { name: "SH-16 (155 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 301241, damage_burst: 36400, damage: 18200, accuracy: 100, reload: 7.00, projectiles: 2, range: 11.27, max_speed: 933, start_speed: 933, fire_penalty: 40, img: "img/SH16.png" },
             "centauro155": { name: "CENTAURO 155 (155 MM)", category: "Пушки", country: "Италия", rarity: "Эпический", dpm: 327690, damage_burst: 36319, damage: 31199, accuracy: 100, reload: 6.65, crit_chance: 20, detonation_radius: 33, splash_damage: 2000, splash_radius: 200, projectiles: 1, range: 9.97, max_speed: 874, start_speed: 874, fire_penalty: 40, img: "img/Centauro155.png" },
             "mark42": { name: "MARK 42 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 292167, damage_burst: 75720, damage: 3055, accuracy: 100, reload: 5.80, detonation_radius: 33, splash_damage: 100, splash_radius: 66, projectiles: 8, ammo_clip: 3, range: 10.83, max_speed: 923, start_speed: 923, fire_penalty: 35, air_target: 1, img: "img/Mark42.png" },
@@ -888,7 +921,7 @@
                     currentCategory = cat; compareQueue = []; 
                     document.getElementById('card-equip-1').innerHTML = `<div class="equip-img-container" id="img-equip-1"></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
                     document.getElementById('card-equip-2').innerHTML = `<div class="equip-img-container" id="img-equip-2"></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
-                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
+                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
                     renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
                 };
                 bar.appendChild(btn);
@@ -973,7 +1006,6 @@
                 compareQueue = []; handleFilter(); 
             }
 
-            // Управление гигантским фоном MWL
             const mwlBg = document.getElementById('global-mwl-wrapper');
             if (mwlBg) {
                 if (pageId === 'page-home') {
@@ -1064,13 +1096,12 @@
                 if (key === 'air_target' || key === 'sub_launch') val = val === 1 ? "ДА" : "НЕТ";
                 if (key === 'fire_penalty' || key === 'accuracy' || key === 'dispersion') val = `${val}%`;
 
-                // Calculate progress bar width
                 let max = MAX_STATS[key] || 100;
                 let pct = 0;
                 if (typeof rawVal === 'number' && STATS_LOGIC[key].higherIsBetter) {
                     pct = Math.min(100, (rawVal / max) * 100);
                 } else if (typeof rawVal === 'number' && !STATS_LOGIC[key].higherIsBetter) {
-                    pct = Math.max(0, 100 - Math.min(100, (rawVal / max) * 100)); // Reverse scale
+                    pct = Math.max(0, 100 - Math.min(100, (rawVal / max) * 100)); 
                 }
 
                 html += `
@@ -1139,7 +1170,7 @@
                 if (item.effectiveDpm > 250000 && totalShots <= 4) pros.push(`Подавляющий эффект. DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')})`);
                 
                 if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
-                else if (item.range < 6.5) cons.push(`Малая дальность (${item.range} км) — требует игры от островов`);
+                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры от островов`);
                 
                 if (item.air_target === 1) pros.push("Универсальное орудие ПВО");
             }
