@@ -57,6 +57,30 @@
             z-index: -2; pointer-events: none;
         }
 
+        /* --- ГЛОБАЛЬНЫЙ ФОН MWL (АНИМАЦИЯ ПЕРЕМЕЩЕНИЯ И ПУЛЬСАЦИИ) --- */
+        #global-mwl-wrapper {
+            position: fixed; top: 50%; 
+            z-index: 0; pointer-events: none;
+            transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #global-mwl-wrapper.center { left: 50%; transform: translate(-50%, -50%); }
+        #global-mwl-wrapper.right { left: 75%; transform: translate(-50%, -50%); }
+        
+        #global-mwl-text {
+            font-family: 'Orbitron', sans-serif; font-weight: 900;
+            color: transparent; -webkit-text-stroke: 2px rgba(66, 245, 227, 0.1);
+            letter-spacing: 5px;
+            transition: font-size 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: pulseMWL 4s infinite alternate ease-in-out;
+        }
+        #global-mwl-wrapper.center #global-mwl-text { font-size: 25vw; }
+        #global-mwl-wrapper.right #global-mwl-text { font-size: 20vw; }
+
+        @keyframes pulseMWL {
+            0% { transform: scale(0.95); opacity: 0.3; }
+            100% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 40px rgba(66, 245, 227, 0.15); }
+        }
+
         /* --- ГЛОБАЛЬНЫЕ ИСКРЫ (SPARKS) --- */
         #sparks-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; overflow: hidden; }
         .spark { position: absolute; bottom: -20px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 12px 2px var(--primary); opacity: 0; animation: spark-fly linear forwards; }
@@ -132,7 +156,7 @@
         
         .home-container { display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; position: relative; z-index: 5;}
         
-        .home-text-side { flex: 1; max-width: 50%; padding-right: 20px; }
+        .home-text-side { flex: 1; max-width: 50%; padding-right: 20px; z-index: 10; }
         .home-title { font-family: 'Inter'; font-weight: 900; font-size: 6vw; line-height: 1; color: var(--primary); text-shadow: var(--hud-glow); letter-spacing: -2px; margin-bottom: 10px; }
         .home-subtitle { font-family: 'Share Tech Mono'; color: #fff; font-size: 1.5rem; letter-spacing: 5px; opacity: 0.9; margin-bottom: 20px;}
         .home-divider { width: 100px; height: 4px; background: var(--primary); box-shadow: var(--hud-glow); margin-bottom: 25px; border-radius: 2px;}
@@ -141,7 +165,6 @@
         .home-image-side { flex: 1; display: flex; justify-content: flex-end; align-items: center; height: 100%; position: relative;}
         .home-image-side img { max-width: 100%; max-height: 80vh; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)) drop-shadow(0 0 20px rgba(66, 245, 227, 0.3)); z-index: 5;}
         
-        /* Свечение за персонажем */
         .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(66, 245, 227, 0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
 
         /* --- CONTROLS & FILTERS --- */
@@ -172,7 +195,7 @@
             padding: 6px 20px; border-radius: 20px; font-family: 'Jura'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.85rem;
         }
 
-        /* --- STAT BARS (NEW DESIGN) --- */
+        /* --- STAT BARS --- */
         .stats-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .stat-row { display: flex; flex-direction: column; gap: 4px; }
         .stat-header { display: flex; justify-content: space-between; font-family: 'Jura'; font-size: 0.85rem; font-weight: 600; }
@@ -201,7 +224,7 @@
         
         .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
 
-        /* --- ANALYTICS CORE (VS SECTION) --- */
+        /* --- ANALYTICS CORE --- */
         .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
         
         .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px; margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow); }
@@ -297,6 +320,9 @@
             .home-text-side { max-width: 100%; padding-right: 0; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center;}
             .home-title { font-size: 4rem; }
             .home-image-side { width: 100%; justify-content: center;}
+            
+            #global-mwl-wrapper.right { left: 50%; }
+            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 35vw; }
         }
         @media (max-width: 768px) {
             nav { padding: 15px; justify-content: center; gap: 15px;}
@@ -306,13 +332,18 @@
             .rating-img { margin: 15px 0; width: 200px; height: 100px;}
             .rating-score { text-align: center; margin-top: 10px;}
             .rating-rank { text-align: center; width: auto;}
+            
+            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 45vw; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ГЛОБАЛЬНЫЕ ИСКРЫ -->
+    <!-- ГЛОБАЛЬНЫЕ ИСКРЫ И ОГРОМНЫЕ БУКВЫ MWL (ФОН) -->
     <div id="sparks-container"></div>
+    <div id="global-mwl-wrapper" class="right">
+        <div id="global-mwl-text">MWL</div>
+    </div>
 
     <div id="intro-screen">
         <div id="intro-logo">MWLAB</div>
@@ -344,10 +375,10 @@
                     <p class="home-desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
                     <button class="cat-btn-main active" style="margin-top:40px; font-size: 1.1rem; padding: 15px 40px; border:none;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
                 </div>
-                <div class="home-image-side">
+                <div class="home-image-side" id="home-image-side">
                     <div class="home-image-glow"></div>
                     <!-- СЮДА ЗАГРУЗИТСЯ ТВОЯ КАРТИНКА (должна лежать в папке img с названием hero.png) -->
-                    <img src="img/hero.png" alt="" id="home-hero-image" onerror="this.style.display='none'">
+                    <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 0 20px rgba(66,245,227,0.3));" onerror="this.style.display='none'">
                 </div>
             </div>
         </main>
@@ -503,7 +534,7 @@
     <div id="toast-container"></div>
 
     <script>
-        // Искры на всем сайте
+        // Глобальные искры (работают на всем сайте)
         function spawnSpark() {
             const container = document.getElementById('sparks-container');
             if (!container) return;
@@ -901,6 +932,16 @@
             if(pageId === 'page-catalog' || pageId === 'page-rating') { 
                 compareQueue = []; handleFilter(); 
             }
+
+            // Управление гигантским фоном MWL
+            const mwlBg = document.getElementById('global-mwl-wrapper');
+            if (mwlBg) {
+                if (pageId === 'page-home') {
+                    mwlBg.className = 'right';
+                } else {
+                    mwlBg.className = 'center';
+                }
+            }
         }
 
         function initApp() {
@@ -1169,7 +1210,7 @@
             if (Math.abs(e1.rating - e2.rating) < 15) {
                 let diff = Math.abs(e1.rating - e2.rating);
                 let pDiff = ((diff / Math.min(e1.rating, e2.rating)) * 100).toFixed(1);
-                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%).</span>`;
+                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%). Выбор зависит от тактики.</span>`;
                 card1.classList.add('card-tie'); card2.classList.add('card-tie');
             } else {
                 const winner = e1.rating > e2.rating ? e1 : e2; const loser = e1.rating > e2.rating ? e2 : e1;
@@ -1181,7 +1222,7 @@
                 if (e1.category === "Ракеты") {
                     if (loser.min_range > 0 && winner.min_range === 0) reason = "отсутствия мертвой зоны пуска";
                     else if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reason = "кластерной БЧ (урон сквозь ПВО)";
-                    else if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от РЭБ (ловушек)";
+                    else if (winner.anti_jamming === 1 && winner.anti_jamming > loser.anti_jamming) reason = "независимости от РЭБ (ловушек)";
                     else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
                 } else if (e1.category === "Пушки") {
                     let wHasClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
@@ -1190,7 +1231,7 @@
 
                     if (loser.range < 6.5 && winner.range >= 10) reason = `превосходства в дальности`;
                     else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `мощи в ближнем бою`;
-                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (огромный урон за секунду)";
+                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (урон за секунду)";
                     else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру";
                     else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной баллистики (нет промахов вдаль)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом попаданий";
@@ -1314,7 +1355,7 @@
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
             
-            Chart.defaults.color = '#c4d8e2';
+            Chart.defaults.color = '#7890a8';
             Chart.defaults.font.family = 'Share Tech Mono';
 
             window.buildRadarInstance = new Chart(ctx, {
