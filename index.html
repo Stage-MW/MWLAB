@@ -328,8 +328,9 @@
             <div id="info-cannons" style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: #a09095; display: block;">
                 <p><b>КАК РАССЧИТЫВАЕТСЯ ТИР-ЛИСТ (ПУШКИ):</b></p>
                 <ul style="margin-left: 20px; margin-top: 10px; color: #e0f2f1; padding-left: 10px;">
+                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Врожденный разброс дробовика:</b> Картечь стреляет облаком дроби. Из-за этого мы заложили базовый штраф к её точности. На дистанции такой залп потеряет больше половины урона.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Автонаведение (Зенитки):</b> Только пушки с параметром "Боеприпасы в обойме" (барабанные) сводятся ровно в центр корпуса врага. Из-за этой привязки, если центр корабля спрятан за скалой, вся очередь полетит в препятствие.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Мета закрытых карт (6-16 км):</b> Дальность сверх 12 км не дает огромного преимущества из-за обилия островов. Однако пушки с дальностью ниже 7 км получают штраф за излишний риск при сближении. Урон вдаль падает только из-за уклонения врага от медленных снарядов (разброса нет).</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Мета закрытых карт (6-16 км):</b> Дальность сверх 12 км не дает огромного преимущества из-за обилия островов. Однако пушки с дальностью ниже 7 км получают штраф за излишний риск при сближении. Урон вдаль падает только из-за уклонения врага от медленных снарядов.</li>
                     <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Критический урон:</b> Крит дает +50% к базовому урону. В базе DPM уже указан с учетом среднего шанса, однако в подсказках Анализатора рассчитывается максимальный возможный урон, если <b>каждый снаряд</b> в залпе выдаст крит.</li>
                     <li style="margin-bottom: 8px;"><b style="color: #ff2a5f;">Эффективная Альфа (Тактика):</b> Огромные барабаны (как у автопушек) жестко штрафуются, так как для разрядки 20-50 снарядов нужно стоять открытым. <span style="color:#fff;">Чем меньше суммарно снарядов вылетает за клик, тем выше оценка для снайперской тактики "Выстрелил-спрятался".</span></li>
                 </ul>
@@ -534,6 +535,7 @@
             dpm: { label: "Урон в минуту", higherIsBetter: true },
             damage: { label: "Урон", higherIsBetter: true },
             reload: { label: "Перезарядка (сек)", higherIsBetter: false },
+            dispersion: { label: "Базовый разброс (%)", higherIsBetter: false },
             lock_time: { label: "Время захвата (сек)", higherIsBetter: false },
             crit_chance: { label: "Шанс критического урона, %", higherIsBetter: true },
             projectiles: { label: "Выстрелов за атаку, ед", higherIsBetter: false }, 
@@ -589,7 +591,7 @@
             "hpj33b": { name: "H/PJ-33B (100 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 326181, damage_burst: 35880, damage: 5980, reload: 5.60, projectiles: 6, range: 10.40, max_speed: 777, start_speed: 777, fire_penalty: 35, img: "img/hpj33b.png" },
             "otoleonardo": { name: "OTO LEONARDO (127 MM)", category: "Пушки", country: "Италия", rarity: "Эпический", dpm: 303204, damage_burst: 19304, damage: 3509, reload: 2.94, crit_chance: 20, projectiles: 5, range: 13.87, max_speed: 680, start_speed: 680, fire_penalty: 35, img: "img/otoleonardo.png" },
             "koalitsiya": { name: "KOALITSIYA-F (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 315162, damage_burst: 19435, damage: 8450, reload: 3.50, crit_chance: 30, projectiles: 2, range: 11.27, max_speed: 777, start_speed: 777, fire_penalty: 40, img: "img/koalitsiya.png" },
-            "ak130k": { name: "АК-130 (КАРТЕЧЬ)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 651645, damage_burst: 34320, damage: 2600, reload: 2.80, crit_chance: 20, projectiles: 12, range: 5.20, max_speed: 485, start_speed: 485, fire_penalty: 35, img: "img/ak130k.png" },
+            "ak130k": { name: "АК-130 (КАРТЕЧЬ)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 651645, damage_burst: 34320, damage: 2600, reload: 2.80, crit_chance: 20, dispersion: 35, projectiles: 12, range: 5.20, max_speed: 485, start_speed: 485, fire_penalty: 35, img: "img/ak130k.png" },
             "a192": { name: "A-192 ARMAT (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 308225, damage_burst: 15925, damage: 3185, reload: 2.80, crit_chance: 50, projectiles: 4, range: 17.33, max_speed: 777, start_speed: 777, fire_penalty: 35, img: "img/a192.png" },
             "hpj45b": { name: "H/PJ-45B", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 295720, damage_burst: 22179, damage: 3315, reload: 3.50, crit_chance: 20, detonation_radius: 26, splash_damage: 50, splash_radius: 66, projectiles: 6, range: 9.53, max_speed: 777, start_speed: 777, fire_penalty: 35, air_target: 1, img: "img/hpj45b.png" },
             "mk8mod1": { name: "MK8 MOD 1 (155 MM)", category: "Пушки", country: "Великобритания", rarity: "Эпический", dpm: 319084, damage_burst: 46799, damage: 15599, reload: 8.40, projectiles: 3, range: 12.13, max_speed: 826, start_speed: 826, fire_penalty: 40, img: "img/mk8mod1.png" },
@@ -603,7 +605,7 @@
             "k76l62": { name: "K-76L/62 (76MM)", category: "Пушки", country: "Южная Корея", rarity: "Эпический", dpm: 353112, damage_burst: 163800, damage: 2340, reload: 10.50, projectiles: 1, ammo_clip: 70, range: 10.40, max_speed: 971, start_speed: 971, fire_penalty: 35, air_target: 1, img: "img/k76l62.png" },
             "boforsm42": { name: "BOFORS M/42 (152MM)", category: "Пушки", country: "Швеция", rarity: "Эпический", dpm: 317249, damage_burst: 27495, damage: 11700, reload: 4.90, crit_chance: 35, projectiles: 2, range: 12.57, max_speed: 777, start_speed: 777, fire_penalty: 40, img: "img/boforsm42.png" },
             "boforsl50": { name: "BOFORS L/50 (120 MM)", category: "Пушки", country: "Швеция", rarity: "Эпический", dpm: 353888, damage_burst: 25480, damage: 6370, reload: 3.78, projectiles: 4, range: 11.70, max_speed: 874, start_speed: 874, fire_penalty: 35, img: "img/boforsl50.png" },
-            "rg30": { name: "RG-30 BUCKSHOT", category: "Пушки", country: "США", rarity: "Легендарный", dpm: 608400, damage_burst: 44616, damage: 2535, reload: 3.50, crit_chance: 20, detonation_radius: 13, projectiles: 16, range: 6.07, max_speed: 631, start_speed: 631, fire_penalty: 35, img: "img/rg30.png" },
+            "rg30": { name: "RG-30 BUCKSHOT", category: "Пушки", country: "США", rarity: "Легендарный", dpm: 608400, damage_burst: 44616, damage: 2535, reload: 3.50, crit_chance: 20, detonation_radius: 13, dispersion: 30, projectiles: 16, range: 6.07, max_speed: 631, start_speed: 631, fire_penalty: 35, img: "img/rg30.png" },
             "mark71": { name: "MARK-71 (203 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 345812, damage_burst: 35100, damage: 35100, reload: 6.09, projectiles: 1, range: 13.87, max_speed: 826, start_speed: 826, fire_penalty: 40, img: "img/mark71.png" },
 
             // ----- РАКЕТЫ -----
@@ -692,12 +694,15 @@
             if (item.category === "Пушки") {
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
-                let totalShots = pCount * (item.ammo_clip || 1); 
+                
+                let baseDispersion = item.dispersion || 0;
+                let baseAccuracy = 100 - baseDispersion;
                 
                 let speedFactor = 800 / item.max_speed; 
                 let effectiveDistance = item.range * 0.6; 
                 let evasionPenalty = (effectiveDistance * speedFactor * 1.2);
-                item.accuracyScore = Math.max(25, 100 - evasionPenalty); 
+                
+                item.accuracyScore = Math.max(15, baseAccuracy - evasionPenalty); 
 
                 item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
                 
@@ -710,9 +715,9 @@
                     else if (item.ammo_clip > 3) alphaMultiplier = 0.5;
                     else alphaMultiplier = 0.8;
                 } else {
-                    if (totalShots === 2) alphaMultiplier = 0.95;
-                    else if (totalShots === 3) alphaMultiplier = 0.85;
-                    else if (totalShots > 3) alphaMultiplier = Math.max(0.1, 1 - (totalShots * 0.04));
+                    if (pCount === 2) alphaMultiplier = 0.95;
+                    else if (pCount === 3) alphaMultiplier = 0.85;
+                    else if (pCount > 3) alphaMultiplier = Math.max(0.1, 1 - (pCount * 0.04));
                 }
                 
                 item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
@@ -724,10 +729,8 @@
                 if (item.range < 7) score -= (7 - item.range) * 20; 
                 else if (item.range >= 13) score += 10; 
                 
-                if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
                 if (item.reload < 3.0) score += 20;
                 
-                // БОНУСЫ ЗА ТАКТИКУ
                 if (hasClip) {
                     score -= Math.min(40, item.ammo_clip * 1.5); 
                 } else {
@@ -982,7 +985,7 @@
                 if (key === 'cluster') val = val === 1 ? "<span style='color:#ff2a5f; text-shadow: 0 0 10px #ff2a5f'>ДА</span>" : "НЕТ";
                 if (key === 'air_target' || key === 'sub_launch') val = val === 1 ? "<span style='color:#00e5ff; text-shadow: 0 0 10px #00e5ff'>ДА</span>" : "НЕТ";
                 if (key === 'min_range') val = val > 0 ? `<span style='color:#ff2a5f; font-weight:bold'>${val} км</span>` : "НЕТ";
-                if (key === 'fire_penalty') val = `${val}%`;
+                if (key === 'fire_penalty' || key === 'dispersion') val = `${val}%`;
 
                 html += `<tr><td class="stat-name">${STATS_LOGIC[key].label}</td><td class="stat-value" id="val-${side}-${key}">${val}</td></tr>`;
             }
@@ -1010,13 +1013,17 @@
                 let pCount = item.projectiles || 1;
                 let totalShots = pCount * (item.ammo_clip || 1);
                 
+                if (item.dispersion > 0) {
+                    cons.push(`Врожденный разброс (Дробовик): снаряды летят облаком, из-за чего теряется до ${item.dispersion}% урона даже на средних дистанциях`);
+                }
+
                 if (item.crit_chance && item.crit_chance > 0) {
                     let pureBaseDamage = item.damage_burst / (1 + (item.crit_chance / 100) * 0.5);
                     let maxCritBurst = Math.round(pureBaseDamage * 1.5).toLocaleString('ru');
                     pros.push(`Случайный крит: каждый снаряд имеет шанс ${item.crit_chance}% нанести +50% урона (идеальный залп выдаст до ${maxCritBurst} урона)`);
                 }
 
-                if (item.accuracyScore < 75) cons.push(`Потеря урона на дистанции (до ${Math.round(100 - item.accuracyScore)}% промахов из-за уклонения маневренной цели)`);
+                if (item.accuracyScore < 75 && !item.dispersion) cons.push(`Потеря урона на дистанции (до ${Math.round(100 - item.accuracyScore)}% промахов из-за уклонения маневренной цели)`);
                 
                 if (item.dpm > 300000 && item.accuracyScore < 80) pros.push(`Абсолютный монстр ближнего боя (реализует весь огромный DPM ${Math.round(item.dpm).toLocaleString('ru')} в упор)`);
 
@@ -1147,14 +1154,14 @@
                     else if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек (РЭБ)";
                     else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
                 } else if (e1.category === "Пушки") {
-                    let wHasClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
-                    let lHasClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
+                    let wClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
+                    let lClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
                     let wTotalShots = (winner.projectiles || 1) * (winner.ammo_clip || 1);
 
                     if (loser.range < 7 && winner.range >= 11) reason = `превосходства в дальности (позволяет безнаказанно атаковать, пока враг пытается сблизиться)`;
                     else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `ультимативной мощи в ближнем бою (перестреляет врага лоб-в-лоб)`;
                     else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (наносит огромный урон за мгновение и позволяет уйти в укрытие)";
-                    else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру (снаряды не летят в скалу) и удобства игры от укрытий";
+                    else if (!wClip && lClip) reason = "отсутствия привязки к центру (снаряды не летят в скалу) и удобства игры от укрытий";
                     else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной баллистики (снаряды быстрее достигают цели на дистанции)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом попаданий на дистанции";
                     else if (wTotalShots > 2 && winner.damage_burst > loser.damage_burst + 15000) reason = "огромной плотности огня (наносит колоссальный урон за полную разрядку)";
