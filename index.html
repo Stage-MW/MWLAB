@@ -3,34 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#02060d">
+    <meta name="theme-color" content="#071017">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>MWLAB | TACTICAL TERMINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jura:wght@400;600;700&family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jura:wght@400;600;700&family=Inter:wght@300;500;700;900&family=Orbitron:wght@500;700;900&display=swap');
 
         :root {
-            /* MILITARY SCI-FI COLOR PALETTE */
-            --bg-base: #02060d;
-            --primary: #00e5ff;       /* Tactical Cyan */
-            --primary-dim: rgba(0, 229, 255, 0.15);
-            --secondary: #ff3c00;     /* Alert Orange/Red */
-            --text-main: #c4d8e2;     /* HUD Bright Gray */
-            --text-muted: #627b8a;    /* HUD Dark Gray */
+            /* COLOR PALETTE - SCI-FI TEAL/CYAN */
+            --bg-base: #071017;
+            --primary: #42f5e3;       /* Cyan */
+            --primary-dim: rgba(66, 245, 227, 0.15);
+            --secondary: #ff3c5a;     /* Alert Red/Pink */
+            --text-main: #e2f1f8;
+            --text-muted: #7890a8;
             
-            /* LIQUID GLASS PROPERTIES */
-            --glass-bg: rgba(8, 14, 26, 0.35); /* Deep dark blue semi-transparent */
-            --glass-blur: blur(24px) saturate(120%);
-            --glass-border: rgba(0, 229, 255, 0.2);
-            --glass-highlight: rgba(255, 255, 255, 0.1);
+            /* LIQUID GLASS */
+            --glass-bg: rgba(11, 22, 36, 0.4); 
+            --glass-blur: blur(20px);
+            --glass-border: rgba(66, 245, 227, 0.2);
+            --glass-radius: 16px;
             
-            /* GLOW & EFFECTS */
-            --hud-glow: 0 0 20px rgba(0, 229, 255, 0.4);
-            --alert-glow: 0 0 20px rgba(255, 60, 0, 0.4);
-            --clip-shape: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            --clip-shape-lg: polygon(25px 0, 100% 0, 100% calc(100% - 25px), calc(100% - 25px) 100%, 0 100%, 0 25px);
+            /* GLOWS */
+            --hud-glow: 0 0 15px rgba(66, 245, 227, 0.4);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -39,11 +36,12 @@
 
         /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 229, 255, 0.05); }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
 
         body {
-            background-color: var(--bg-base);
+            background: linear-gradient(135deg, #050a10 0%, #0d1e2b 100%);
+            background-attachment: fixed;
             color: var(--text-main);
             font-family: 'Jura', sans-serif;
             text-transform: uppercase;
@@ -52,410 +50,319 @@
             min-height: 100vh;
         }
 
-        /* --- BACKGROUND TACTICAL GRID & NEBULA --- */
+        /* --- ФОНЫ ДЛЯ СТРАНИЦ (Твои изображения) --- */
+        /* Сюда можно добавить картинки на задний фон, раскомментировав строки */
+        /*
+        #page-compare { background-image: url('img/bg-compare.jpg'); background-size: cover; background-attachment: fixed; }
+        #page-catalog { background-image: url('img/bg-catalog.jpg'); background-size: cover; background-attachment: fixed; }
+        */
+
+        /* Пылинки / частицы на фоне для атмосферы */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: 
-                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: -5; pointer-events: none;
+            background-image: radial-gradient(circle at center, rgba(66, 245, 227, 0.05) 0%, transparent 60%);
+            z-index: -2; pointer-events: none;
         }
-
-        .bg-glow {
-            position: fixed; width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
-            border-radius: 50%; z-index: -4; pointer-events: none;
-            top: -10%; left: -10%;
-            animation: pulseGlow 10s infinite alternate;
-        }
-        .bg-glow.alert {
-            background: radial-gradient(circle, rgba(255, 60, 0, 0.05) 0%, transparent 70%);
-            top: 60%; left: 70%; animation-delay: 2s;
-        }
-
-        @keyframes pulseGlow { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 1; } }
-
-        /* SCANLINE EFFECT */
-        .scanline {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 10vh;
-            background: linear-gradient(to bottom, transparent, rgba(0, 229, 255, 0.05), transparent);
-            z-index: 9999; pointer-events: none; opacity: 0.5;
-            animation: scan 6s linear infinite;
-        }
-        @keyframes scan { 0% { top: -10vh; } 100% { top: 110vh; } }
 
         /* --- BOOT SEQUENCE (INTRO) --- */
         #intro-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #010308; z-index: 99999;
+            background: #020508; z-index: 99999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-family: 'Share Tech Mono', monospace; color: var(--primary);
         }
         #intro-logo {
-            font-family: 'Orbitron', sans-serif; font-size: 5rem; font-weight: 900; letter-spacing: 20px;
+            font-family: 'Inter', sans-serif; font-size: 6rem; font-weight: 900; letter-spacing: 15px;
             color: var(--primary); text-shadow: var(--hud-glow);
-            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
-            animation: revealLogo 1s forwards cubic-bezier(0.1, 1, 0.2, 1);
+            animation: pulseIntro 1.5s infinite alternate;
         }
-        .boot-text { margin-top: 20px; font-size: 1rem; color: var(--text-muted); text-align: center; }
-        
-        @keyframes revealLogo { 100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); } }
+        @keyframes pulseIntro { 0% { opacity: 0.5; filter: blur(2px); } 100% { opacity: 1; filter: blur(0px); } }
 
         .app-wrapper { opacity: 0; position: relative; z-index: 10; width: 100%; transition: opacity 1s ease; }
         .app-wrapper.active { opacity: 1; }
 
-        /* --- LIQUID GLASS UTILITY CLASS --- */
-        .liquid-glass {
+        /* --- GLASSMORPHISM CLASS --- */
+        .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
             border: 1px solid var(--glass-border);
-            border-top: 1px solid var(--glass-highlight);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 229, 255, 0.05);
-            clip-path: var(--clip-shape);
-            position: relative;
-        }
-        .liquid-glass::before { /* Inner glare */
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 30%;
-            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
-            pointer-events: none;
+            border-radius: var(--glass-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.05);
+            position: relative; overflow: hidden;
         }
 
         /* --- NAVIGATION --- */
         nav { 
-            display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; 
-            padding: 20px; border-bottom: 1px solid var(--glass-border); 
-            background: linear-gradient(180deg, rgba(0,229,255,0.05) 0%, transparent 100%);
+            display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 30px; 
+            padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.05); 
+            background: rgba(5, 10, 16, 0.8); backdrop-filter: blur(10px);
             position: sticky; top: 0; z-index: 100;
-            backdrop-filter: blur(10px);
+        }
+        .nav-logo-small {
+            font-family: 'Inter'; font-weight: 900; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px; margin-right: auto;
         }
         .nav-btn {
-            background: rgba(2, 6, 13, 0.6); border: 1px solid var(--primary-dim); color: var(--text-muted);
-            padding: 10px 25px; font-family: 'Orbitron'; font-weight: 700; font-size: 0.9rem; letter-spacing: 2px;
-            cursor: pointer; clip-path: var(--clip-shape); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; overflow: hidden;
+            background: none; border: none; color: var(--text-muted);
+            font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px;
+            cursor: pointer; transition: all 0.3s ease; position: relative; padding: 5px 0;
         }
         .nav-btn::after {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px; background: var(--primary); transition: width 0.3s ease;
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px; background: var(--primary); transition: width 0.3s ease; box-shadow: var(--hud-glow);
         }
-        .nav-btn:hover { color: var(--primary); background: var(--primary-dim); border-color: var(--primary); box-shadow: var(--hud-glow); }
-        .nav-btn.active { color: #fff; border-color: var(--primary); background: rgba(0, 229, 255, 0.2); box-shadow: var(--hud-glow); text-shadow: 0 0 5px #fff; }
+        .nav-btn:hover { color: #fff; }
+        .nav-btn.active { color: var(--primary); }
         .nav-btn.active::after { width: 100%; }
 
-        .btn-export { border-color: var(--secondary); color: var(--secondary); }
-        .btn-export:hover { border-color: var(--secondary); color: #fff; background: rgba(255, 60, 0, 0.2); box-shadow: var(--alert-glow); }
-        .btn-export::after { background: var(--secondary); }
+        .info-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 20px;}
+        .info-btn:hover { color: var(--primary); transform: scale(1.1); }
 
-        .info-btn {
-            background: transparent; border: 1px solid var(--primary); color: var(--primary);
-            height: 38px; width: 45px; display: flex; justify-content: center; align-items: center;
-            font-family: 'Share Tech Mono'; font-weight: bold; font-size: 1.2rem;
-            cursor: pointer; transition: 0.3s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-        }
-        .info-btn:hover { background: var(--primary); color: #000; box-shadow: var(--hud-glow); }
+        .page { display: none; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
+        .page.active { display: block; animation: fadeUp 0.5s ease-out forwards; }
+        @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
 
-        .page { display: none; max-width: 1600px; margin: 0 auto; padding: 20px; position: relative;}
-        .page.active { display: block; animation: hudBoot 0.5s ease-out forwards; }
-        @keyframes hudBoot { 
-            0% { opacity: 0; transform: scale(0.98) translateY(10px); filter: blur(5px); } 
-            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } 
-        }
-
-        .max-lvl-disclaimer { 
-            text-align: center; color: var(--secondary); font-size: 0.85rem; padding: 10px; 
-            background: rgba(255, 60, 0, 0.1); border-bottom: 1px dashed rgba(255, 60, 0, 0.3); 
-            font-family: 'Share Tech Mono'; letter-spacing: 2px;
-        }
+        .max-lvl-disclaimer { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; font-family: 'Inter'; font-weight: 500;}
 
         /* --- CONTROLS & FILTERS --- */
-        .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .search-input, .filter-select { 
-            background: rgba(2, 6, 13, 0.8); border: 1px solid var(--primary-dim); color: var(--primary); 
-            padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Share Tech Mono'; 
-            font-size: 1rem; outline: none; transition: 0.3s;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.8); text-transform: uppercase;
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; 
+            padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Jura'; font-weight: 600;
+            font-size: 0.95rem; border-radius: 8px; outline: none; transition: 0.3s;
         }
         .search-input::placeholder { color: var(--text-muted); }
-        .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: var(--hud-glow), inset 0 0 10px rgba(0,229,255,0.2); color: #fff; }
+        .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(66, 245, 227, 0.2); }
         .filter-select option { background: var(--bg-base); color: #fff; }
 
-        .categories-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; border-bottom: 1px dashed rgba(255, 255, 255, 0.1); padding-bottom: 15px; }
+        .categories-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
         .cat-btn-main { 
-            background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); 
-            padding: 8px 30px; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; transition: 0.3s; 
-            font-size: 1rem; clip-path: var(--clip-shape); text-transform: uppercase; letter-spacing: 1px;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); 
+            padding: 10px 35px; border-radius: 30px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.9rem;
         }
         .cat-btn-main:hover, .cat-btn-main.active { 
-            border-color: var(--primary); color: #fff; background: var(--primary-dim); box-shadow: var(--hud-glow); 
+            border-color: var(--primary); color: #000; background: var(--primary); box-shadow: var(--hud-glow); 
         }
 
-        .mechanics-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
+        .mechanics-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
         .mech-checkbox { display: none; }
-        .mech-checkbox:checked + .cat-btn-sub { background: rgba(0, 229, 255, 0.2); border-color: var(--primary); box-shadow: var(--hud-glow); color: #fff; }
+        .mech-checkbox:checked + .cat-btn-sub { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); box-shadow: inset 0 0 10px rgba(66,245,227,0.2); }
         .cat-btn-sub { 
-            background: rgba(2, 6, 13, 0.6); border: 1px solid var(--text-muted); color: var(--text-muted); 
-            padding: 6px 15px; font-family: 'Share Tech Mono'; font-weight: bold; cursor: pointer; transition: 0.3s; 
-            font-size: 0.9rem; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); display: inline-block;
-        }
-        .cat-btn-sub:hover { border-color: var(--primary); color: var(--primary); }
-
-        /* --- GRID & CARDS --- */
-        .compare-grid { display: grid; grid-template-columns: 1fr 600px 1fr; gap: 20px; align-items: start; }
-        
-        .equip-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; }
-        
-        @keyframes scanGlitch {
-            0% { clip-path: var(--clip-shape-lg); }
-            5% { clip-path: polygon(25px 5px, 100% 0, 95% calc(100% - 25px), calc(100% - 25px) 100%, 5px 100%, 0 25px); }
-            10% { clip-path: var(--clip-shape-lg); }
+            background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); 
+            padding: 6px 20px; border-radius: 20px; font-family: 'Jura'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.85rem;
         }
 
-        .card-winner { border-color: var(--primary) !important; box-shadow: var(--hud-glow), inset 0 0 30px rgba(0, 229, 255, 0.1) !important; border-width: 2px !important; animation: pulseWin 3s infinite; }
-        .card-tie { border-color: #a09095 !important; border-width: 2px !important; }
-        .card-loser { border-color: rgba(255, 60, 0, 0.3) !important; opacity: 0.85; border-width: 2px !important; }
+        /* --- STAT BARS (NEW DESIGN) --- */
+        .stats-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .stat-row { display: flex; flex-direction: column; gap: 4px; }
+        .stat-header { display: flex; justify-content: space-between; font-family: 'Jura'; font-size: 0.85rem; font-weight: 600; }
+        .stat-name { color: var(--text-muted); }
+        .stat-value { color: #fff; }
+        .stat-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; position: relative; }
+        .stat-bar-fill { height: 100%; background: var(--text-muted); border-radius: 2px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .val-win { color: var(--primary); }
+        .bar-win { background: var(--primary); box-shadow: var(--hud-glow); }
+        .val-lose { color: var(--text-muted); opacity: 0.8; }
+        .bar-lose { background: rgba(255,255,255,0.1); }
 
-        @keyframes pulseWin { 0%, 100% { box-shadow: var(--hud-glow), inset 0 0 20px rgba(0, 229, 255, 0.1); } 50% { box-shadow: 0 0 30px rgba(0, 229, 255, 0.6), inset 0 0 40px rgba(0, 229, 255, 0.2); } }
+        /* --- COMPARE GRID --- */
+        .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; }
+        
+        .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.05); }
+        .card-winner { border-color: var(--primary); box-shadow: 0 10px 40px rgba(66,245,227,0.1), inset 0 0 20px rgba(66,245,227,0.05); }
+        .card-loser { opacity: 0.8; }
 
         .equip-img-container { 
-            width: 100%; height: 180px; background: rgba(0,0,0,0.6); margin-bottom: 20px; 
+            width: 100%; height: 160px; margin-bottom: 20px; 
             background-size: contain; background-repeat: no-repeat; background-position: center; 
-            border: 1px solid rgba(255,255,255,0.05); border-bottom: 2px solid var(--primary);
-            box-shadow: inset 0 0 30px #000; position: relative;
+            /* БЕЗ ФОНА КАК В РЕФЕРЕНСЕ */
+            background-color: transparent; border: none; box-shadow: none; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8));
         }
-        /* Corner brackets for image */
-        .equip-img-container::before { content:''; position:absolute; top:-1px; left:-1px; width:20px; height:20px; border-top:2px solid var(--primary); border-left:2px solid var(--primary); }
-        .equip-img-container::after { content:''; position:absolute; bottom:-1px; right:-1px; width:20px; height:20px; border-bottom:2px solid var(--primary); border-right:2px solid var(--primary); }
         
-        .item-title { margin-bottom: 20px; color: #fff; text-align: center; font-size: 1.4rem; font-family: 'Orbitron'; font-weight: 700; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-        .stats-table { width: 100%; border-collapse: collapse; }
-        .stats-table td { padding: 10px 5px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-family: 'Share Tech Mono'; font-size: 0.95rem; }
-        .stats-table tr:last-child td { border-bottom: none; }
-        .stat-name { color: var(--text-muted); }
-        .stat-value { text-align: right; font-weight: bold; font-size: 1.1rem; color: var(--text-main); }
-        
-        .win { color: var(--primary) !important; text-shadow: 0 0 10px var(--primary); }
-        .lose { color: var(--secondary) !important; opacity: 0.9; }
-        .neutral { color: var(--text-muted) !important; }
+        .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
 
         /* --- ANALYTICS CORE (VS SECTION) --- */
-        .analytics-core { padding: 30px; display: flex; flex-direction: column; clip-path: var(--clip-shape-lg); }
-        .verdict-header { 
-            text-align: center; font-size: 2.5rem; color: #fff; margin-bottom: 25px; 
-            border-bottom: 1px solid var(--primary-dim); padding-bottom: 10px; 
-            font-family: 'Orbitron', sans-serif; font-weight: 900; letter-spacing: 8px; 
-            text-shadow: 0 0 20px var(--primary); display: flex; align-items: center; justify-content: center; gap: 15px;
+        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* Главное лого MWLAB в центре */
+        .center-logo {
+            font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px;
+            margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow);
         }
-        .verdict-header::before, .verdict-header::after { content: "//"; color: var(--primary-dim); font-size: 1.5rem; }
+        .center-subtitle { font-family: 'Share Tech Mono'; color: #fff; letter-spacing: 5px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.7;}
+
+        .analysis-cols { display: flex; gap: 20px; width: 100%; margin-bottom: 20px; }
+        .analysis-col { flex: 1; padding: 15px; border-left: 2px solid var(--primary-dim); }
+        .col-title { font-family: 'Inter'; font-weight: 700; color: #fff; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase;}
         
-        .analysis-cols { display: flex; gap: 15px; margin-bottom: 20px; }
-        .analysis-col { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 20px; clip-path: var(--clip-shape); }
-        .col-title { font-family: 'Orbitron'; font-weight: 700; color: var(--primary); text-align: center; margin-bottom: 15px; border-bottom: 1px dashed var(--primary-dim); padding-bottom: 10px; font-size: 1.1rem; letter-spacing: 1px;}
+        .pro-item { color: var(--text-main); font-family: 'Jura'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
+        .pro-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: var(--hud-glow); }
         
-        .pro-item { color: var(--primary); font-family: 'Share Tech Mono'; font-size: 0.95rem; margin-bottom: 10px; text-transform: none; line-height: 1.4;}
-        .pro-item::before { content: "[+] "; font-weight: bold; color: #fff; }
-        .con-item { color: var(--secondary); font-family: 'Share Tech Mono'; font-size: 0.95rem; margin-bottom: 10px; text-transform: none; line-height: 1.4;}
-        .con-item::before { content: "[-] "; font-weight: bold; color: #fff;}
+        .con-item { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
+        .con-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 2px; background: var(--secondary); }
 
         .final-summary-block { 
-            margin-top: 15px; padding: 25px; text-align: center; 
-            border: 1px solid var(--primary); background: rgba(0, 229, 255, 0.05); 
-            clip-path: var(--clip-shape); box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.1); 
-            position: relative;
+            width: 100%; margin-top: auto; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05); text-align: center;
         }
-        /* Top left tactical marker */
-        .final-summary-block::before { content: "SYS.VERDICT"; position: absolute; top: 5px; left: 15px; font-family: 'Share Tech Mono'; font-size: 0.7rem; color: var(--primary); opacity: 0.7; }
         
-        .radar-container { width: 100%; max-width: 450px; margin: 0 auto 20px auto; filter: drop-shadow(0 0 10px rgba(0,229,255,0.2)); }
+        .radar-container { width: 100%; max-width: 400px; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(66,245,227,0.1)); }
 
         /* --- BUILDER (CONSTRUCTOR) --- */
         .build-slot-container { 
-            display: flex; align-items: center; justify-content: center; gap: 15px; 
-            background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.05); border-left: 3px solid var(--primary);
-            padding: 15px; margin-bottom: 15px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-        }
-        .build-slot-container .search-input { max-width: 300px; }
-
-        .export-wrapper { 
-            padding: 40px; border-radius: 0; position: relative;
-            background: linear-gradient(135deg, rgba(2, 6, 13, 0.95) 0%, rgba(8, 14, 26, 0.95) 100%), url('img/build-bg.jpg');
-            background-size: cover; background-blend-mode: overlay;
-            border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
-            box-shadow: inset 0 0 100px rgba(0,0,0,1), 0 20px 50px rgba(0,0,0,0.8);
-            clip-path: var(--clip-shape-lg);
+            display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; margin-bottom: 15px; 
+            border-left: 4px solid var(--primary);
         }
 
-        .watermark {
-            text-align: right; font-family: 'Orbitron', sans-serif; color: rgba(0, 229, 255, 0.3);
-            font-size: 0.8rem; margin-top: 30px; padding-top: 15px; border-top: 1px dashed rgba(255, 255, 255, 0.1);
-            letter-spacing: 3px; font-weight: 900;
-        }
+        .export-wrapper { padding: 40px; }
 
-        /* --- CATALOG --- */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        /* --- CATALOG (ARSENAL) --- */
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
         .catalog-item { 
-            padding: 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            display: flex; flex-direction: column;
+            padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s ease; 
+            display: flex; flex-direction: column; align-items: center; text-align: center;
         }
-        .catalog-item:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: var(--hud-glow), inset 0 0 20px rgba(0,229,255,0.1); }
-        .catalog-item.selected { border-color: var(--secondary); box-shadow: var(--alert-glow); background: rgba(255, 60, 0, 0.1); }
+        .catalog-item:hover { border-color: var(--primary); transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.6), var(--hud-glow); }
+        .catalog-item.selected { border-color: var(--primary); background: var(--primary-dim); box-shadow: var(--hud-glow); }
         .catalog-item.selected::after { 
-            content: "TARGET LOCKED"; position: absolute; top: 15px; right: 15px; 
-            background: var(--secondary); color: #fff; font-family: 'Orbitron'; font-size: 0.7rem;
-            padding: 3px 8px; font-weight: bold; box-shadow: 0 0 10px var(--secondary); clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+            content: "ВЫБРАНО"; position: absolute; top: 15px; right: 15px; 
+            background: var(--primary); color: #000; font-family: 'Inter'; font-size: 0.7rem; font-weight: 900;
+            padding: 4px 10px; border-radius: 20px;
         }
         .catalog-item-img { 
-            height: 140px; background: rgba(0,0,0,0.8); margin-bottom: 15px; 
+            width: 100%; height: 120px; margin-bottom: 25px; 
             background-size: contain; background-repeat: no-repeat; background-position: center; 
-            border: 1px solid rgba(255,255,255,0.05); position: relative;
+            background-color: transparent; border: none; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.7));
+            transition: 0.3s;
         }
-        /* Target brackets */
-        .catalog-item-img::before { content:''; position:absolute; top:5px; left:5px; width:15px; height:15px; border-top:2px solid var(--text-muted); border-left:2px solid var(--text-muted); transition: 0.3s;}
-        .catalog-item-img::after { content:''; position:absolute; bottom:5px; right:5px; width:15px; height:15px; border-bottom:2px solid var(--text-muted); border-right:2px solid var(--text-muted); transition: 0.3s;}
-        .catalog-item:hover .catalog-item-img::before, .catalog-item:hover .catalog-item-img::after { border-color: var(--primary); width: 25px; height: 25px; }
+        .catalog-item:hover .catalog-item-img { transform: scale(1.05); }
+
+        .cat-item-name { color: #fff; font-size: 1.1rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 10px;}
+        .cat-item-meta { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; width: 100%;}
+        .cat-meta-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px;}
 
         /* --- RATING --- */
-        .rating-container { max-width: 900px; margin: 0 auto; }
+        .rating-container { max-width: 800px; margin: 0 auto; }
         .rating-item { 
-            display: flex; align-items: center; margin-bottom: 20px; padding: 15px 25px; 
-            transition: all 0.3s ease;
+            display: flex; align-items: center; margin-bottom: 20px; padding: 20px 30px; 
+            transition: all 0.3s ease; border-left: 4px solid transparent;
         }
-        .rating-item:hover { border-color: var(--primary); transform: translateX(10px); background: rgba(0, 229, 255, 0.05); box-shadow: var(--hud-glow); }
-        .rating-rank { font-size: 2.5rem; color: #fff; width: 80px; text-align: left; font-family: 'Orbitron'; font-weight: 900; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-        .rating-img { width: 120px; height: 70px; background-color: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); margin: 0 20px; background-size: contain; background-repeat: no-repeat; background-position: center; position:relative; }
-        .rating-img::before { content:''; position:absolute; top:0; left:0; width:10px; height:10px; border-top:1px solid var(--primary); border-left:1px solid var(--primary); }
-        .rating-info { flex-grow: 1; }
-        .rating-bar-bg { width: 100%; height: 4px; background: rgba(0,0,0,0.8); margin-top: 15px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .rating-bar-fill { height: 100%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px currentColor; position: relative; }
-        .rating-bar-fill::after { content: ''; position:absolute; right: 0; top: -3px; height: 10px; width: 2px; background: #fff; box-shadow: 0 0 5px #fff;}
-        .rating-score { font-size: 2rem; font-family: 'Share Tech Mono'; font-weight: bold; min-width: 120px; text-align: right; margin-left: 20px; text-shadow: 0 0 15px currentColor;}
+        .rating-item:hover { border-color: var(--primary); transform: translateX(10px); background: rgba(255,255,255,0.02); }
+        .rating-rank { font-size: 2rem; color: #fff; width: 60px; font-family: 'Inter'; font-weight: 900; opacity: 0.5;}
+        .rating-img { width: 140px; height: 70px; margin: 0 20px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));}
+        .rating-info { flex-grow: 1; display: flex; flex-direction: column; gap: 8px;}
+        .rating-title { color: #fff; font-family: 'Inter'; font-size: 1.1rem; font-weight: 700; }
+        .rating-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .rating-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease-out; }
+        .rating-score { font-size: 1.5rem; font-family: 'Share Tech Mono'; font-weight: bold; width: 80px; text-align: right;}
 
-        /* --- TOASTS & MODALS --- */
-        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 450px; }
+        /* --- MODALS & TOASTS --- */
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { 
-            background: rgba(2, 6, 13, 0.95); border: 1px solid var(--primary); border-left: 4px solid var(--primary);
-            color: var(--primary); padding: 15px 20px; font-family: 'Share Tech Mono'; font-size: 1rem; text-align: center; 
-            opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: var(--hud-glow); text-transform: uppercase; 
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+            background: rgba(11, 22, 36, 0.9); border: 1px solid var(--primary); border-radius: 8px;
+            color: var(--primary); padding: 15px 25px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; text-align: center; 
+            opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
         }
-        .toast.error { border-color: var(--secondary); border-left-color: var(--secondary); color: var(--secondary); box-shadow: var(--alert-glow); }
+        .toast.error { border-color: var(--secondary); color: var(--secondary); }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 6, 13, 0.85); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s ease; backdrop-filter: blur(10px); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 10, 16, 0.85); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s ease; backdrop-filter: blur(8px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { 
-            padding: 40px; max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; position: relative; 
-            box-shadow: inset 0 0 30px rgba(0, 229, 255, 0.1), 0 20px 60px rgba(0,0,0,1); border-top: 2px solid var(--primary);
-        }
-        .modal-close { position: absolute; top: 20px; right: 25px; background: transparent; border: none; color: var(--primary); font-size: 2rem; cursor: pointer; font-family: 'Jura'; font-weight: bold; transition: 0.3s; }
-        .modal-close:hover { transform: scale(1.2) rotate(90deg); text-shadow: var(--hud-glow); }
+        .modal-content { padding: 40px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border-top: 3px solid var(--primary); }
+        .modal-close { position: absolute; top: 20px; right: 25px; background: transparent; border: none; color: var(--text-muted); font-size: 2rem; cursor: pointer; transition: 0.3s; }
+        .modal-close:hover { color: var(--primary); transform: scale(1.1); }
 
-        @media (max-width: 1100px) {
+        @media (max-width: 1200px) {
             .compare-grid { display: flex; flex-direction: column; gap: 20px; }
-            .equip-card { width: 100%; order: 1; }
+            .equip-card { order: 1; }
             #card-equip-2 { order: 2; }
-            .analytics-core { order: 3; width: 100%; margin-top: 10px; }
+            .analytics-core { order: 3; }
             .analysis-cols { flex-direction: column; }
-            .build-slot-container { flex-direction: column; }
         }
         @media (max-width: 768px) {
-            #intro-logo { font-size: 3.5rem; letter-spacing: 5px; }
-            nav { padding: 15px 10px; justify-content: space-between; }
-            .nav-btn { width: 48%; padding: 10px 5px; font-size: 0.85rem; text-align: center; }
-            .info-btn { position: relative; width: 48%; transform: none; right: 0; top: 0; margin-top: 5px; font-size: 0.9rem; }
-            .search-input, .filter-select { max-width: 100%; }
-            .verdict-header { font-size: 1.5rem; letter-spacing: 2px; }
+            nav { padding: 15px; justify-content: center; gap: 15px;}
+            .nav-logo-small { width: 100%; text-align: center; margin: 0; margin-bottom: 10px;}
             .catalog-grid { grid-template-columns: 1fr; }
-            .rating-item { flex-direction: column; text-align: center; padding: 25px; }
-            .rating-img { margin: 15px 0; width: 150px; height: 80px;}
-            .rating-score { margin-left: 0; margin-top: 15px; text-align: center; }
-            .rating-rank { text-align: center; width: auto; margin-bottom: 10px;}
+            .rating-item { flex-direction: column; text-align: center; }
+            .rating-img { margin: 15px 0; width: 200px; height: 100px;}
+            .rating-score { text-align: center; margin-top: 10px;}
+            .rating-rank { text-align: center; width: auto;}
         }
     </style>
 </head>
 <body>
-    <!-- SCANLINES -->
-    <div class="scanline"></div>
 
     <div id="intro-screen">
         <div id="intro-logo">MWLAB</div>
-        <div class="boot-text" id="boot-text">INITIALIZING TACTICAL TERMINAL...</div>
     </div>
-    
-    <div id="bg-image"></div>
-    <div class="bg-glow"></div>
-    <div class="bg-glow alert"></div>
 
     <div class="app-wrapper">
-        <nav class="liquid-glass">
-            <button class="nav-btn" onclick="switchMainPage('page-compare')">АНАЛИЗАТОР</button>
-            <button class="nav-btn" onclick="switchMainPage('page-builder')">КОНСТРУКТОР</button>
-            <button class="nav-btn active" onclick="switchMainPage('page-catalog')">АРСЕНАЛ</button>
-            <button class="nav-btn" onclick="switchMainPage('page-rating')">ТИР-ЛИСТ</button>
-            <button class="info-btn" onclick="switchMainPage('page-admin')">⚙</button>
-            <button class="info-btn" onclick="openModal('ibe-modal')">?</button>
+        <nav>
+            <div class="nav-logo-small">MWLAB</div>
+            <button class="nav-btn" onclick="switchMainPage('page-compare')">Анализатор</button>
+            <button class="nav-btn" onclick="switchMainPage('page-builder')">Конструктор</button>
+            <button class="nav-btn active" onclick="switchMainPage('page-catalog')">Арсенал</button>
+            <button class="nav-btn" onclick="switchMainPage('page-rating')">Тир-лист</button>
+            <button class="info-btn" onclick="switchMainPage('page-admin')" title="Админ">⚙</button>
+            <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
         </nav>
 
-        <div class="max-lvl-disclaimer">⚠ БАЗА ДАННЫХ СИНХРОНИЗИРОВАНА (MAX. LEVEL)</div>
+        <div class="max-lvl-disclaimer">ОБНОВЛЕНО ПОД ТЕКУЩУЮ МЕТУ (МАКС. УРОВЕНЬ)</div>
 
-        <div style="padding: 20px; text-align: center; position: relative; z-index: 10;" id="category-bar-wrapper">
+        <div style="padding: 0 20px; text-align: center; position: relative; z-index: 10;" id="category-bar-wrapper">
             <div class="categories-bar" id="category-bar"></div>
         </div>
 
         <main id="page-compare" class="page">
-            <div class="controls-container" style="margin-bottom: 20px;">
-                <button class="nav-btn btn-export" onclick="exportToImage('compare-export-wrapper', 'MWLAB_Анализ')">СКАЧАТЬ ДАННЫЕ</button>
+            <div class="controls-container">
+                <button class="cat-btn-main btn-export" onclick="exportToImage('compare-export-wrapper', 'MWLAB_Анализ')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ ОТЧЕТ</button>
             </div>
-            <div id="compare-export-wrapper" class="export-wrapper liquid-glass">
+            <div id="compare-export-wrapper" class="export-wrapper">
                 <div class="compare-grid">
-                    <div class="equip-card liquid-glass" id="card-equip-1">
+                    <div class="equip-card glass-panel" id="card-equip-1">
                         <div class="equip-img-container" id="img-equip-1"></div>
-                        <h3 class="item-title" id="name-equip-1"></h3>
-                        <table class="stats-table" id="stats-equip-1"></table>
+                        <h3 class="item-title" id="name-equip-1">СЛОТ 1</h3>
+                        <div class="stats-container" id="stats-equip-1"></div>
                     </div>
                     
-                    <div class="analytics-core liquid-glass">
-                        <div class="verdict-header">VS</div>
-                        <div id="verdict-screen" style="font-family: 'Share Tech Mono'; text-align: center; color: var(--text-muted); margin-top: 10px;">
-                            [ ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ ]
+                    <div class="analytics-core glass-panel">
+                        <div class="center-logo">MWLAB</div>
+                        <div class="center-subtitle">TACTICAL ANALYSIS</div>
+                        <div id="verdict-screen" style="width: 100%; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; align-items: center; color: var(--text-muted);">
+                            <p style="font-family:'Jura'; font-size:1.1rem;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
                         </div>
                     </div>
 
-                    <div class="equip-card liquid-glass" id="card-equip-2">
+                    <div class="equip-card glass-panel" id="card-equip-2">
                         <div class="equip-img-container" id="img-equip-2"></div>
-                        <h3 class="item-title" id="name-equip-2"></h3>
-                        <table class="stats-table" id="stats-equip-2"></table>
+                        <h3 class="item-title" id="name-equip-2">СЛОТ 2</h3>
+                        <div class="stats-container" id="stats-equip-2"></div>
                     </div>
                 </div>
-                <div class="watermark">MWLAB // TACTICAL DATA</div>
             </div>
         </main>
 
         <main id="page-builder" class="page">
-            <div class="controls-container" style="margin-bottom: 20px;">
-                <button class="nav-btn" onclick="addBuildSlot()">+ ДОБАВИТЬ СЛОТ</button>
-                <button class="nav-btn" onclick="calculateBuild()">АНАЛИЗ СБОРКИ</button>
-                <button class="nav-btn btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')">СКАЧАТЬ ДАННЫЕ</button>
+            <div class="controls-container">
+                <button class="cat-btn-main" onclick="addBuildSlot()">+ СЛОТ</button>
+                <button class="cat-btn-main active" style="border:none;" onclick="calculateBuild()">РАССЧИТАТЬ</button>
+                <button class="cat-btn-main btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ</button>
             </div>
             
             <div id="build-slots" style="max-width: 800px; margin: 0 auto 30px auto;"></div>
 
-            <div id="build-export-wrapper" class="export-wrapper liquid-glass" style="display:none; max-width: 900px; margin: 0 auto;">
-                <div class="verdict-header" style="font-size: 1.8rem;">АНАЛИЗ СИСТЕМ КОРАБЛЯ</div>
+            <div id="build-export-wrapper" class="export-wrapper glass-panel" style="display:none; max-width: 900px; margin: 0 auto; padding: 40px;">
+                <h2 style="text-align: center; color: #fff; font-family: 'Inter'; font-size: 2rem; margin-bottom: 30px;">ОЦЕНКА СБОРКИ КОРАБЛЯ</h2>
                 <div class="analysis-cols" style="flex-wrap: wrap;" id="build-stats-container"></div>
                 <div class="radar-container" style="position: relative; height: 350px; margin-top: 20px;">
                     <canvas id="buildRadarChart"></canvas>
                 </div>
-                <div id="build-tactics" style="margin-top: 20px; font-family: 'Share Tech Mono';"></div>
-                <div class="watermark">MWLAB // TACTICAL DATA</div>
+                <div id="build-tactics" style="margin-top: 30px; font-family: 'Jura';"></div>
             </div>
         </main>
 
         <main id="page-catalog" class="page active">
             <div class="controls-container">
-                <input type="text" class="search-input" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК..." oninput="handleSearch(this.value)">
-                <select class="filter-select" id="filter-country-catalog" onchange="handleFilter()">
+                <input type="text" class="search-input glass-panel" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК..." oninput="handleSearch(this.value)">
+                <select class="filter-select glass-panel" id="filter-country-catalog" onchange="handleFilter()">
                     <option value="" selected>ВСЕ ФРАКЦИИ</option>
                     <option value="Великобритания">Великобритания</option>
                     <option value="Германия">Германия</option>
@@ -473,13 +380,13 @@
                     <option value="Южная Корея">Южная Корея</option>
                     <option value="Япония">Япония</option>
                 </select>
-                <select class="filter-select" id="filter-rarity-catalog" onchange="handleFilter()">
+                <select class="filter-select glass-panel" id="filter-rarity-catalog" onchange="handleFilter()">
                     <option value="">ЛЮБЫЕ КЛАССЫ</option>
                     <option value="Легендарный">Легендарный</option>
                     <option value="Эпический">Эпический</option>
                     <option value="Редкий">Редкий</option>
                 </select>
-                <select class="filter-select" id="sort-catalog" onchange="handleFilter()">
+                <select class="filter-select glass-panel" id="sort-catalog" onchange="handleFilter()">
                     <option value="none" selected>СОРТИРОВКА: ОТКЛ.</option>
                     <option value="rating">ТОП: РЕЙТИНГ МЕТЫ</option>
                     <option value="dpm">ТОП: УРОН В МИНУТУ</option>
@@ -495,25 +402,22 @@
 
         <main id="page-rating" class="page">
             <div class="controls-container">
-                <input type="text" class="search-input" id="search-input-rating" autocomplete="off" placeholder="ПОИСК В БАЗЕ..." oninput="handleSearch(this.value)">
+                <input type="text" class="search-input glass-panel" style="max-width: 400px;" id="search-input-rating" autocomplete="off" placeholder="ПОИСК В ТИР-ЛИСТЕ..." oninput="handleSearch(this.value)">
             </div>
             <div class="rating-container" id="rating-content"></div>
         </main>
 
         <main id="page-admin" class="page">
-            <div class="analytics-core liquid-glass" style="max-width: 600px; margin: 0 auto; text-align: center;">
-                <div class="verdict-header" style="font-size: 1.5rem;">ДОСТУП АДМИНИСТРАТОРА</div>
+            <div class="glass-panel" style="max-width: 500px; margin: 0 auto; padding: 40px; text-align: center;">
+                <h2 style="color:#fff; font-family:'Inter'; margin-bottom: 30px;">ДОСТУП АДМИНА</h2>
                 <div id="admin-auth">
-                    <input type="password" id="admin-pass" class="search-input" autocomplete="new-password" placeholder="СЕКРЕТНЫЙ КЛЮЧ" style="margin-bottom: 20px; width: 80%;">
+                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="new-password" placeholder="ПИН-КОД" style="margin-bottom: 20px; text-align:center;">
                     <br>
-                    <button class="nav-btn" onclick="checkAdmin()">АВТОРИЗАЦИЯ</button>
+                    <button class="cat-btn-main active" style="border:none;" onclick="checkAdmin()">ВХОД</button>
                 </div>
                 <div id="admin-dashboard" style="display: none;">
-                    <div style="font-size: 1.2rem; color: var(--primary); margin-bottom: 20px; font-family: 'Orbitron'; font-weight: bold;">[ СТАТИСТИКА УЗЛА ]</div>
-                    <div style="font-size: 1.2rem; background: rgba(0, 229, 255, 0.05); padding: 30px; border: 1px dashed var(--primary-dim);">
-                        ЛОКАЛЬНЫЕ ЗАПРОСЫ: <br>
-                        <span id="visit-counter" style="color: #fff; font-size: 3.5rem; font-weight: 900; font-family: 'Orbitron'; text-shadow: var(--hud-glow);">0</span>
-                    </div>
+                    <p style="color:var(--text-muted); margin-bottom: 10px;">ПОСЕЩЕНИЯ САЙТА (Локально)</p>
+                    <div style="font-size: 4rem; color: var(--primary); font-family: 'Share Tech Mono'; font-weight: bold; text-shadow: var(--hud-glow);" id="visit-counter">0</div>
                 </div>
             </div>
         </main>
@@ -521,61 +425,51 @@
 
     <!-- МОДАЛЬНОЕ ОКНО СПРАВКИ -->
     <div id="ibe-modal" class="modal-overlay">
-        <div class="modal-content liquid-glass">
+        <div class="modal-content glass-panel">
             <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
-            <div style="color: var(--primary); font-family: 'Orbitron'; font-size: 1.5rem; font-weight: 900; margin-bottom: 20px; border-bottom: 1px solid var(--primary-dim); padding-bottom: 10px; letter-spacing: 2px;">ИНСТРУКЦИЯ К ТЕРМИНАЛУ</div>
+            <h2 style="color: #fff; font-family: 'Inter'; font-size: 1.8rem; margin-bottom: 20px;">БАЗА ЗНАНИЙ MWLAB</h2>
             
-            <div style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: var(--text-main); margin-bottom: 25px;">
-                <p><b>[ АНАЛИЗАТОР ]:</b> Сравнивает две единицы вооружения, находя их уникальные тактические преимущества и оценивая потенциал в текущей мете.</p>
-                <p style="margin-top: 10px;"><b>[ КОНСТРУКТОР СБОРОК ]:</b> Симулирует оснащение корабля. Выберите пушки и ракеты, укажите их количество, и система рассчитает суммарный эффективный DPM, Альфу и покажет общую синергию.</p>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 25px;">
+                <b>Анализатор:</b> Сравнивает вооружение, находя тактические преимущества в мете 5-10 км.<br>
+                <b>Конструктор:</b> Симулирует реальную сборку корабля, высчитывая общую синергию.
+            </p>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none;" onclick="switchModalTab('cannons')">ПУШКИ</button>
+                <button class="cat-btn-main" id="btn-modal-missiles" style="border:none;" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px dashed var(--glass-border); padding-bottom: 15px;">
-                <button class="cat-btn-main active" id="btn-modal-cannons" onclick="switchModalTab('cannons')">ПУШКИ</button>
-                <button class="cat-btn-main" id="btn-modal-missiles" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
-            </div>
-
-            <!-- Инфо: Пушки -->
-            <div id="info-cannons" style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: var(--text-main); display: block;">
-                <p style="color:var(--primary); margin-bottom: 10px;"><b>АЛГОРИТМ ОЦЕНКИ ОРУДИЙ:</b></p>
-                <ul style="margin-left: 20px; list-style-type: square; color: var(--text-muted);">
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Из-за этого заложен базовый штраф к её точности. На дистанции такой залп потеряет огромную часть урона.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Автонаведение (Зенитки):</b> Только пушки с параметром "Боеприпасы в обойме" (барабанные) сводятся ровно в центр корпуса врага. Из-за этой привязки, если центр корабля спрятан за скалой, вся очередь улетит в препятствие.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Мета закрытых карт (5-10 км):</b> Дальность сверх 11 км не дает перевеса из-за обилия островов. Однако пушки с дальностью ниже 7 км получают штраф за излишний риск при сближении.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Критический урон:</b> Крит дает +50% к базовому урону. В базе DPM уже указан с учетом среднего шанса, однако в подсказках Анализатора высчитывается максимальный возможный урон, если каждый снаряд в залпе выдаст крит.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Эффективная Альфа (Тактика):</b> Огромные барабаны жестко штрафуются, так как для разрядки нужно стоять открытым. Чем меньше суммарно снарядов вылетает за клик, тем выше оценка для снайперской тактики "Выстрелил-спрятался".</li>
+            <div id="info-cannons" style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6;">
+                <ul style="margin-left: 20px; color: var(--text-muted);">
+                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
+                    <li style="margin-bottom: 10px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
+                    <li style="margin-bottom: 10px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон, если каждый снаряд даст крит.</li>
                 </ul>
             </div>
 
-            <!-- Инфо: Ракеты -->
-            <div id="info-missiles" style="font-family: 'Share Tech Mono'; line-height: 1.6; font-size: 0.95rem; text-transform: none; color: var(--text-main); display: none;">
-                <p style="color:var(--primary); margin-bottom: 10px;"><b>АЛГОРИТМ ОЦЕНКИ РАКЕТ:</b></p>
-                <ul style="margin-left: 20px; list-style-type: square; color: var(--text-muted);">
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Защита от помех (РЭБ):</b> Ракеты, не сбрасываемые тепловыми ловушками, получают максимальный бонус к рейтингу, так как гарантируют урон.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается прочность (HP) ракеты, стартовая скорость (ПВО не успевает среагировать) и количество ракет в одном залпе.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--secondary);">Кластерная БЧ:</b> Способность ракеты разделяться на осколки обходит ПВО и наносит урон даже при уничтожении основного носителя.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Время захвата и Зоны:</b> Лазерное наведение (0 секунд) дает значительный буст. Долгий лок (более 2 сек) и наличие "мертвой зоны" пуска жестко штрафуются.</li>
+            <div id="info-missiles" style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6; display: none;">
+                <ul style="margin-left: 20px; color: var(--text-muted);">
+                    <li style="margin-bottom: 10px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость и количество в залпе.</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО.</li>
+                    <li style="margin-bottom: 10px;"><b style="color: #fff;">Время захвата:</b> Лазерное наведение дает буст. Мертвая зона сильно штрафуется.</li>
                 </ul>
             </div>
         </div>
     </div>
 
+    <div id="toast-container"></div>
+
     <script>
         function triggerIntro() {
-            const bootText = document.getElementById('boot-text');
-            const msgs = ['ESTABLISHING SECURE CONNECTION...', 'LOADING WEAPON DATABASE...', 'CALCULATING META ALGORITHMS...', 'SYSTEM READY'];
-            let delay = 500;
-            msgs.forEach((msg, i) => {
-                setTimeout(() => { bootText.innerText = msg; }, delay);
-                delay += 400;
-            });
             setTimeout(() => {
                 const introScreen = document.getElementById('intro-screen');
                 introScreen.style.opacity = '0'; 
-                introScreen.style.transition = 'opacity 0.5s ease';
+                introScreen.style.transition = 'opacity 0.8s ease';
                 document.querySelector('.app-wrapper').classList.add('active'); 
-                setTimeout(() => introScreen.remove(), 500);
-            }, 2600);
+                setTimeout(() => introScreen.remove(), 800);
+            }, 1000);
         }
 
         let siteVisits = localStorage.getItem('mw_site_visits') || 0; siteVisits++; localStorage.setItem('mw_site_visits', siteVisits);
@@ -585,39 +479,48 @@
                 document.getElementById('admin-dashboard').style.display = 'block';
                 document.getElementById('visit-counter').innerText = siteVisits;
                 showToast("ДОСТУП РАЗРЕШЕН");
-            } else { showToast('ОШИБКА АВТОРИЗАЦИИ', true); }
+            } else { showToast('ОШИБКА ДОСТУПА', true); }
         }
 
         const CATEGORIES = ["Ракеты", "Пушки"];
         let currentCategory = "Ракеты";
         let searchQuery = "";
         
+        // Массив максимальных значений для отрисовки шкал (progress bars)
+        const MAX_STATS = {
+            damage_burst: 180000, dpm: 660000, damage: 60000, accuracy: 100,
+            reload: 25, lock_time: 5, crit_chance: 100, projectiles: 16, ammo_clip: 70,
+            splash_damage: 10000, splash_radius: 700, fragmentation_damage: 25000, detonation_radius: 100,
+            hp: 400, start_speed: 900, max_speed: 1200, accel_time: 12, range: 25, min_range: 5, fire_penalty: 60
+        };
+
         const STATS_LOGIC = {
             damage_burst: { label: "Урон за залп", higherIsBetter: true },
             dpm: { label: "Урон в минуту", higherIsBetter: true },
             damage: { label: "Урон", higherIsBetter: true },
-            accuracy: { label: "Точность (%)", higherIsBetter: true },
-            reload: { label: "Перезарядка (сек)", higherIsBetter: false },
-            lock_time: { label: "Время захвата (сек)", higherIsBetter: false },
-            crit_chance: { label: "Шанс крит. урона (%)", higherIsBetter: true },
-            projectiles: { label: "Выстрелов за атаку", higherIsBetter: false }, 
-            ammo_clip: { label: "Обойма (шт)", higherIsBetter: false },
+            accuracy: { label: "Точность", higherIsBetter: true },
+            reload: { label: "Перезарядка (с)", higherIsBetter: false },
+            dispersion: { label: "Базовый разброс", higherIsBetter: false },
+            lock_time: { label: "Время захвата (с)", higherIsBetter: false },
+            crit_chance: { label: "Шанс крита", higherIsBetter: true },
+            projectiles: { label: "Снарядов", higherIsBetter: false }, 
+            ammo_clip: { label: "Обойма", higherIsBetter: false },
             anti_jamming: { label: "Помехозащита", higherIsBetter: true },
             air_target: { label: "Атака авиации", isBool: true },
             sub_launch: { label: "Подводный пуск", isBool: true },
             cluster: { label: "Кластерная БЧ", isBool: true }, 
-            splash_damage: { label: "Урон по области", higherIsBetter: true },
+            splash_damage: { label: "Сплэш-урон", higherIsBetter: true },
             splash_radius: { label: "Радиус взрыва (м)", higherIsBetter: true },
-            fragmentation_damage: { label: "Урон от осколков", higherIsBetter: true },
+            fragmentation_damage: { label: "Урон осколков", higherIsBetter: true },
             detonation_radius: { label: "Радиус детонации (м)", higherIsBetter: true },
             hp: { label: "Прочность (HP)", higherIsBetter: true },
             trajectory: { label: "Траектория", isString: true },
             start_speed: { label: "Нач. скорость (уз)", higherIsBetter: true },
-            max_speed: { label: "Скорость (уз)", higherIsBetter: true },
-            accel_time: { label: "Разгон (сек)", higherIsBetter: false },
+            max_speed: { label: "Макс. скорость (уз)", higherIsBetter: true },
+            accel_time: { label: "Разгон (с)", higherIsBetter: false },
             range: { label: "Дальность (км)", higherIsBetter: true },
             min_range: { label: "Мертвая зона (км)", higherIsBetter: false },
-            fire_penalty: { label: "Штраф маскировки (%)", higherIsBetter: false }
+            fire_penalty: { label: "Штраф маскировки", higherIsBetter: false }
         };
 
         const DB = {
@@ -720,34 +623,7 @@
             "hyunmoo": { name: "HYUNMOO 4.4", category: "Ракеты", country: "Южная Корея", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 36400, dpm: 276545, reload: 7.70, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 225, start_speed: 29, max_speed: 583, accel_time: 3.17, range: 13.87, detonation_radius: 6, fire_penalty: 45, sub_launch: 1, img: "img/hyunmoo.png" },
             "idas": { name: "IDAS", category: "Ракеты", country: "Германия", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 16900, dpm: 194187, reload: 4.90, lock_time: 0.25, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 77, max_speed: 524, accel_time: 2.30, range: 8.67, detonation_radius: 100, fire_penalty: 35, sub_launch: 1, img: "img/idas.png" },
             "perseus": { name: "CVS401 PERSEUS", category: "Ракеты", country: "Европейский Союз", rarity: "Легендарный", cluster: 0, trajectory: "Низкая", min_range: 0, damage_burst: 27799, dpm: 255927, reload: 6.30, lock_time: 2.00, projectiles: 1, anti_jamming: 0, hp: 230, start_speed: 29, max_speed: 583, accel_time: 2.85, range: 11.27, detonation_radius: 20, splash_damage: 500, splash_radius: 66, fire_penalty: 40, img: "img/perseus.png" },
-            "mdcn": { name: "MDCN", category: "Ракеты", country: "Франция", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 33800, dpm: 247726, reload: 7.70, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 38, max_speed: 563, accel_time: 2.70, range: 13.87, fire_penalty: 40, sub_launch: 1, img: "img/mdcn.png" },
-            "gabriel": { name: "GABRIEL V", category: "Ракеты", country: "Израиль", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 52650, dpm: 280002, reload: 9.80, lock_time: 1.50, projectiles: 3, anti_jamming: 0, hp: 90, start_speed: 58, max_speed: 485, accel_time: 3.14, range: 10.83, fire_penalty: 40, img: "img/gabriel.png" },
-            "navalspike": { name: "NAVAL SPIKE ER", category: "Ракеты", country: "Израиль", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 27300, dpm: 266175, reload: 5.60, lock_time: 1.50, projectiles: 3, anti_jamming: 1, hp: 75, start_speed: 29, max_speed: 349, accel_time: 4.71, range: 6.93, fire_penalty: 32, img: "img/navalspike.png" },
-            "stratus": { name: "STRATUS RS", category: "Ракеты", country: "Европейский Союз", rarity: "Легендарный", cluster: 0, trajectory: "Низкая", min_range: 0, damage_burst: 27000, dpm: 282053, reload: 5.60, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 260, start_speed: 38, max_speed: 583, accel_time: 2.24, range: 12.13, splash_damage: 1000, splash_radius: 133, fire_penalty: 40, img: "img/stratus.png" },
-            "mansup": { name: "MANSUP-ER", category: "Ракеты", country: "Бразилия", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 28899, dpm: 257025, reload: 6.30, lock_time: 1.30, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 437, accel_time: 2.58, range: 11.27, splash_damage: 150, splash_radius: 500, fire_penalty: 40, img: "img/mansup.png" },
-            "nasir": { name: "NASIR", category: "Ракеты", country: "Иран", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 22100, dpm: 257833, reload: 4.90, lock_time: 0.50, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 116, max_speed: 466, accel_time: 1.80, range: 8.67, detonation_radius: 10, fire_penalty: 40, img: "img/nasir.png" },
-            "hyfly2": { name: "HYFLY-2", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 38200, dpm: 133644, reload: 17.15, lock_time: 0, projectiles: 1, anti_jamming: 1, hp: 110, start_speed: 272, max_speed: 515, accel_time: 1.79, range: 13.87, splash_damage: 500, splash_radius: 133, fire_penalty: 42, img: "img/hyfly2.png" },
-            "hyfly2nuke": { name: "HYFLY-2 (ЯДЕРНАЯ БЧ)", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 42700, dpm: 130714, reload: 19.60, lock_time: 0, projectiles: 1, anti_jamming: 1, hp: 150, start_speed: 272, max_speed: 515, accel_time: 2.08, range: 13.87, splash_damage: 5000, splash_radius: 266, fire_penalty: 42, img: "img/hyfly2nuke.png" },
-            "subroc": { name: "UUM-44 SUBROC", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 34800, dpm: 204183, reload: 9.80, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 300, start_speed: 48, max_speed: 544, accel_time: 2.83, range: 15.60, detonation_radius: 26, splash_damage: 7500, splash_radius: 333, fire_penalty: 40, sub_launch: 1, img: "img/subroc.png" },
-            "bazalt": { name: "P-500 BAZALT (ЯДЕРНАЯ БЧ)", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 45100, dpm: 272031, reload: 9.45, lock_time: 3.00, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 485, accel_time: 2.10, range: 14.73, detonation_radius: 33, splash_damage: 10000, splash_radius: 466, fire_penalty: 45, img: "img/bazalt.png" },
-            "alfa": { name: "P-900 ALFA", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 31200, dpm: 241389, reload: 7.00, lock_time: 1.20, projectiles: 3, anti_jamming: 0, hp: 88, start_speed: 194, max_speed: 515, accel_time: 2.36, range: 9.97, fire_penalty: 40, sub_launch: 1, img: "img/alfa.png" },
-            "shtil1": { name: "SHTIL-1", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 12550, dpm: 194855, reload: 3.50, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 524, accel_time: 1.82, range: 11.27, detonation_radius: 33, splash_damage: 750, splash_radius: 100, fire_penalty: 35, air_target: 1, img: "img/shtil1.png" },
-            "hq26": { name: "HQ-26", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 12250, dpm: 174125, reload: 4.20, lock_time: 0.30, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 155, max_speed: 505, accel_time: 1.80, range: 10.40, detonation_radius: 33, splash_damage: 2500, splash_radius: 500, fire_penalty: 35, air_target: 1, img: "img/hq26.png" },
-            "yu8": { name: "YU-8", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 29899, dpm: 208225, reload: 8.40, lock_time: 1.50, projectiles: 1, anti_jamming: 1, hp: 150, start_speed: 48, max_speed: 447, accel_time: 2.93, range: 10.83, fire_penalty: 36, img: "img/yu8.png" },
-            "otvet": { name: "91RE1 OTVET", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 21450, dpm: 210894, reload: 5.95, lock_time: 1.50, projectiles: 1, anti_jamming: 1, hp: 150, start_speed: 29, max_speed: 417, accel_time: 3.33, range: 9.97, detonation_radius: 20, fire_penalty: 32, img: "img/otvet.png" },
-            "s350": { name: "S-350 VITYAZ", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 16249, dpm: 184774, reload: 5.25, lock_time: 0.30, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 116, max_speed: 524, accel_time: 1.62, range: 11.27, detonation_radius: 66, fire_penalty: 35, air_target: 1, img: "img/s350.png" },
-            "s500prometheus": { name: "S-500 PROMETHEUS", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 19500, dpm: 210954, reload: 4.90, lock_time: 0.50, projectiles: 1, anti_jamming: 0, hp: 95, start_speed: 291, max_speed: 427, accel_time: 1.40, range: 9.53, detonation_radius: 66, fire_penalty: 35, air_target: 1, img: "img/s500prometheus.png" },
-            "redshark": { name: "RED SHARK (382 MM)", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 20800, dpm: 217285, reload: 5.60, lock_time: 1.50, projectiles: 1, anti_jamming: 1, hp: 150, start_speed: 38, max_speed: 485, accel_time: 3.83, range: 12.13, fire_penalty: 32, img: "img/redshark.png" },
-            "rim174um": { name: "RIM-174UM", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 13700, dpm: 183641, reload: 4.20, lock_time: 0.35, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 58, max_speed: 466, accel_time: 1.40, range: 10.83, detonation_radius: 66, splash_damage: 1000, splash_radius: 100, fire_penalty: 35, air_target: 1, sub_launch: 1, img: "img/rim174um.png" },
-            "micam": { name: "MICA-M", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 16950, dpm: 173121, reload: 5.25, lock_time: 0.25, projectiles: 3, anti_jamming: 0, hp: 70, start_speed: 194, max_speed: 544, accel_time: 0.90, range: 12.57, detonation_radius: 46, splash_damage: 1750, splash_radius: 200, fire_penalty: 35, air_target: 1, img: "img/micam.png" },
-            "agni1": { name: "AGNI-1", category: "Ракеты", country: "Индия", rarity: "Легендарный", cluster: 1, trajectory: "Высокая", min_range: 1.33, damage_burst: 39500, dpm: 301379, reload: 7.70, lock_time: 1.25, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 68, max_speed: 485, accel_time: 1.54, range: 13.87, splash_damage: 500, splash_radius: 100, fragmentation_damage: 13000, detonation_radius: 13, fire_penalty: 55, img: "img/agni1.png" },
-            "brahmosng": { name: "BRAHMOS NG", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 20000, dpm: 146250, reload: 8.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 622, accel_time: 2.70, range: 12.00, detonation_radius: 23, fire_penalty: 40, img: "img/brahmosng.png" },
-            "haeseong3": { name: "HAESEONG III", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 23500, dpm: 120565, reload: 11.50, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 270, start_speed: 77, max_speed: 485, accel_time: 3.00, range: 9.33, fire_penalty: 40, img: "img/haeseong3.png" },
-            "asn4g": { name: "ASN4G", category: "Ракеты", country: "Франция", rarity: "Легендарный", cluster: 0, trajectory: "Низкая", min_range: 0, damage_burst: 25500, dpm: 134454, reload: 11.00, lock_time: 2.00, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 145, max_speed: 583, accel_time: 2.50, range: 9.33, detonation_radius: 33, splash_damage: 1500, splash_radius: 333, fire_penalty: 40, img: "img/asn4g.png" },
-            "fattah1": { name: "FATTAH-1", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 25500, dpm: 149175, reload: 10.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 505, accel_time: 2.10, range: 8.33, splash_damage: 500, splash_radius: 100, fire_penalty: 40, img: "img/fattah1.png" },
-            "fattah2": { name: "FATTAH-2", category: "Ракеты", country: "Иран", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 44200, dpm: 268541, reload: 9.45, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 641, accel_time: 2.64, range: 15.60, fire_penalty: 40, img: "img/fattah2.png" },
-            "granat": { name: "S-10 GRANAT", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, trajectory: "Низкая", min_range: 0, damage_burst: 30000, dpm: 162272, reload: 11.00, lock_time: 0.50, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 29, max_speed: 485, accel_time: 2.76, range: 10.00, detonation_radius: 33, splash_damage: 7500, splash_radius: 500, fire_penalty: 40, sub_launch: 1, img: "img/granat.png" },
-            "feitian1": { name: "FEITIAN-1", category: "Ракеты", country: "Китай", rarity: "Легендарный", cluster: 0, trajectory: "Высокая", min_range: 0, damage_burst: 29249, dpm: 226394, reload: 7.70, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 325, start_speed: 155, max_speed: 583, accel_time: 2.00, range: 11.70, detonation_radius: 66, fire_penalty: 35, img: "img/feitian1.png" }
+            "mdcn": { name: "MDCN", category: "Ракеты", country: "Франция", rarity: "Легендарный", cluster: 0, trajectory: "Средняя", min_range: 0, damage_burst: 33800, dpm: 247726, reload: 7.70, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 38, max_speed: 563, accel_time: 2.70, range: 13.87, fire_penalty: 40, sub_launch: 1, img: "img/mdcn.png" }
         };
 
         function calculateRating(item) {
@@ -761,7 +637,7 @@
                 
                 let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
                 
-                // Расчет на эталонной дистанции 7.5 км (META)
+                // Meta distance 7.5km
                 let metaDistance = 7.5;
                 let speedFactor = 800 / item.max_speed; 
                 let evasionPenalty = (metaDistance * speedFactor * 1.5);
@@ -788,7 +664,6 @@
 
                 score += (item.max_speed / 1200) * 130; 
                 
-                // ОГРАНИЧЕНИЕ ДАЛЬНОСТИ ДЛЯ МЕТЫ (Кап на 11км, штраф до 6.5км)
                 let cappedRange = Math.min(item.range, 11);
                 score += (cappedRange / 20) * 40; 
                 if (item.range < 6.5) score -= (6.5 - item.range) * 15; 
@@ -804,15 +679,9 @@
                 
                 if (item.air_target === 1) score += 40;
                 
-                if (item.splash_damage > 0) {
-                    score += 5; 
-                    score += (item.splash_damage / 1000) * 5; 
-                }
-                if (item.splash_radius > 0) {
-                    score += (item.splash_radius / 50) * 3.75; 
-                }
+                if (item.splash_damage > 0) { score += 5; score += (item.splash_damage / 1000) * 5; }
+                if (item.splash_radius > 0) { score += (item.splash_radius / 50) * 3.75; }
                 if (item.detonation_radius > 0) score += 10;
-
                 score -= (item.fire_penalty * 0.5);
             } else {
                 item.effectiveDpm = item.dpm;
@@ -884,9 +753,9 @@
                 btn.innerText = cat;
                 btn.onclick = () => { 
                     currentCategory = cat; compareQueue = []; 
-                    document.getElementById('card-equip-1').innerHTML = `<div class="equip-img-container" id="img-equip-1"></div><h3 class="item-title" id="name-equip-1"></h3><table class="stats-table" id="stats-equip-1"></table>`;
-                    document.getElementById('card-equip-2').innerHTML = `<div class="equip-img-container" id="img-equip-2"></div><h3 class="item-title" id="name-equip-2"></h3><table class="stats-table" id="stats-equip-2"></table>`;
-                    document.getElementById('verdict-screen').innerHTML = `[ ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ ]`;
+                    document.getElementById('card-equip-1').innerHTML = `<div class="equip-img-container" id="img-equip-1"></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
+                    document.getElementById('card-equip-2').innerHTML = `<div class="equip-img-container" id="img-equip-2"></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
+                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
                     renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
                 };
                 bar.appendChild(btn);
@@ -985,7 +854,7 @@
             const item = DB[itemId];
             if (compareQueue.length === 0) {
                 compareQueue.push(itemId); handleFilter(); 
-                showToast(`СЛОТ 1: ${item.name}`);
+                showToast(`ЗАХВАТ СЛОТА 1: ${item.name}`);
             } else if (compareQueue.length === 1) {
                 if (compareQueue[0] === itemId) { compareQueue = []; handleFilter(); return; }
                 const id1 = compareQueue[0]; const id2 = itemId;
@@ -1003,12 +872,12 @@
             filteredItems.forEach(s => {
                 const sel = compareQueue.includes(s.id) ? 'selected' : '';
                 c.innerHTML += `
-                    <div class="catalog-item liquid-glass ${sel}" onclick="handleCatalogClick('${s.id}')">
+                    <div class="catalog-item glass-panel ${sel}" onclick="handleCatalogClick('${s.id}')">
                         <div class="catalog-item-img" style="background-image: url('${s.img}')"></div>
-                        <div style="color:var(--text-main); font-size:1.1rem; font-weight:bold; margin-bottom:8px; font-family:'Orbitron'">${s.name}</div>
-                        <div style="color:var(--text-muted); font-family:'Share Tech Mono'; font-size: 0.9rem; line-height: 1.5;">
-                            ФРАКЦИЯ: <span style="color:#fff">${s.country}</span><br>
-                            РЕЙТИНГ МЕТЫ: <span style="color:var(--primary)">${s.rating}/1000</span>
+                        <div class="cat-item-name">${s.name}</div>
+                        <div class="cat-item-meta">
+                            <div class="cat-meta-row"><span>ФРАКЦИЯ</span> <span style="color:#fff">${s.country}</span></div>
+                            <div class="cat-meta-row"><span>ИНДЕКС МЕТЫ</span> <span style="color:var(--primary); font-weight:bold;">${s.rating}/1000</span></div>
                         </div>
                     </div>`;
             });
@@ -1024,12 +893,12 @@
                 setTimeout(() => { const bar = document.getElementById(`bar-${item.id}`); if(bar) bar.style.width = `${(item.rating / 1000) * 100}%`; }, 50);
 
                 c.innerHTML += `
-                    <div class="rating-item liquid-glass">
-                        <div class="rating-rank" style="color: ${color}">${index + 1}</div>
+                    <div class="rating-item glass-panel">
+                        <div class="rating-rank" style="color: ${color}">0${index + 1}</div>
                         <div class="rating-img" style="background-image: url('${item.img}')"></div>
                         <div class="rating-info">
-                            <div style="color: var(--text-main); font-family: 'Orbitron'; font-size: 1.2rem; font-weight: bold;">${item.name} <span style="font-size:0.8rem; color:var(--text-muted); font-family:'Jura';">[${item.country}]</span></div>
-                            <div class="rating-bar-bg"><div class="rating-bar-fill" id="bar-${item.id}" style="width: 0%; background: ${color}; color: ${color}"></div></div>
+                            <div class="rating-title">${item.name} <span style="font-size:0.8rem; color:var(--text-muted); font-family:'Jura';">[${item.country}]</span></div>
+                            <div class="rating-bar-bg"><div class="rating-bar-fill" id="bar-${item.id}" style="width: 0%; background: ${color}; box-shadow: 0 0 10px ${color}"></div></div>
                         </div>
                         <div class="rating-score" style="color: ${color}">${item.rating}</div>
                     </div>`;
@@ -1040,19 +909,36 @@
             const item = DB[itemId];
             document.getElementById(`name-equip-${side}`).innerText = item.name;
             document.getElementById(`img-equip-${side}`).style.backgroundImage = `url('${item.img}')`;
+            
             let html = '';
             for (let key in STATS_LOGIC) {
                 let val = item[key];
                 if (val === undefined) continue;
                 
+                let rawVal = val;
                 if (key === 'dpm' || key === 'damage_burst' || key === 'splash_damage' || key === 'fragmentation_damage' || key === 'damage') val = val.toLocaleString('ru');
-                if (key === 'anti_jamming') val = val === 1 ? "<span style='color:var(--primary); text-shadow: var(--hud-glow)'>АКТИВНО</span>" : "НЕТ";
-                if (key === 'cluster') val = val === 1 ? "<span style='color:var(--secondary); text-shadow: var(--alert-glow)'>ДА</span>" : "НЕТ";
-                if (key === 'air_target' || key === 'sub_launch') val = val === 1 ? "<span style='color:var(--primary); text-shadow: var(--hud-glow)'>ДА</span>" : "НЕТ";
-                if (key === 'min_range') val = val > 0 ? `<span style='color:var(--secondary); font-weight:bold'>${val} км</span>` : "НЕТ";
+                if (key === 'anti_jamming') val = val === 1 ? "АКТИВНО" : "НЕТ";
+                if (key === 'cluster') val = val === 1 ? "ДА" : "НЕТ";
+                if (key === 'air_target' || key === 'sub_launch') val = val === 1 ? "ДА" : "НЕТ";
                 if (key === 'fire_penalty' || key === 'accuracy' || key === 'dispersion') val = `${val}%`;
 
-                html += `<tr><td class="stat-name">${STATS_LOGIC[key].label}</td><td class="stat-value" id="val-${side}-${key}">${val}</td></tr>`;
+                // Calculate progress bar width
+                let max = MAX_STATS[key] || 100;
+                let pct = 0;
+                if (typeof rawVal === 'number' && STATS_LOGIC[key].higherIsBetter) {
+                    pct = Math.min(100, (rawVal / max) * 100);
+                } else if (typeof rawVal === 'number' && !STATS_LOGIC[key].higherIsBetter) {
+                    pct = Math.min(100, (rawVal / max) * 100);
+                }
+
+                html += `
+                <div class="stat-row">
+                    <div class="stat-header">
+                        <span class="stat-name">${STATS_LOGIC[key].label}</span>
+                        <span class="stat-value" id="val-${side}-${key}">${val}</span>
+                    </div>
+                    ${!STATS_LOGIC[key].isBool && !STATS_LOGIC[key].isString ? `<div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-${side}-${key}" style="width: ${pct}%"></div></div>` : ''}
+                </div>`;
             }
             document.getElementById(`stats-equip-${side}`).innerHTML = html;
         }
@@ -1061,64 +947,62 @@
             let pros = []; let cons = [];
             
             if (item.category === "Ракеты") {
-                if (item.anti_jamming === 1) pros.push("Абсолютная защита от ловушек (РЭБ)"); else cons.push("Сбрасывается вражескими тепловыми ловушками");
+                if (item.anti_jamming === 1) pros.push("Абсолютная защита от ловушек (РЭБ)"); else cons.push("Сбрасывается вражескими ловушками");
                 if (item.air_target === 1) pros.push("Многоцелевая (может поражать авиацию)");
-                if (item.sub_launch === 1) pros.push("Подводный пуск (можно атаковать из-под воды)");
+                if (item.sub_launch === 1) pros.push("Подводный пуск (атака из-под воды)");
                 if (item.cluster === 1 || item.fragmentation_damage > 0) {
-                    if (item.anti_jamming === 0) pros.push("Кластерная БЧ (ПВО не сбивает осколки, урон при поздних ловушках)"); 
-                    else pros.push("Кластерная БЧ (ПВО не сбивает мелкие осколки, гарантируя урон)");
+                    if (item.anti_jamming === 0) pros.push("Кластерная БЧ (Осколки проходят ПВО и ловушки)"); 
+                    else pros.push("Кластерная БЧ (ПВО не сбивает мелкие осколки)");
                 }
-                if (item.dpm > 250000) pros.push("Колоссальный базовый урон в минуту"); else cons.push("Низкий математический DPM");
+                if (item.dpm > 250000) pros.push("Колоссальный математический DPM");
                 if (item.damage_burst >= 40000) pros.push("Разрушительный альфа-страйк (урон за залп)");
-                if (item.projectiles > 1) pros.push(`Залп из ${item.projectiles} ракет (повышенный шанс перегруза ПВО)`);
-                if (item.start_speed >= 200) pros.push("Резкий старт (ПВО не успевает среагировать)"); else if (item.start_speed < 50) cons.push("Критически медленный старт (легко сбивается ПВО)");
-                if (item.lock_time === 0) pros.push("Лазерное наведение (моментальный пуск без ожидания)"); else if (item.lock_time >= 3.0) cons.push(`Критически долгий захват (${item.lock_time} сек)`);
+                if (item.projectiles > 1) pros.push(`Залп из ${item.projectiles} ракет (шанс перегруза ПВО)`);
+                if (item.start_speed >= 200) pros.push("Резкий старт (ПВО не успевает среагировать)"); else if (item.start_speed < 50) cons.push("Критически медленный старт (сбивается ПВО)");
+                if (item.lock_time === 0) pros.push("Лазерное наведение (моментальный пуск)"); else if (item.lock_time >= 3.0) cons.push(`Долгий захват цели (${item.lock_time} сек)`);
             } else if (item.category === "Пушки") {
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
                 let totalShots = pCount * (item.ammo_clip || 1);
                 
                 if (item.accuracy < 100) {
-                    cons.push(`Врожденный разброс (Дробовик): базовая точность ${item.accuracy}%. Снаряды летят облаком, теряя урон.`);
+                    cons.push(`Врожденный разброс (Дробовик): точность ${item.accuracy}%. Облако снарядов теряет урон вдаль.`);
                 }
 
                 if (item.crit_chance && item.crit_chance > 0) {
                     let pureBaseDamage = item.damage_burst / (1 + (item.crit_chance / 100) * 0.5);
                     let maxCritBurst = Math.round(pureBaseDamage * 1.5).toLocaleString('ru');
-                    pros.push(`Шанс Крита (${item.crit_chance}%): идеальный залп в слабое место выдаст до ${maxCritBurst} урона`);
+                    pros.push(`Шанс Крита (${item.crit_chance}%): идеальный залп выдаст до ${maxCritBurst} урона`);
                 }
 
-                if (item.accuracyScore < 75 && item.accuracy === 100) cons.push(`Потеря урона на дистанции (до ${Math.round(100 - item.accuracyScore)}% промахов из-за уклонения цели)`);
+                if (item.accuracyScore < 75 && item.accuracy === 100) cons.push(`Потеря урона (до ${Math.round(100 - item.accuracyScore)}% промахов из-за уклонения цели)`);
                 
-                if (item.dpm > 300000 && item.accuracyScore < 80) pros.push(`Монстр ближнего боя (реализует весь огромный DPM ${Math.round(item.dpm).toLocaleString('ru')} в упор)`);
+                if (item.dpm > 300000 && item.accuracyScore < 80) pros.push(`Монстр ближнего боя (выдает все ${Math.round(item.dpm).toLocaleString('ru')} DPM в упор)`);
 
-                if (item.splash_radius >= 100) pros.push(`Огромный радиус взрыва (${item.splash_radius} м) — сбривает ракеты при их вылете!`);
-                else if (item.splash_damage > 0) pros.push("Сплэш-урон (может цеплять вражеские ракеты при пуске)");
-
-                if (item.max_speed >= 950) pros.push(`Идеальная баллистика (${item.max_speed} уз.) — снаряд почти мгновенно достигает цели`);
-                else if (item.max_speed >= 800) pros.push("Отличная баллистика (комфортное упреждение)");
-                else if (item.max_speed < 650) cons.push(`Медленные снаряды (${item.max_speed} уз.) — цели уклоняются на дистанции`);
+                if (item.splash_radius >= 100) pros.push(`Сплэш ${item.splash_radius} м — сбривает ракеты при их вылете!`);
+                
+                if (item.max_speed >= 950) pros.push(`Идеальная баллистика (${item.max_speed} уз.)`);
+                else if (item.max_speed < 650) cons.push(`Медленные снаряды (${item.max_speed} уз.)`);
                 
                 if (hasClip) {
                     pros.push(`Автонаведение: система сама ведет цель`);
-                    cons.push(`Привязка к центру: из-за укрытия снаряды полетят в скалу`);
+                    cons.push(`Привязка к центру: из-за укрытия снаряды бьют в скалу`);
                 }
                 
-                if (totalShots >= 10) cons.push(`Долгая разрядка (${totalShots} выстр.) требует долгого удержания цели`);
+                if (totalShots >= 10) cons.push(`Долгая разрядка (${totalShots} выстр.) требует удержания цели`);
                 else if (totalShots >= 4 && !hasClip) cons.push(`Многоствольный залп (${totalShots} выстр.) растягивает урон`);
 
-                if (totalShots <= 2 && item.damage_burst >= 30000 && item.range >= 12) pros.push("Снайперская тактика 'Выстрелил-Спрятался'");
-                else if (totalShots === 1) pros.push("Вся мощь в одном снаряде (удобно бить из-за скал)");
+                if (totalShots <= 2 && item.damage_burst >= 30000 && item.range >= 12) pros.push("Снайпер: 'Выстрелил-Спрятался'");
+                else if (totalShots === 1) pros.push("Вся мощь в одном снаряде");
                 
                 if (item.effectiveDpm > 250000 && totalShots <= 4) pros.push(`Подавляющий эффект. DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')})`);
                 
                 if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
-                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры в упор`);
+                else if (item.range < 6.5) cons.push(`Малая дальность (${item.range} км) — требует игры от островов`);
                 
                 if (item.air_target === 1) pros.push("Универсальное орудие ПВО");
             }
 
-            return `<div class="analysis-col liquid-glass">
+            return `<div class="analysis-col glass-panel">
                 <div class="col-title">${item.name}</div>
                 <div>${pros.map(p => `<div class="pro-item">${p}</div>`).join('')}</div>
                 <div style="margin-top:10px;">${cons.map(c => `<div class="con-item">${c}</div>`).join('')}</div>
@@ -1129,7 +1013,7 @@
             let canvas = document.getElementById('radarChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
-                canvas.parentElement.innerHTML = '<div style="color:var(--primary); font-family:Jura; padding:20px; text-align:center; border: 1px dashed var(--primary); background: rgba(0,229,255,0.05);">[ RADAR OFFLINE: CHART.JS MISSING ]</div>'; return;
+                canvas.parentElement.innerHTML = `<div style="color:var(--secondary); font-family:Inter; padding:20px; text-align:center;">[ RADAR OFFLINE ]</div>`; return;
             }
             let ctx = canvas.getContext('2d');
             if(window.radarChartInstance) window.radarChartInstance.destroy();
@@ -1162,7 +1046,7 @@
                 ];
             }
 
-            Chart.defaults.color = '#c4d8e2';
+            Chart.defaults.color = '#7890a8';
             Chart.defaults.font.family = 'Share Tech Mono';
 
             window.radarChartInstance = new Chart(ctx, {
@@ -1170,21 +1054,21 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: e1.name, data: d1, backgroundColor: 'rgba(0, 229, 255, 0.2)', borderColor: '#00e5ff', pointBackgroundColor: '#00e5ff', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6 },
-                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 0, 0.2)', borderColor: '#ff3c00', pointBackgroundColor: '#ff3c00', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6 }
+                        { label: e1.name, data: d1, backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 3 },
+                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 3 }
                     ]
                 },
                 options: {
                     scales: { 
                         r: { 
                             min: 0, max: 100, 
-                            angleLines: { color: 'rgba(0, 229, 255, 0.2)' }, 
-                            grid: { color: 'rgba(0, 229, 255, 0.1)', circular: true }, 
-                            pointLabels: { color: '#00e5ff', font: { family: 'Share Tech Mono', size: 12 } }, 
+                            angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, 
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, 
+                            pointLabels: { color: '#e2f1f8', font: { family: 'Inter', size: 11 } }, 
                             ticks: { display: false } 
                         } 
                     },
-                    plugins: { legend: { display: true, position: 'top', labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 13 }, padding: 20 } } }, 
+                    plugins: { legend: { display: false } }, 
                     responsive: true, maintainAspectRatio: false
                 }
             });
@@ -1193,17 +1077,29 @@
         function runAnalysis(id1, id2) {
             const e1 = DB[id1]; const e2 = DB[id2];
             const card1 = document.getElementById('card-equip-1'); const card2 = document.getElementById('card-equip-2');
-            card1.className = 'equip-card liquid-glass'; card2.className = 'equip-card liquid-glass';
+            card1.className = 'equip-card glass-panel'; card2.className = 'equip-card glass-panel';
 
             for (let key in STATS_LOGIC) {
                 if (e1[key] === undefined && e2[key] === undefined) continue;
                 const el1 = document.getElementById(`val-1-${key}`); const el2 = document.getElementById(`val-2-${key}`);
+                const bar1 = document.getElementById(`bar-1-${key}`); const bar2 = document.getElementById(`bar-2-${key}`);
                 if(!el1 || !el2) continue;
+                
                 el1.className = "stat-value"; el2.className = "stat-value";
+                if(bar1) bar1.className = "stat-bar-fill"; if(bar2) bar2.className = "stat-bar-fill";
+
                 const v1 = e1[key] !== undefined ? parseFloat(e1[key]) : 0; const v2 = e2[key] !== undefined ? parseFloat(e2[key]) : 0;
                 if (v1 === v2 || STATS_LOGIC[key].isString) { el1.classList.add('neutral'); el2.classList.add('neutral'); continue; }
+                
                 const isV1Better = STATS_LOGIC[key].higherIsBetter ? v1 > v2 : v1 < v2;
-                if (isV1Better) { el1.classList.add('win'); el2.classList.add('lose'); } else { el2.classList.add('win'); el1.classList.add('lose'); }
+                
+                if (isV1Better) { 
+                    el1.classList.add('val-win'); el2.classList.add('val-lose'); 
+                    if(bar1) bar1.classList.add('bar-win'); if(bar2) bar2.classList.add('bar-lose');
+                } else { 
+                    el2.classList.add('val-win'); el1.classList.add('val-lose'); 
+                    if(bar2) bar2.classList.add('bar-win'); if(bar1) bar1.classList.add('bar-lose');
+                }
             }
 
             let analysisCols = `<div class="analysis-cols">${generateTactics(e1)}${generateTactics(e2)}</div>`;
@@ -1212,7 +1108,7 @@
             if (Math.abs(e1.rating - e2.rating) < 15) {
                 let diff = Math.abs(e1.rating - e2.rating);
                 let pDiff = ((diff / Math.min(e1.rating, e2.rating)) * 100).toFixed(1);
-                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (отклонение ${pDiff}%). Выбор зависит от тактики.</span>`;
+                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%).</span>`;
                 card1.classList.add('card-tie'); card2.classList.add('card-tie');
             } else {
                 const winner = e1.rating > e2.rating ? e1 : e2; const loser = e1.rating > e2.rating ? e2 : e1;
@@ -1220,7 +1116,7 @@
                 
                 let percentDiff = (((winner.rating - loser.rating) / loser.rating) * 100).toFixed(1);
                 
-                let reason = "комплексного превосходства";
+                let reason = "превосходства";
                 if (e1.category === "Ракеты") {
                     if (loser.min_range > 0 && winner.min_range === 0) reason = "отсутствия мертвой зоны пуска";
                     else if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reason = "кластерной БЧ (урон сквозь ПВО)";
@@ -1231,17 +1127,17 @@
                     let lHasClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
                     let wTotalShots = (winner.projectiles || 1) * (winner.ammo_clip || 1);
 
-                    if (loser.range < 6.5 && winner.range >= 10) reason = `превосходства в дальности (безнаказанная атака)`;
-                    else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `ультимативной мощи в ближнем бою`;
-                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (огромный урон за секунду)";
-                    else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру (удобство игры от укрытий)";
+                    if (loser.range < 7 && winner.range >= 11) reason = `превосходства в дальности`;
+                    else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `мощи в ближнем бою`;
+                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (урон за секунду)";
+                    else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру";
                     else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной баллистики (нет промахов вдаль)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом попаданий";
                     else if (wTotalShots > 2 && winner.damage_burst > loser.damage_burst + 15000) reason = "огромной плотности огня";
                     else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости снаряда";
                 }
 
-                summaryText = `<span style="color:var(--primary); font-size: 1.3rem; display:block; margin-bottom: 8px; font-family:'Orbitron'; letter-spacing:1px;">ТАКТИЧЕСКОЕ ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:var(--text-main);">В мете закрытых карт (5-10км) это вооружение эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b> за счет ${reason} (Индекс: ${winner.rating} vs ${loser.rating}).</span>`;
+                summaryText = `<span style="color:var(--primary); font-size: 1.3rem; display:block; margin-bottom: 8px; font-family:'Inter'; font-weight:900;">ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:var(--text-main);">Эффективнее на <b style="color:var(--primary); font-size:1.2rem;">${percentDiff}%</b> за счет ${reason} (Индекс: ${winner.rating} vs ${loser.rating}).</span>`;
             }
 
             let visualsHTML = `
@@ -1250,7 +1146,7 @@
                 </div>
             `;
 
-            let finalVerdictHTML = `<div class="final-summary-block liquid-glass"><div style="font-family:'Share Tech Mono'; font-size:1rem; line-height: 1.6; text-transform: none;">${summaryText}</div>${visualsHTML}</div>`;
+            let finalVerdictHTML = `<div class="final-summary-block glass-panel"><div style="font-family:'Jura'; font-size:1rem; line-height: 1.6; text-transform: none;">${summaryText}</div>${visualsHTML}</div>`;
             document.getElementById('verdict-screen').innerHTML = analysisCols + finalVerdictHTML;
             setTimeout(() => { drawRadarChart(e1, e2); }, 100);
         }
@@ -1276,14 +1172,14 @@
             const container = document.getElementById('build-slots');
             const slotId = 'slot-' + slotCounter++;
             const slotHtml = `
-                <div class="build-slot-container liquid-glass" id="${slotId}">
+                <div class="build-slot-container glass-panel" id="${slotId}">
                     <div style="color: var(--primary); font-family: 'Share Tech Mono';">СЛОТ [${slotCounter}]:</div>
                     <select class="search-input slot-item">${getOptionsHtml()}</select>
                     <select class="search-input slot-qty" style="width: 80px;">
                         <option value="1">x1</option><option value="2">x2</option>
                         <option value="3">x3</option><option value="4">x4</option>
                     </select>
-                    <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--secondary); font-size:1.8rem; cursor:pointer; font-family:'Jura'; font-weight:bold; text-shadow: var(--alert-glow);">×</button>
+                    <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--text-muted); font-size:1.8rem; cursor:pointer; font-family:'Jura'; font-weight:bold; transition:0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', slotHtml);
@@ -1326,30 +1222,30 @@
 
             const statsContainer = document.getElementById('build-stats-container');
             statsContainer.innerHTML = `
-                <div class="analysis-col liquid-glass">
+                <div class="analysis-col glass-panel">
                     <div class="col-title">ОГНЕВАЯ МОЩЬ</div>
                     <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:1.1rem; line-height:1.6; text-transform:none;">
                         Урон в минуту: <b style="color:var(--primary); text-shadow: var(--hud-glow);">${Math.round(totalDpm).toLocaleString('ru')}</b><br>
                         Эффективный DPM: <b style="color:#ffaa00">${Math.round(totalEffDpm).toLocaleString('ru')}</b><br>
-                        Альфа-страйк: <b style="color:var(--secondary); text-shadow: var(--alert-glow);">${Math.round(totalBurst).toLocaleString('ru')}</b>
+                        Альфа-страйк: <b style="color:#fff">${Math.round(totalBurst).toLocaleString('ru')}</b>
                     </div>
                 </div>
-                <div class="analysis-col liquid-glass">
+                <div class="analysis-col glass-panel">
                     <div class="col-title">ТАКТИЧЕСКИЕ ДАННЫЕ</div>
                     <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:1.1rem; line-height:1.6; text-transform:none;">
-                        Дальность боя: <b style="color:#fff">${maxRange} км</b><br>
+                        Дальность: <b style="color:#fff">${maxRange} км</b><br>
                         Средняя баллистика: <b style="color:#fff">${Math.round(avgSpeed)} уз.</b><br>
-                        ПВО возможности: ${hasAir ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}<br>
+                        ПВО: ${hasAir ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}<br>
                         Удары из-под воды: ${hasSub ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}
                     </div>
                 </div>
             `;
 
-            let tacticsText = `<div class="final-summary-block liquid-glass"><b style="color:var(--primary); font-size:1.2rem; font-family:'Orbitron';">ОЦЕНКА СБОРКИ:</b><br><br>`;
+            let tacticsText = `<div class="final-summary-block glass-panel"><b style="color:var(--primary); font-size:1.2rem; font-family:'Inter'; font-weight:900;">ОЦЕНКА СБОРКИ:</b><br><br>`;
             if (hasAntiJamming) tacticsText += `<span style="color:var(--primary)">[+]</span> Интегрирована защита от ловушек (часть урона неотводима).<br>`;
-            if (totalBurst > 100000) tacticsText += `<span style="color:var(--secondary)">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
+            if (totalBurst > 100000) tacticsText += `<span style="color:#fff">[!]</span> Разрушительный Альфа-страйк! Идеально для игры от укрытий.<br>`;
             if (totalEffDpm > 500000) tacticsText += `<span style="color:#ffaa00">[!]</span> Колоссальный эффективный DPM. Сборка распилит любого в открытом бою.<br>`;
-            if (!hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Сборка уязвима с воздуха, требуется сильное ПВО на корабле.<br>`;
+            if (!hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Сборка уязвима с воздуха, требуется ПВО на корабле.<br>`;
             tacticsText += `</div>`;
             document.getElementById('build-tactics').innerHTML = tacticsText;
 
@@ -1373,11 +1269,11 @@
                             Math.min(100, (avgSpeed / 1000) * 100),
                             ((hasAir ? 50 : 0) + (hasSub ? 30 : 0) + (hasAntiJamming ? 20 : 0))
                         ],
-                        backgroundColor: 'rgba(0, 229, 255, 0.2)', borderColor: '#00e5ff', pointBackgroundColor: '#00e5ff', borderWidth: 2, pointRadius: 4
+                        backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 4
                     }]
                 },
                 options: {
-                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(0, 229, 255, 0.2)' }, grid: { color: 'rgba(0, 229, 255, 0.1)', circular: true }, pointLabels: { color: '#00e5ff', font: { family: 'Share Tech Mono', size: 14 } }, ticks: { display: false } } },
+                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, pointLabels: { color: '#42f5e3', font: { family: 'Share Tech Mono', size: 14 } }, ticks: { display: false } } },
                     plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false
                 }
             });
@@ -1392,7 +1288,7 @@
             showToast("ФОРМИРОВАНИЕ ОТЧЕТА...");
             
             html2canvas(el, {
-                backgroundColor: '#02060d',
+                backgroundColor: '#071017',
                 scale: 2,
                 logging: false,
                 useCORS: true
