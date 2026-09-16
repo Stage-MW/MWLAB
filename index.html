@@ -945,6 +945,22 @@
             "k731": { name: "K731 WHITE SHARK", category: "Торпеды", country: "Южная Корея", rarity: "Эпический", anti_jamming: 1, dpm: 210235, damage_burst: 40800, damage: 12350, reload: 10.85, lock_time: 1.00, detonation_radius: 26, splash_damage: 1250, splash_radius: 333, projectiles: 1, ammo_clip: 3, range: 12.13, max_speed: 126, start_speed: 13, accel_time: 5.80, fire_penalty: 10, img: "img/K731WhiteShark.png" }
         };
 
+        // Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
+        function getSafeDistance(item) {
+            const MW_COEF = 0.00278; 
+            let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
+            let v0 = (item.start_speed || 0) * MW_COEF;
+            let vmax = (item.max_speed || 0) * MW_COEF;
+            let ta = item.accel_time || 0.1; 
+            
+            if (T <= ta) {
+                let a = (vmax - v0) / ta;
+                return (v0 * T) + (a * Math.pow(T, 2) / 2);
+            } else {
+                return (((v0 + vmax) / 2) * ta) + (vmax * (T - ta));
+            }
+        }
+
         const RATING_CALCULATORS = {
             "Пушки": function(item) {
                 let score = 100;
@@ -1010,7 +1026,15 @@
                 score += 150; 
                 score += (item.dpm / 300000) * 250; 
                 score += (item.damage_burst / 60000) * 100; 
-                score += item.anti_jamming === 1 ? 200 : 0; 
+                
+                if (item.anti_jamming === 1) {
+                    score += 200; 
+                } else {
+                    let safe_dist = getSafeDistance(item);
+                    if (safe_dist < item.range) {
+                        score -= ((item.range - safe_dist) * 15);
+                    }
+                }
                 
                 let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
                 if (hasCluster) { 
@@ -1043,7 +1067,7 @@
                 if (item.air_target === 1 && !item.dedicated_aa) score += 50;
                 if (item.sub_launch === 1) score += 50;
                 
-                score += (50 - (item.lock_time * 10));
+                score += (50 - (item.lock_time * 10)); 
                 
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
                 if (item.min_range > 0) score -= (item.min_range * 30); 
@@ -1067,10 +1091,7 @@
                 if (item.ammo_clip && item.ammo_clip > 1) score += (item.ammo_clip * 10);
                 
                 let cappedRange = Math.min(item.range, 12);
-                score += (cappedRange / 12) * 20;
-                if (item.range < 11.0) {
-                    score -= ((11.0 - item.range) * 20);
-                }
+                score += (cappedRange / 12) * 30;
 
                 if (item.splash_damage) score += (item.splash_damage / 6000) * 20; 
                 if (item.detonation_radius) score += (item.detonation_radius / 40) * 20;
@@ -1387,7 +1408,17 @@
             let pros = []; let cons = [];
             
             if (item.category === "Ракеты") {
-                if (item.anti_jamming === 1) pros.push("Абсолютная защита от ловушек (РЭБ)"); else cons.push("Сбрасывается вражескими ловушками");
+                if (item.anti_jamming === 1) {
+                    pros.push("Абсолютная защита от ловушек (РЭБ)");
+                } else {
+                    let vuln_dist = getSafeDistance(item);
+                    if (vuln_dist < item.range) {
+                        cons.push(`ОКНО УЯЗВИМОСТИ: на дистанции свыше ${vuln_dist.toFixed(1)} км враг успеет дважды сбросить ловушки (подлет дольше 11 сек).`);
+                    } else {
+                        pros.push(`Гарантированный подлет: ракета преодолевает всю свою дальность быстрее, чем откатываются ловушки (11 сек).`);
+                    }
+                }
+                
                 if (item.air_target === 1) {
                     if (item.dedicated_aa) {
                         pros.push("Зенитная ракета (специализируется на перехвате авиации)");
@@ -1454,17 +1485,16 @@
                 
                 if (item.effectiveDpm > 250000 && totalShots <= 4) pros.push(`Подавляющий эффект. DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')})`);
                 
-                if (item.air_target === 1) pros.push("Универса орудие ПВО");
+                if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
+                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры от островов`);
                 
-                if (item.range < 11.0) cons.push(`Уязвимость на открытой воде (дальность ${item.range} км недостаточна для 40% карт)`);
+                if (item.air_target === 1) pros.push("Универса орудие ПВО");
             } else if (item.category === "Торпеды") {
                 if (item.anti_jamming === 1) pros.push("Невосприимчивость к ловушкам (РЭБ)"); else cons.push("Сбрасывается вражескими ловушками");
                 if (item.ammo_clip > 1) pros.push(`Имеет обойму (x${item.ammo_clip}), позволяя спамить торпедами`);
                 if (item.accel_time < 5) pros.push("Быстрый набор скорости (отличная реакция вблизи)"); else cons.push("Долго набирает максимальную скорость");
                 if (item.max_speed >= 120) pros.push("Высокая максимальная скорость (цели тяжело увернуться)"); else cons.push("Медленный ход");
                 if (item.splash_damage > 0) pros.push("Имеет сплэш-урон по области (может задеть несколько целей)");
-                
-                if (item.range < 11.0) cons.push(`Уязвимость на открытой воде (дальность ${item.range} км недостаточна для 40% карт)`);
             }
 
             return `<div class="analysis-col glass-panel">
