@@ -453,7 +453,7 @@
                 </div>
                 <div class="home-image-side" id="home-image-side">
                     <div class="home-image-glow"></div>
-                    <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 0 20px rgba(66,245,227,0.3));" onerror="this.style.display='none'">
+                    <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 0 20px rgba(66, 245, 227, 0.3));" onerror="this.style.display='none'">
                 </div>
             </div>
         </main>
@@ -980,8 +980,10 @@
                 score += (item.max_speed / 1200) * 130; 
                 
                 let cappedRange = Math.min(item.range, 11);
-                score += (cappedRange / 20) * 40; 
-                if (item.range < 6.5) score -= (6.5 - item.range) * 15; 
+                score += (cappedRange / 11) * 20; 
+                if (item.range < 11.0) {
+                    score -= ((11.0 - item.range) * 15);
+                }
                 
                 if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
                 if (item.reload < 3.0) score += 20;
@@ -1027,6 +1029,9 @@
                 
                 let cappedRange = Math.min(item.range, 10);
                 score += (cappedRange / 10) * 20;
+                if (item.range < 11.5) {
+                    score -= ((11.5 - item.range) * 20);
+                }
 
                 if (item.reload <= 8.0) score += (8.0 - item.reload) * 15;
 
@@ -1035,12 +1040,9 @@
                 if (item.detonation_radius) score += (item.detonation_radius / 20) * 15;
                 if (item.fragmentation_damage) score += (item.fragmentation_damage / 25000) * 40;
                 
-                // ЗЕНИТНАЯ ЛОГИКА
                 if (item.air_target === 1 && !item.dedicated_aa) score += 50;
-                
                 if (item.sub_launch === 1) score += 50;
                 
-                // --- НОВАЯ ЛОГИКА ЗАХВАТА ЦЕЛИ ---
                 score += (50 - (item.lock_time * 10));
                 
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
@@ -1065,12 +1067,14 @@
                 if (item.ammo_clip && item.ammo_clip > 1) score += (item.ammo_clip * 10);
                 
                 let cappedRange = Math.min(item.range, 12);
-                score += (cappedRange / 12) * 30;
+                score += (cappedRange / 12) * 20;
+                if (item.range < 11.0) {
+                    score -= ((11.0 - item.range) * 20);
+                }
 
                 if (item.splash_damage) score += (item.splash_damage / 6000) * 20; 
                 if (item.detonation_radius) score += (item.detonation_radius / 40) * 20;
                 
-                // --- НОВАЯ ЛОГИКА ЗАХВАТА ЦЕЛИ ---
                 score += (50 - (item.lock_time * 10));
                 
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
@@ -1411,6 +1415,8 @@
                 } else if (item.lock_time >= 3.0) {
                     cons.push(`Долгий захват цели (${item.lock_time} сек)`);
                 }
+                
+                if (item.range < 11.5) cons.push(`Уязвимость на открытой воде (дальность ${item.range} км недостаточна для 40% карт)`);
             } else if (item.category === "Пушки") {
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
@@ -1448,16 +1454,17 @@
                 
                 if (item.effectiveDpm > 250000 && totalShots <= 4) pros.push(`Подавляющий эффект. DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')})`);
                 
-                if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
-                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры от островов`);
-                
                 if (item.air_target === 1) pros.push("Универса орудие ПВО");
+                
+                if (item.range < 11.0) cons.push(`Уязвимость на открытой воде (дальность ${item.range} км недостаточна для 40% карт)`);
             } else if (item.category === "Торпеды") {
                 if (item.anti_jamming === 1) pros.push("Невосприимчивость к ловушкам (РЭБ)"); else cons.push("Сбрасывается вражескими ловушками");
                 if (item.ammo_clip > 1) pros.push(`Имеет обойму (x${item.ammo_clip}), позволяя спамить торпедами`);
                 if (item.accel_time < 5) pros.push("Быстрый набор скорости (отличная реакция вблизи)"); else cons.push("Долго набирает максимальную скорость");
                 if (item.max_speed >= 120) pros.push("Высокая максимальная скорость (цели тяжело увернуться)"); else cons.push("Медленный ход");
                 if (item.splash_damage > 0) pros.push("Имеет сплэш-урон по области (может задеть несколько целей)");
+                
+                if (item.range < 11.0) cons.push(`Уязвимость на открытой воде (дальность ${item.range} км недостаточна для 40% карт)`);
             }
 
             return `<div class="analysis-col glass-panel">
