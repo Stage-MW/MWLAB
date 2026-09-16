@@ -861,7 +861,6 @@
             "mdcn": { name: "MDCN", category: "Ракеты", country: "Франция", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 33800, dpm: 247726, reload: 7.70, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 38, max_speed: 563, accel_time: 2.70, range: 13.87, fire_penalty: 40, sub_launch: 1, img: "img/MDCN.png" },
             
             // --- NEW BATCH 1 ---
-            "yj20": { name: "YJ-20", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 37700, dpm: 260309, reload: 8.40, lock_time: 2.00, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 524, accel_time: 2.93, range: 13.00, fire_penalty: 40, img: "img/YJ20.png" },
             "gabrielv": { name: "GABRIEL V", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 52650, dpm: 280002, reload: 9.80, lock_time: 1.50, projectiles: 3, anti_jamming: 0, hp: 90, start_speed: 58, max_speed: 485, accel_time: 3.14, range: 10.83, fire_penalty: 40, img: "img/GabrielV.png" },
             "navalspikeer": { name: "NAVAL SPIKE ER", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27300, dpm: 266175, reload: 5.60, lock_time: 1.50, projectiles: 3, anti_jamming: 1, hp: 75, start_speed: 29, max_speed: 349, accel_time: 4.71, range: 6.93, fire_penalty: 32, img: "img/NavalSpikeER.png" },
             "stratus": { name: "STRATUS RS", category: "Ракеты", country: "Европейский Союз", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27000, dpm: 282053, reload: 5.60, lock_time: 1.50, splash_damage: 1000, splash_radius: 133, projectiles: 1, anti_jamming: 0, hp: 260, start_speed: 38, max_speed: 583, accel_time: 2.24, range: 12.13, fire_penalty: 40, img: "img/Stratus.png" },
@@ -953,54 +952,48 @@
                 return score;
             },
             "Ракеты": function(item) {
-                let score = 100;
+                let score = 50;
                 item.effectiveDpm = item.dpm;
                 item.effectiveBurst = item.damage_burst;
                 item.accuracyScore = 100;
 
-                score += 150; 
-                score += (item.dpm / 300000) * 250; 
-                score += (item.damage_burst / 60000) * 100; 
-                score += item.anti_jamming === 1 ? 200 : 0; 
+                score += (item.dpm / 300000) * 280; 
+                score += (item.damage_burst / 60000) * 150; 
+                score += (item.hp / 400) * 220;   
+                score += (item.start_speed / 400) * 180; 
+                score += (item.max_speed / 600) * 150; 
+                score += Math.max(0, 15 - item.reload) * 15; 
+
+                if (item.lock_time === 0) { 
+                    score += 80; 
+                } else {
+                    score += Math.max(0, (3.0 - item.lock_time) * 30); 
+                }
+
+                score += item.anti_jamming === 1 ? 180 : 0; 
                 
                 let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
                 if (hasCluster) { 
-                    if (item.anti_jamming === 1) {
-                        score += 20; 
-                    } else {
-                        score += 10; 
-                    }
+                    if (item.anti_jamming === 1) { score += 20; } else { score += 10; }
                 }
                 
-                score += (item.projectiles * 45); 
-                score += (item.hp / 400) * 160;   
-                score += (item.start_speed / 400) * 120; 
+                score += (item.projectiles * 40); 
                 score -= (item.accel_time * 25);  
-                score += (item.max_speed / 600) * 100; 
                 
                 let cappedRange = Math.min(item.range, 10);
                 score += (cappedRange / 10) * 20;
 
-                if (item.reload <= 8.0) score += (8.0 - item.reload) * 15;
-
-                if (item.splash_damage) score += (item.splash_damage / 5000) * 30; 
-                if (item.splash_radius) score += (item.splash_radius / 300) * 20; 
+                if (item.splash_damage) score += (item.splash_damage / 5000) * 25; 
+                if (item.splash_radius) score += (item.splash_radius / 300) * 15; 
                 if (item.detonation_radius) score += (item.detonation_radius / 20) * 15;
-                if (item.fragmentation_damage) score += (item.fragmentation_damage / 25000) * 40;
+                if (item.fragmentation_damage) score += (item.fragmentation_damage / 25000) * 30;
                 
-                // ЗЕНИТНАЯ ЛОГИКА: Добавляем очки за атаку по воздуху ТОЛЬКО если ракета не является узкоспециализированной зениткой.
-                if (item.air_target === 1 && !item.dedicated_aa) score += 50;
-                
-                if (item.sub_launch === 1) score += 50;
-                
-                if (item.lock_time === 0) { 
-                    score += 40; 
-                } else if (item.lock_time > 1.5) { 
-                    score -= ((item.lock_time - 1.5) * 30); 
-                }
+                if (item.air_target === 1 && !item.dedicated_aa) score += 40;
+                if (item.sub_launch === 1) score += 40;
                 
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
                 if (item.min_range > 0) score -= (item.min_range * 30); 
+
                 return score;
             }
         };
