@@ -760,7 +760,7 @@
             }, 1000);
         }
 
-        const CATEGORIES = ["Ракеты", "Пушки"];
+        const CATEGORIES = ["Ракеты", "Пушки", "Торпеды"];
         let currentCategory = "Ракеты";
         let searchQuery = "";
         
@@ -776,6 +776,12 @@
                 reload: 25, lock_time: 4.5, projectiles: 4, 
                 splash_damage: 10000, splash_radius: 700, fragmentation_damage: 25000, detonation_radius: 100,
                 hp: 400, start_speed: 400, max_speed: 650, accel_time: 12, range: 16, min_range: 4, fire_penalty: 60
+            },
+            "Торпеды": {
+                damage_burst: 70000, dpm: 300000, damage: 50000, accuracy: 100,
+                reload: 15, lock_time: 3, projectiles: 3, ammo_clip: 3,
+                splash_damage: 6000, splash_radius: 700, detonation_radius: 40,
+                start_speed: 30, max_speed: 160, accel_time: 15, range: 15, fire_penalty: 30
             }
         };
 
@@ -936,7 +942,44 @@
             "s350vityaz": { name: "S-350 VITYAZ", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 16249, dpm: 184774, reload: 5.25, lock_time: 0.30, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 116, max_speed: 524, accel_time: 1.62, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S350Vityaz.png" },
             "s500": { name: "S-500 PROMETHEUS", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 19500, dpm: 210954, reload: 4.90, lock_time: 0.50, detonation_radius: 66, projectiles: 1, ammo_clip: 3, anti_jamming: 0, hp: 95, start_speed: 291, max_speed: 427, accel_time: 1.40, range: 9.53, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S500.png" },
             "shtil1": { name: "SHTIL-1", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 12550, dpm: 194855, reload: 3.50, lock_time: 1.00, detonation_radius: 33, splash_damage: 750, splash_radius: 100, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 524, accel_time: 1.82, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/Shtil1.png" },
-            "sm3": { name: "RIM-161 (SM-3)", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13000, dpm: 158122, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 213, max_speed: 408, accel_time: 1.25, range: 8.67, detonation_radius: 33, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM161.png" }
+            "sm3": { name: "RIM-161 (SM-3)", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13000, dpm: 158122, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 213, max_speed: 408, accel_time: 1.25, range: 8.67, detonation_radius: 33, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM161.png" },
+
+            // ----- ТОРПЕДЫ -----
+            "mark48": { name: "MARK 48 (533 MM)", category: "Торпеды", country: "США", rarity: "Эпический", anti_jamming: 0, dpm: 237656, damage_burst: 22750, damage: 22750, reload: 5.60, lock_time: 1.50, detonation_radius: 16, projectiles: 1, range: 11.70, max_speed: 106, start_speed: 11, accel_time: 9.80, fire_penalty: 15, img: "img/Mark48.png" },
+            "t5365k": { name: "53-65K (533 MM)", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 229040, damage_burst: 37700, damage: 37700, reload: 9.80, lock_time: 2.00, detonation_radius: 16, splash_damage: 1000, splash_radius: 200, projectiles: 1, range: 13.00, max_speed: 97, start_speed: 11, accel_time: 8.80, fire_penalty: 20, img: "img/5365K.png" },
+            "ugst_physic": { name: "UGST PHYSIC (533 MM)", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 202892, damage_burst: 37050, damage: 37050, reload: 10.50, lock_time: 2.50, detonation_radius: 20, projectiles: 1, range: 12.13, max_speed: 116, start_speed: 9, accel_time: 6.88, fire_penalty: 20, img: "img/UGST.png" },
+            "yu7": { name: "YU-7 (324 MM)", category: "Торпеды", country: "Китай", rarity: "Эпический", anti_jamming: 0, dpm: 214031, damage_burst: 28599, damage: 14299, reload: 7.35, lock_time: 2.00, detonation_radius: 20, projectiles: 2, range: 11.27, max_speed: 106, start_speed: 19, accel_time: 6.43, fire_penalty: 10, img: "img/YU7.png" },
+            "a244slwt": { name: "A244 SLWT (324 MM)", category: "Торпеды", country: "Италия", rarity: "Эпический", anti_jamming: 0, dpm: 218028, damage_burst: 19500, damage: 19500, reload: 5.25, lock_time: 1.30, detonation_radius: 20, projectiles: 1, range: 10.40, max_speed: 116, start_speed: 11, accel_time: 7.71, fire_penalty: 15, img: "img/A244.png" },
+            "blackshark": { name: "BLACK SHARK", category: "Торпеды", country: "Италия", rarity: "Эпический", anti_jamming: 0, dpm: 209162, damage_burst: 37700, damage: 18850, reload: 9.80, lock_time: 2.30, detonation_radius: 23, projectiles: 2, range: 12.13, max_speed: 116, start_speed: 7, accel_time: 5.60, fire_penalty: 15, img: "img/BlackShark.png" },
+            "type12": { name: "TYPE 12 (324 MM)", category: "Торпеды", country: "Япония", rarity: "Эпический", anti_jamming: 0, dpm: 218931, damage_burst: 24700, damage: 12350, reload: 6.30, lock_time: 1.50, detonation_radius: 20, projectiles: 2, range: 11.27, max_speed: 136, start_speed: 13, accel_time: 7.88, fire_penalty: 10, img: "img/Type12.png" },
+            "varunastra": { name: "VARUNASTRA (533MM)", category: "Торпеды", country: "Индия", rarity: "Эпический", anti_jamming: 0, dpm: 200040, damage_burst: 33800, damage: 33800, reload: 9.80, lock_time: 2.00, detonation_radius: 20, projectiles: 1, range: 12.13, max_speed: 136, start_speed: 5, accel_time: 13.40, fire_penalty: 20, img: "img/Varunastra.png" },
+            "type89": { name: "TYPE 89 (533MM)", category: "Торпеды", country: "Япония", rarity: "Эпический", anti_jamming: 0, dpm: 237714, damage_burst: 41600, damage: 41600, reload: 10.15, lock_time: 2.00, detonation_radius: 23, projectiles: 1, range: 9.53, max_speed: 116, start_speed: 11, accel_time: 6.75, fire_penalty: 20, img: "img/Type89.png" },
+            "type6576a": { name: "TYPE 65-76A KIT", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 215888, damage_burst: 46900, damage: 42900, reload: 12.60, lock_time: 2.00, detonation_radius: 33, splash_damage: 4000, splash_radius: 666, projectiles: 1, range: 12.13, max_speed: 126, start_speed: 9, accel_time: 7.50, fire_penalty: 20, img: "img/Type6576A.png" },
+            "et40": { name: "ET40 (533 MM)", category: "Торпеды", country: "Китай", rarity: "Эпический", anti_jamming: 0, dpm: 253494, damage_burst: 48749, damage: 16249, reload: 10.85, lock_time: 1.50, detonation_radius: 13, projectiles: 1, ammo_clip: 3, range: 10.40, max_speed: 108, start_speed: 15, accel_time: 5.33, fire_penalty: 15, img: "img/ET40.png" },
+            "yu12": { name: "YU-12 (324 MM)", category: "Торпеды", country: "Китай", rarity: "Эпический", anti_jamming: 1, dpm: 189517, damage_burst: 37250, damage: 17875, reload: 11.20, lock_time: 2.00, detonation_radius: 26, splash_damage: 750, splash_radius: 333, projectiles: 2, range: 11.27, max_speed: 104, start_speed: 15, accel_time: 2.88, fire_penalty: 15, img: "img/YU12.png" }
+        // --- ДОПОЛНИТЕЛЬНЫЕ ТОРПЕДЫ (Скриншоты 3, 4, 5) ---
+            
+            // "3.jpg"
+            "spearfish": { name: "SPEARFISH (533 MM)", category: "Торпеды", country: "Великобритания", rarity: "Эпический", anti_jamming: 0, dpm: 200040, damage_burst: 42250, damage: 42250, reload: 12.25, lock_time: 2.00, detonation_radius: 20, projectiles: 1, range: 13.00, max_speed: 108, start_speed: 9, accel_time: 8.50, fire_penalty: 20, img: "img/Spearfish.png" },
+            "spearfish_mod1": { name: "SPEARFISH MOD 1", category: "Торпеды", country: "Великобритания", rarity: "Эпический", anti_jamming: 1, dpm: 176875, damage_burst: 32299, damage: 27299, reload: 10.50, lock_time: 2.50, detonation_radius: 20, splash_damage: 5000, splash_radius: 666, projectiles: 1, range: 12.13, max_speed: 116, start_speed: 9, accel_time: 5.50, fire_penalty: 15, img: "img/SpearfishMod1.png" },
+            "tal_shyena": { name: "TAL SHYENA (324 MM)", category: "Торпеды", country: "Индия", rarity: "Легендарный", anti_jamming: 1, dpm: 213351, damage_burst: 26000, damage: 6500, reload: 6.65, lock_time: 1.00, detonation_radius: 20, projectiles: 4, range: 11.27, max_speed: 136, start_speed: 13, accel_time: 7.88, fire_penalty: 10, img: "img/TalShyena.png" },
+            "tiger_shark": { name: "TIGER SHARK (533MM)", category: "Торпеды", country: "Южная Корея", rarity: "Легендарный", anti_jamming: 1, dpm: 207638, damage_burst: 45500, damage: 45500, reload: 12.60, lock_time: 2.50, detonation_radius: 23, projectiles: 1, range: 13.00, max_speed: 97, start_speed: 7, accel_time: 7.67, fire_penalty: 20, img: "img/TigerShark.png" },
+
+            // "4.jpg"
+            "dm2a5": { name: "DM2A5", category: "Торпеды", country: "Германия", rarity: "Эпический", anti_jamming: 1, dpm: 230541, damage_burst: 40000, damage: 39000, reload: 10.15, lock_time: 1.50, detonation_radius: 20, splash_damage: 1000, splash_radius: 200, projectiles: 1, range: 8.67, max_speed: 120, start_speed: 13, accel_time: 6.11, fire_penalty: 20, img: "img/DM2A5.png" },
+            "sut_264": { name: "SUT 264 (533 MM)", category: "Торпеды", country: "Германия", rarity: "Эпический", anti_jamming: 0, dpm: 204149, damage_burst: 42250, damage: 35750, reload: 11.90, lock_time: 2.50, detonation_radius: 33, splash_damage: 6500, splash_radius: 666, projectiles: 1, range: 12.13, max_speed: 116, start_speed: 9, accel_time: 6.11, fire_penalty: 20, img: "img/SUT264.png" },
+            "dtcn_l5": { name: "DTCN L5 (533 MM)", category: "Торпеды", country: "Франция", rarity: "Эпический", anti_jamming: 0, dpm: 251944, damage_burst: 35100, damage: 11700, reload: 7.35, lock_time: 1.50, detonation_radius: 30, projectiles: 3, range: 9.53, max_speed: 116, start_speed: 7, accel_time: 5.60, fire_penalty: 10, img: "img/DTCNL5.png" },
+            "f21_artemis": { name: "F21 ARTEMIS (533 MM)", category: "Торпеды", country: "Франция", rarity: "Эпический", anti_jamming: 0, dpm: 217279, damage_burst: 32499, damage: 32499, reload: 8.75, lock_time: 1.50, detonation_radius: 33, projectiles: 1, range: 12.13, max_speed: 147, start_speed: 21, accel_time: 7.22, fire_penalty: 20, img: "img/F21Artemis.png" },
+            "piranha": { name: "PIRANHA (324 MM)", category: "Торпеды", country: "Италия", rarity: "Эпический", anti_jamming: 0, dpm: 216967, damage_burst: 22800, damage: 5200, reload: 5.60, lock_time: 1.00, detonation_radius: 13, splash_damage: 500, splash_radius: 333, projectiles: 4, range: 11.27, max_speed: 110, start_speed: 23, accel_time: 3.75, fire_penalty: 10, img: "img/Piranha.png" },
+            "mark45_astor": { name: "MARK-45 ASTOR (483MM)", category: "Торпеды", country: "США", rarity: "Эпический", anti_jamming: 0, dpm: 237984, damage_burst: 51700, damage: 50700, reload: 12.60, lock_time: 2.00, detonation_radius: 33, splash_damage: 1000, splash_radius: 666, projectiles: 1, range: 13.00, max_speed: 103, start_speed: 5, accel_time: 7.14, fire_penalty: 20, img: "img/Mark45Astor.png" },
+
+            // "5.jpg"
+            "poison": { name: "POISON TORPEDO", category: "Торпеды", country: "США", rarity: "Эпический", anti_jamming: 0, dpm: 212918, damage_burst: 29299, damage: 27299, reload: 8.05, lock_time: 1.50, detonation_radius: 33, splash_damage: 2000, splash_radius: 666, projectiles: 1, range: 10.40, max_speed: 128, start_speed: 13, accel_time: 7.38, fire_penalty: 15, img: "img/Poison.png" },
+            "ugst_futlyar": { name: "UGST FUTLYAR (533 MM)", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 269285, damage_burst: 45500, damage: 45500, reload: 9.80, lock_time: 2.00, detonation_radius: 23, projectiles: 1, range: 11.70, max_speed: 132, start_speed: 13, accel_time: 7.63, fire_penalty: 20, img: "img/UGSTFutlyar.png" },
+            "akya": { name: "AKYA (533MM)", category: "Торпеды", country: "Турция", rarity: "Эпический", anti_jamming: 1, dpm: 199536, damage_burst: 31199, damage: 31199, reload: 9.10, lock_time: 1.80, detonation_radius: 20, projectiles: 1, range: 10.40, max_speed: 132, start_speed: 7, accel_time: 9.14, fire_penalty: 20, img: "img/Akya.png" },
+            "torped_47": { name: "TORPED 47 (400 MM)", category: "Торпеды", country: "Швеция", rarity: "Эпический", anti_jamming: 0, dpm: 240005, damage_burst: 29899, damage: 29899, reload: 7.35, lock_time: 1.00, detonation_radius: 33, projectiles: 1, range: 9.10, max_speed: 138, start_speed: 11, accel_time: 4.36, fire_penalty: 20, img: "img/Torped47.png" },
+            "torped_62": { name: "TORPED 62 (533 MM)", category: "Торпеды", country: "Швеция", rarity: "Эпический", anti_jamming: 0, dpm: 235415, damage_burst: 40300, damage: 20150, reload: 9.80, lock_time: 1.00, detonation_radius: 33, projectiles: 2, range: 10.40, max_speed: 116, start_speed: 17, accel_time: 3.48, fire_penalty: 15, img: "img/Torped62.png" },
+            "k731": { name: "K731 WHITE SHARK", category: "Торпеды", country: "Южная Корея", rarity: "Эпический", anti_jamming: 1, dpm: 210235, damage_burst: 40800, damage: 12350, reload: 10.85, lock_time: 1.00, detonation_radius: 26, splash_damage: 1250, splash_radius: 333, projectiles: 1, ammo_clip: 3, range: 12.13, max_speed: 126, start_speed: 13, accel_time: 5.80, fire_penalty: 10, img: "img/K731.png" }
         };
 
         const RATING_CALCULATORS = {
@@ -1043,6 +1086,32 @@
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
                 if (item.min_range > 0) score -= (item.min_range * 30); 
                 return score;
+            },
+            "Торпеды": function(item) {
+                let score = 100;
+                item.effectiveDpm = item.dpm;
+                item.effectiveBurst = item.damage_burst;
+                item.accuracyScore = 100;
+
+                score += 100; 
+                score += (item.dpm / 300000) * 250; 
+                score += (item.damage_burst / 70000) * 150; 
+                score += (item.max_speed / 160) * 120; 
+                
+                if (item.accel_time <= 5) score += 40;
+                else score -= (item.accel_time * 5);  
+
+                if (item.anti_jamming === 1) score += 150; 
+                if (item.ammo_clip && item.ammo_clip > 1) score += (item.ammo_clip * 10);
+                
+                let cappedRange = Math.min(item.range, 12);
+                score += (cappedRange / 12) * 30;
+
+                if (item.splash_damage) score += (item.splash_damage / 6000) * 20; 
+                if (item.detonation_radius) score += (item.detonation_radius / 40) * 20;
+                
+                if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
+                return score;
             }
         };
 
@@ -1121,6 +1190,11 @@
                     <label><input type="checkbox" class="mech-checkbox" id="cb-crit" onchange="handleFilter()"><span class="cat-btn-sub">С КРИТОМ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-air" onchange="handleFilter()"><span class="cat-btn-sub">АВИАЦИЯ</span></label>
                 `;
+            } else if (currentCategory === "Торпеды") {
+                container.innerHTML = `
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-jamming" onchange="handleFilter()"><span class="cat-btn-sub">НЕОТВОДИМЫЕ (РЭБ)</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-clip" onchange="handleFilter()"><span class="cat-btn-sub">С ОБОЙМОЙ</span></label>
+                `;
             }
         }
 
@@ -1150,6 +1224,9 @@
                 } else if (currentCategory === "Пушки") {
                     const cbCrit = document.getElementById('cb-crit'); if (cbCrit && cbCrit.checked && (!item.crit_chance || item.crit_chance <= 0)) return false;
                     const cbAir = document.getElementById('cb-air'); if (cbAir && cbAir.checked && item.air_target !== 1) return false;
+                } else if (currentCategory === "Торпеды") {
+                    const cbJam = document.getElementById('cb-jamming'); if (cbJam && cbJam.checked && item.anti_jamming !== 1) return false;
+                    const cbClip = document.getElementById('cb-clip'); if (cbClip && cbClip.checked && (!item.ammo_clip || item.ammo_clip <= 1)) return false;
                 }
                 return true;
             });
@@ -1442,6 +1519,12 @@
                 else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры от островов`);
                 
                 if (item.air_target === 1) pros.push("Универса орудие ПВО");
+            } else if (item.category === "Торпеды") {
+                if (item.anti_jamming === 1) pros.push("Невосприимчивость к ловушкам (РЭБ)"); else cons.push("Сбрасывается вражескими ловушками");
+                if (item.ammo_clip > 1) pros.push(`Имеет обойму (x${item.ammo_clip}), позволяя спамить торпедами`);
+                if (item.accel_time < 5) pros.push("Быстрый набор скорости (отличная реакция вблизи)"); else cons.push("Долго набирает максимальную скорость");
+                if (item.max_speed >= 120) pros.push("Высокая максимальная скорость (цели тяжело увернуться)"); else cons.push("Медленный ход");
+                if (item.splash_damage > 0) pros.push("Имеет сплэш-урон по области (может задеть несколько целей)");
             }
 
             return `<div class="analysis-col glass-panel">
@@ -1474,6 +1557,25 @@
                     Math.min(100, (e2.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.damage_burst / catMax.damage_burst) * 100) || 0,
                     Math.min(100, (e2.hp / catMax.hp) * 100) || 0, Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0,
                     Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0
+                ];
+            } else if (e1.category === "Торпеды") {
+                labels = ['Урон/мин', 'Альфа', 'Ускорение', 'Макс. Скорость', 'Скорострельность', 'Дальность'];
+                let catMax = CATEGORY_MAX_STATS["Торпеды"];
+                d1 = [
+                    Math.min(100, (e1.dpm / catMax.dpm) * 100) || 0, 
+                    Math.min(100, (e1.damage_burst / catMax.damage_burst) * 100) || 0,
+                    Math.max(0, 100 - (e1.accel_time / catMax.accel_time) * 100) || 0, 
+                    Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0,
+                    Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, 
+                    Math.min(100, (e1.range / catMax.range) * 100) || 0
+                ];
+                d2 = [
+                    Math.min(100, (e2.dpm / catMax.dpm) * 100) || 0, 
+                    Math.min(100, (e2.damage_burst / catMax.damage_burst) * 100) || 0,
+                    Math.max(0, 100 - (e2.accel_time / catMax.accel_time) * 100) || 0, 
+                    Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0,
+                    Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, 
+                    Math.min(100, (e2.range / catMax.range) * 100) || 0
                 ];
             } else {
                 labels = ['Эффект. DPM', 'Эффект. Альфа', 'Скор. снаряда', 'Точность', 'Скорострельность', 'Дальность'];
@@ -1573,6 +1675,12 @@
                     else if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reason = "кластерной БЧ (урон сквозь ПВО)";
                     else if (winner.anti_jamming === 1 && winner.anti_jamming > loser.anti_jamming) reason = "независимости от РЭБ (ловушек)";
                     else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
+                } else if (e1.category === "Торпеды") {
+                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек";
+                    else if (winner.max_speed > loser.max_speed + 15) reason = "высокой скорости хода (цели сложнее уклониться)";
+                    else if (winner.damage_burst > loser.damage_burst + 10000) reason = "тяжелого разового урона";
+                    else if (winner.dpm > loser.dpm + 20000) reason = "высокого урона в минуту";
+                    else reason = "лучших общих характеристик";
                 } else if (e1.category === "Пушки") {
                     let wHasClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
                     let lHasClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
