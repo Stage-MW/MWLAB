@@ -261,7 +261,11 @@
         /* --- BUILDER & EXPORT --- */
         .build-columns { display: flex; gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto 30px auto; flex-wrap: wrap; }
         .build-col { flex: 1; min-width: 300px; }
-        .build-slot-container { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary); width: 100%; }
+        .build-slot-container { 
+            display: flex; align-items: center; justify-content: center; gap: 15px; 
+            padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary); 
+            width: 100%; overflow: visible !important; position: relative; z-index: 1;
+        }
         .build-slot-container.ship2 { border-left-color: var(--secondary); }
         .export-wrapper { padding: 40px; width: 100%;}
 
@@ -417,8 +421,7 @@
             .build-slot-container.ship2 { border-top-color: var(--secondary); }
             .build-slot-container .search-input { max-width: 100%; width: 100%; }
             .custom-select-wrapper { max-width: 100%; }
-            .custom-select-dropdown { width: 100%; max-width: 100vw; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20000; box-shadow: 0 0 50px rgba(0,0,0,0.9); }
-            .custom-select-dropdown.active { animation: none; } /* Disabled instant in for fixed centering */
+            .custom-select-dropdown { width: 100%; min-width: 0; }
             
             .export-wrapper { padding: 20px 15px; }
             
@@ -876,7 +879,6 @@
             "df17": { name: "DF-17", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27299, dpm: 253490, reload: 6.30, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 155, max_speed: 622, accel_time: 2.18, range: 14.73, fire_penalty: 40, img: "img/DF17.png" },
             "yj12a": { name: "YJ-12A", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33800, dpm: 279029, reload: 6.65, lock_time: 1.80, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 77, max_speed: 505, accel_time: 2.75, range: 11.27, fire_penalty: 40, img: "img/YJ12A.png" },
             "type17": { name: "TYPE 17 SSM", category: "Ракеты", country: "Япония", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 35100, dpm: 279367, reload: 7.00, lock_time: 1.50, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 58, max_speed: 515, accel_time: 3.36, range: 12.13, fire_penalty: 40, img: "img/Type17SSM.png" },
-            "brahmos": { name: "BRAHMOS ER", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 26000, dpm: 241428, reload: 6.30, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 583, accel_time: 2.78, range: 13.87, detonation_radius: 23, fire_penalty: 40, img: "img/BrahMosER.png" },
             "hycore": { name: "HYCORE", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 32499, dpm: 271598, reload: 7.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 225, start_speed: 194, max_speed: 583, accel_time: 2.86, range: 12.13, fire_penalty: 40, img: "img/Hycore.png" },
             "karambit": { name: "KARAMBIT", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29899, dpm: 249870, reload: 7.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 97, max_speed: 563, accel_time: 3.43, range: 11.27, fire_penalty: 40, img: "img/Karambit.png" },
             "nsm": { name: "NSM BLOCK 1A", category: "Ракеты", country: "Норвегия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 35100, dpm: 318348, reload: 5.95, lock_time: 1.50, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 38, max_speed: 408, accel_time: 3.17, range: 12.13, fire_penalty: 32, img: "img/NSMBlock1A.png" },
@@ -1614,6 +1616,7 @@
         
         function closeAllBuildDropdowns() {
             document.querySelectorAll('.custom-select-dropdown').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.build-slot-container').forEach(el => el.style.zIndex = '1');
         }
 
         function toggleBuildDropdown(slotId) {
@@ -1622,6 +1625,7 @@
             closeAllBuildDropdowns(); 
             if (!isActive) {
                 dd.classList.add('active');
+                document.getElementById(slotId).style.zIndex = '100';
             }
         }
 
