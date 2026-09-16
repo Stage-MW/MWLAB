@@ -265,6 +265,42 @@
         .build-slot-container.ship2 { border-left-color: var(--secondary); }
         .export-wrapper { padding: 40px; width: 100%;}
 
+        /* --- КАСТОМНЫЙ СЕЛЕКТ (С ИКОНКАМИ) --- */
+        .custom-select-wrapper { position: relative; width: 100%; max-width: 280px; flex-grow: 1; }
+        .custom-select-trigger {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff;
+            padding: 8px 15px; width: 100%; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            font-family: 'Jura'; font-size: 0.9rem; transition: 0.3s;
+        }
+        .custom-select-trigger:hover { border-color: var(--primary); box-shadow: 0 0 10px rgba(66,245,227,0.2); }
+        .trigger-left { display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; }
+        .trigger-img { width: 28px; height: 28px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
+        .trigger-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
+        
+        .custom-select-dropdown {
+            position: absolute; top: calc(100% + 5px); left: 0; width: 320px; background: rgba(11,22,36,0.95);
+            border: 1px solid var(--primary); border-radius: 8px; z-index: 9999;
+            display: none; flex-direction: column; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9); overflow: hidden;
+        }
+        .custom-select-dropdown.active { display: flex; animation: pageInstantIn 0.2s ease-out forwards; }
+        .dropdown-filter { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); }
+        .dropdown-filter select { width: 100%; background: rgba(0,0,0,0.6); color: var(--primary); border: 1px solid rgba(66,245,227,0.3); padding: 8px; border-radius: 4px; font-family: 'Jura'; font-weight: bold; outline: none; }
+        .dropdown-filter select option { background: #071017; color: #fff; }
+        
+        .dropdown-list { max-height: 280px; overflow-y: auto; padding: 5px; scrollbar-width: thin; scrollbar-color: var(--primary) rgba(0,0,0,0.2); }
+        .dropdown-list::-webkit-scrollbar { width: 4px; }
+        .dropdown-option {
+            display: flex; align-items: center; gap: 12px; padding: 8px 10px; cursor: pointer;
+            border-radius: 6px; transition: 0.2s; border-left: 3px solid transparent;
+        }
+        .dropdown-option:hover { background: var(--primary-dim); border-left-color: var(--primary); }
+        .dropdown-option-img { width: 35px; height: 35px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8));}
+        .dropdown-option-text { font-family: 'Inter'; font-size: 0.85rem; font-weight: 700; color: #fff; display: flex; flex-direction: column; line-height: 1.2; }
+        .dropdown-option-sub { font-size: 0.65rem; font-weight: 400; color: var(--text-muted); font-family: 'Jura'; margin-top: 2px; text-transform: uppercase;}
+        .dropdown-category-title { padding: 8px 10px; color: var(--primary); font-family: 'Orbitron'; font-size: 0.75rem; letter-spacing: 2px; background: rgba(0,0,0,0.6); margin: 5px 0; border-radius: 4px; text-align: center; border-bottom: 1px dashed rgba(66,245,227,0.2);}
+
         /* --- КАСКАДНАЯ АНИМАЦИЯ --- */
         @keyframes itemFadeIn {
             0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(3px); }
@@ -380,6 +416,10 @@
             .build-slot-container { flex-direction: column; gap: 10px; padding: 15px; border-left: none; border-top: 3px solid var(--primary); border-radius: 12px;}
             .build-slot-container.ship2 { border-top-color: var(--secondary); }
             .build-slot-container .search-input { max-width: 100%; width: 100%; }
+            .custom-select-wrapper { max-width: 100%; }
+            .custom-select-dropdown { width: 100%; max-width: 100vw; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20000; box-shadow: 0 0 50px rgba(0,0,0,0.9); }
+            .custom-select-dropdown.active { animation: none; } /* Disabled instant in for fixed centering */
+            
             .export-wrapper { padding: 20px 15px; }
             
             #page-home { padding: 0 15px 40px 15px; height: auto; min-height: calc(100vh - 120px); overflow-y: auto;}
@@ -861,7 +901,6 @@
             "mdcn": { name: "MDCN", category: "Ракеты", country: "Франция", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 33800, dpm: 247726, reload: 7.70, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 38, max_speed: 563, accel_time: 2.70, range: 13.87, fire_penalty: 40, sub_launch: 1, img: "img/MDCN.png" },
             
             // --- NEW BATCH 1 ---
-            "yj20": { name: "YJ-20", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 37700, dpm: 260309, reload: 8.40, lock_time: 2.00, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 524, accel_time: 2.93, range: 13.00, fire_penalty: 40, img: "img/YJ20.png" },
             "gabrielv": { name: "GABRIEL V", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 52650, dpm: 280002, reload: 9.80, lock_time: 1.50, projectiles: 3, anti_jamming: 0, hp: 90, start_speed: 58, max_speed: 485, accel_time: 3.14, range: 10.83, fire_penalty: 40, img: "img/GabrielV.png" },
             "navalspikeer": { name: "NAVAL SPIKE ER", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27300, dpm: 266175, reload: 5.60, lock_time: 1.50, projectiles: 3, anti_jamming: 1, hp: 75, start_speed: 29, max_speed: 349, accel_time: 4.71, range: 6.93, fire_penalty: 32, img: "img/NavalSpikeER.png" },
             "stratus": { name: "STRATUS RS", category: "Ракеты", country: "Европейский Союз", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27000, dpm: 282053, reload: 5.60, lock_time: 1.50, splash_damage: 1000, splash_radius: 133, projectiles: 1, anti_jamming: 0, hp: 260, start_speed: 38, max_speed: 583, accel_time: 2.24, range: 12.13, fire_penalty: 40, img: "img/Stratus.png" },
@@ -876,7 +915,7 @@
             "agnii": { name: "AGNI-I", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 1, min_range: 1.33, damage_burst: 39500, dpm: 301379, reload: 7.70, lock_time: 1.25, detonation_radius: 13, splash_damage: 500, splash_radius: 100, fragmentation_damage: 13000, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 68, max_speed: 485, accel_time: 1.54, range: 13.87, fire_penalty: 55, img: "img/Agni1.png" },
             "haeseongiii": { name: "HAESEONG III", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 23500, dpm: 120565, reload: 11.50, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 270, start_speed: 77, max_speed: 485, accel_time: 3.00, range: 9.33, fire_penalty: 40, img: "img/HaeseongIII.png" },
             "redshark": { name: "RED SHARK (382 MM)", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 20800, dpm: 217295, reload: 5.60, lock_time: 1.50, projectiles: 1, anti_jamming: 1, hp: 150, start_speed: 38, max_speed: 485, accel_time: 3.83, range: 12.13, fire_penalty: 32, img: "img/RedShark.png" },
-            "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125SeaLance.png" },
+            "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125.png" },
             "asn4g": { name: "ASN4G", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 32699, dpm: 246304, reload: 7.70, lock_time: 2.00, detonation_radius: 33, splash_damage: 1500, splash_radius: 333, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 145, max_speed: 583, accel_time: 2.50, range: 12.13, fire_penalty: 40, img: "img/ASN4G.png" },
             "fattah1": { name: "FATTAH-1", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33000, dpm: 275785, reload: 7.00, lock_time: 1.50, splash_damage: 500, splash_radius: 100, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 505, accel_time: 2.10, range: 10.83, fire_penalty: 40, img: "img/Fattah1.png" },
             "fattah2": { name: "FATTAH-2", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 44200, dpm: 268541, reload: 9.45, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 641, accel_time: 2.64, range: 15.60, fire_penalty: 40, img: "img/Fattah2.png" },
@@ -1167,6 +1206,13 @@
             addBuildSlot(1);
             addBuildSlot(2);
             switchMainPage('page-home', document.getElementById('nav-home'));
+            
+            // Close dropdowns on outside click
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.custom-select-wrapper')) {
+                    closeAllBuildDropdowns();
+                }
+            });
         }
 
         function handleCatalogClick(itemId) {
@@ -1566,46 +1612,130 @@
         /* --- ЛОГИКА КОНСТРУКТОРА СБОРОК --- */
         let slotCounter = 0;
         
-        function getOptionsHtml() {
+        function closeAllBuildDropdowns() {
+            document.querySelectorAll('.custom-select-dropdown').forEach(el => el.classList.remove('active'));
+        }
+
+        function toggleBuildDropdown(slotId) {
+            const dd = document.getElementById('dropdown-' + slotId);
+            const isActive = dd.classList.contains('active');
+            closeAllBuildDropdowns(); 
+            if (!isActive) {
+                dd.classList.add('active');
+            }
+        }
+
+        function renderBuildOptions(slotId, filterCountry) {
+            const list = document.getElementById('list-' + slotId);
             let html = '';
             CATEGORIES.forEach(cat => {
-                html += `<optgroup label="${cat}">`;
-                for (let key in DB) {
-                    if (DB[key].category === cat) {
-                        html += `<option value="${key}">${DB[key].name}</option>`;
-                    }
-                }
-                html += `</optgroup>`;
+                html += `<div class="dropdown-category-title">${cat}</div>`;
+                
+                // Sort items alphabetically inside category for better UX
+                let itemsInCategory = Object.keys(DB).filter(k => DB[k].category === cat);
+                itemsInCategory.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
+                
+                itemsInCategory.forEach(key => {
+                    let item = DB[key];
+                    if (filterCountry && item.country !== filterCountry) return;
+                    
+                    html += `
+                    <div class="dropdown-option" onclick="selectSlotOption('${slotId}', '${key}', event)">
+                        <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
+                        <div class="dropdown-option-text">
+                            ${item.name}
+                            <span class="dropdown-option-sub">${item.country}</span>
+                        </div>
+                    </div>`;
+                });
             });
-            return html;
+            list.innerHTML = html;
+        }
+
+        function selectSlotOption(slotId, itemKey, event) {
+            if (event) event.stopPropagation();
+            const wrapper = document.getElementById('wrapper-' + slotId);
+            wrapper.dataset.value = itemKey;
+            
+            const imgEl = document.getElementById('img-' + slotId);
+            const textEl = document.getElementById('text-' + slotId);
+            
+            imgEl.style.backgroundImage = `url('${DB[itemKey].img}')`;
+            textEl.innerText = DB[itemKey].name;
+            
+            closeAllBuildDropdowns();
         }
 
         function addBuildSlot(shipNum) {
             const container = document.getElementById('build-slots-' + shipNum);
-            const slotId = 'slot-' + slotCounter++;
+            const slotId = 'buildslot-' + slotCounter++;
             const colorClass = shipNum === 1 ? '' : 'ship2';
             const colorStyle = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
             
+            // Get first item as default
+            let defaultItemKey = Object.keys(DB)[0];
+
             const slotHtml = `
                 <div class="build-slot-container glass-panel ${colorClass}" id="${slotId}">
                     <div style="color: ${colorStyle}; font-family: 'Share Tech Mono';">СЛОТ:</div>
-                    <select class="search-input slot-item">${getOptionsHtml()}</select>
+                    
+                    <div class="custom-select-wrapper" id="wrapper-${slotId}" data-value="${defaultItemKey}">
+                        <div class="custom-select-trigger" onclick="toggleBuildDropdown('${slotId}')">
+                            <div class="trigger-left">
+                                <div class="trigger-img" id="img-${slotId}" style="background-image: url('${DB[defaultItemKey].img}')"></div>
+                                <div class="trigger-text" id="text-${slotId}">${DB[defaultItemKey].name}</div>
+                            </div>
+                            <div>▼</div>
+                        </div>
+                        <div class="custom-select-dropdown" id="dropdown-${slotId}">
+                            <div class="dropdown-filter">
+                                <select onchange="renderBuildOptions('${slotId}', this.value)" onclick="event.stopPropagation()">
+                                    <option value="">ВСЕ НАЦИИ</option>
+                                    <option value="Бразилия">Бразилия</option>
+                                    <option value="Великобритания">Великобритания</option>
+                                    <option value="Германия">Германия</option>
+                                    <option value="Европейский Союз">Европейский Союз</option>
+                                    <option value="Израиль">Израиль</option>
+                                    <option value="Индия">Индия</option>
+                                    <option value="Иран">Иран</option>
+                                    <option value="Италия">Италия</option>
+                                    <option value="Китай">Китай</option>
+                                    <option value="Россия">Россия</option>
+                                    <option value="США">США</option>
+                                    <option value="Турция">Турция</option>
+                                    <option value="Франция">Франция</option>
+                                    <option value="Швеция">Швеция</option>
+                                    <option value="Южная Корея">Южная Корея</option>
+                                    <option value="Япония">Япония</option>
+                                </select>
+                            </div>
+                            <div class="dropdown-list" id="list-${slotId}"></div>
+                        </div>
+                    </div>
+
                     <select class="search-input slot-qty" style="width: 80px;">
                         <option value="1">x1</option><option value="2">x2</option>
                         <option value="3">x3</option><option value="4">x4</option>
+                        <option value="5">x5</option><option value="6">x6</option>
                     </select>
                     <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--text-muted); font-size:1.8rem; cursor:pointer; font-family:'Jura'; font-weight:bold; transition:0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', slotHtml);
+            
+            // Pre-render the options list for this dropdown
+            renderBuildOptions(slotId, '');
         }
 
         function getShipStats(shipNum) {
             const slots = document.querySelectorAll('#build-slots-' + shipNum + ' .build-slot-container');
             let s = { totalBurst: 0, totalDpm: 0, totalEffDpm: 0, avgSpeed: 0, maxRange: 0, itemsCount: 0, hasAir: false, hasSub: false, hasAntiJamming: false };
             slots.forEach(slot => {
-                const itemKey = slot.querySelector('.slot-item').value;
+                const itemKey = slot.querySelector('.custom-select-wrapper').dataset.value;
                 const qty = parseInt(slot.querySelector('.slot-qty').value);
+                
+                if (!itemKey || !DB[itemKey]) return; // Fallback
+                
                 const item = DB[itemKey];
 
                 s.totalBurst += item.damage_burst * qty;
