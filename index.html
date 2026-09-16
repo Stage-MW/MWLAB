@@ -328,22 +328,6 @@
         .cat-item-meta { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; width: 100%;}
         .cat-meta-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px;}
 
-        /* --- RATING --- */
-        .rating-container { max-width: 800px; margin: 0 auto; width: 100%;}
-        .rating-item { 
-            display: flex; align-items: center; margin-bottom: 20px; padding: 20px 30px; 
-            transition: all 0.3s ease; border-left: 4px solid transparent; width: 100%;
-            opacity: 0; animation: itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .rating-item:hover { border-color: var(--primary); transform: translateX(10px) !important; background: rgba(255,255,255,0.02); }
-        .rating-rank { font-size: 2rem; color: #fff; width: 60px; font-family: 'Inter'; font-weight: 900; opacity: 0.5;}
-        .rating-img { width: 140px; height: 70px; margin: 0 20px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));}
-        .rating-info { flex-grow: 1; display: flex; flex-direction: column; gap: 8px;}
-        .rating-title { color: #fff; font-family: 'Inter'; font-size: 1.1rem; font-weight: 700; }
-        .rating-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-        .rating-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease-out; }
-        .rating-score { font-size: 1.5rem; font-family: 'Share Tech Mono'; font-weight: bold; width: 80px; text-align: right;}
-
         /* --- MODALS & TOASTS --- */
         #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
         .toast { background: rgba(11, 22, 36, 0.95); border: 1px solid var(--primary); border-radius: 8px; color: var(--primary); padding: 15px 25px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
@@ -410,13 +394,6 @@
             .cat-meta-row { flex-direction: column; font-size: 0.7rem; gap: 2px; text-align: center; border-bottom: none;}
             .catalog-item.selected::after { font-size: 0.5rem; padding: 3px 6px; top: 10px; right: 10px; }
 
-            .rating-item { flex-direction: column; text-align: center; padding: 20px 15px; border-radius: 12px; border-left: none; border-top: 2px solid var(--primary-dim);}
-            .rating-rank { width: 100%; text-align: center; font-size: 2rem; margin-bottom: 5px;}
-            .rating-img { width: 100%; max-width: 250px; height: 100px; margin: 10px 0; }
-            .rating-info { width: 100%; align-items: center; }
-            .rating-title { font-size: 1rem; }
-            .rating-score { width: 100%; text-align: center; margin-top: 10px; font-size: 1.8rem;}
-
             .build-columns { flex-direction: column; gap: 10px; }
             .build-slot-container { flex-direction: column; gap: 10px; padding: 15px; border-left: none; border-top: 3px solid var(--primary); border-radius: 12px;}
             .build-slot-container.ship2 { border-top-color: var(--secondary); }
@@ -457,7 +434,6 @@
             <button class="nav-btn" id="nav-compare" onclick="switchMainPage('page-compare', this)">Анализатор</button>
             <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast('ТРЕБУЕТСЯ PRO ДОСТУП', true); }">Конструктор <span id="builder-lock">🔒</span></button>
             <button class="nav-btn" id="nav-catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
-            <button class="nav-btn" id="nav-rating" onclick="switchMainPage('page-rating', this)">Тир-лист</button>
             <button class="info-btn" id="nav-admin" onclick="switchMainPage('page-admin')" title="Профиль">👤</button>
             <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
         </nav>
@@ -580,7 +556,7 @@
                 </select>
                 <select class="filter-select glass-panel" id="sort-catalog" onchange="handleFilter()">
                     <option value="none" selected>СОРТИРОВКА: ОТКЛ.</option>
-                    <option value="rating" id="opt-sort-rating">ТОП: РЕЙТИНГ МЕТЫ</option>
+                    <option value="rating">ТОП: РЕЙТИНГ МЕТЫ</option>
                     <option value="dpm">ТОП: УРОН В МИНУТУ</option>
                     <option value="burst">ТОП: АЛЬФА-СТРАЙК</option>
                     <option value="speed">ТОП: СКОРОСТЬ</option>
@@ -590,13 +566,6 @@
             <div class="mechanics-filters" id="dynamic-mechanics-filters"></div>
 
             <div class="catalog-grid" id="catalog-content"></div>
-        </main>
-
-        <main id="page-rating" class="page">
-            <div class="controls-container">
-                <input type="text" class="search-input glass-panel" style="max-width: 400px;" id="search-input-rating" autocomplete="off" placeholder="ПОИСК В ТИР-ЛИСТЕ..." oninput="handleSearch(this.value)">
-            </div>
-            <div class="rating-container" id="rating-content"></div>
         </main>
 
         <main id="page-admin" class="page">
@@ -671,7 +640,7 @@
             const adminAuth = document.getElementById('admin-auth');
             const lockIcon = document.getElementById('builder-lock');
             const navAdminBtn = document.getElementById('nav-admin');
-            const sortRatingOpt = document.getElementById('opt-sort-rating');
+            const sortOpts = document.querySelectorAll('#sort-catalog option:not([value="none"])');
             
             if (isAuth) {
                 adminDash.style.display = 'block';
@@ -681,7 +650,7 @@
                 document.getElementById('visit-counter').innerText = siteVisits;
                 if (lockIcon) lockIcon.style.display = 'none';
                 navAdminBtn.classList.add('auth-active');
-                if(sortRatingOpt) sortRatingOpt.disabled = false;
+                sortOpts.forEach(opt => opt.disabled = false);
             } else {
                 adminDash.style.display = 'none';
                 adminAuth.style.display = 'block';
@@ -689,11 +658,11 @@
                 document.getElementById('auth-subtitle').innerText = "Войдите для доступа к диаграммам, индексу меты и конструктору сборок.";
                 if (lockIcon) lockIcon.style.display = 'inline';
                 navAdminBtn.classList.remove('auth-active');
-                if(sortRatingOpt) sortRatingOpt.disabled = true;
+                sortOpts.forEach(opt => opt.disabled = true);
             }
             
             // Re-render views if they are open
-            if(document.getElementById('page-catalog').classList.contains('active') || document.getElementById('page-rating').classList.contains('active')) {
+            if(document.getElementById('page-catalog').classList.contains('active')) {
                 handleFilter();
             }
             if(document.getElementById('page-compare').classList.contains('active') && compareQueue.length === 0) {
@@ -1066,7 +1035,7 @@
                 if (item.detonation_radius) score += (item.detonation_radius / 20) * 15;
                 if (item.fragmentation_damage) score += (item.fragmentation_damage / 25000) * 40;
                 
-                // ЗЕНИТНАЯ ЛОГИКА: Добавляем очки за атаку по воздуху ТОЛЬКО если ракета не является узкоспециализированной зениткой.
+                // ЗЕНИТНАЯ ЛОГИКА
                 if (item.air_target === 1 && !item.dedicated_aa) score += 50;
                 
                 if (item.sub_launch === 1) score += 50;
@@ -1149,7 +1118,7 @@
 
         function handleSearch(val) {
             if(val !== undefined) searchQuery = val.toLowerCase();
-            syncFilters(); handleFilter();
+            handleFilter();
         }
 
         function renderCategoryBar() {
@@ -1196,8 +1165,8 @@
             let selectedCountry = document.getElementById('filter-country-catalog').value;
             let sortType = document.getElementById('sort-catalog').value;
             
-            if (!isAuth && sortType === 'rating') {
-                showToast("СОРТИРОВКА ПО МЕТЕ ДОСТУПНА В PRO", true);
+            if (!isAuth && sortType !== 'none') {
+                showToast("СОРТИРОВКА ДОСТУПНА ТОЛЬКО В PRO", true);
                 document.getElementById('sort-catalog').value = 'none';
                 sortType = 'none';
             }
@@ -1234,10 +1203,7 @@
             });
 
             renderCatalogUI(items);
-            renderRatingList(items);
         }
-
-        function syncFilters() { document.getElementById('search-input-rating').value = document.getElementById('search-input-catalog').value; }
 
         function switchMainPage(pageId, btnElement) {
             const currentPage = document.querySelector('.page.active');
@@ -1254,13 +1220,13 @@
             const newPage = document.getElementById(pageId);
             newPage.classList.add('active');
             
-            if(pageId === 'page-compare' || pageId === 'page-catalog' || pageId === 'page-rating') {
+            if(pageId === 'page-compare' || pageId === 'page-catalog') {
                 document.getElementById('category-bar-wrapper').style.display = 'block';
             } else {
                 document.getElementById('category-bar-wrapper').style.display = 'none';
             }
             
-            if(pageId === 'page-catalog' || pageId === 'page-rating') { 
+            if(pageId === 'page-catalog') { 
                 compareQueue = []; handleFilter(); 
             }
 
@@ -1364,33 +1330,6 @@
                             <div class="cat-meta-row"><span>ФРАКЦИЯ</span> <span style="color:#fff">${s.country}</span></div>
                             <div class="cat-meta-row"><span>ИНДЕКС МЕТЫ</span> <span style="color:${ratingColor}; font-weight:bold;">${ratingText}</span></div>
                         </div>
-                    </div>`;
-            });
-        }
-
-        function renderRatingList(filteredItems) {
-            const c = document.getElementById('rating-content'); c.innerHTML = '';
-            filteredItems.forEach((item, index) => {
-                let color = 'var(--primary)';
-                if (item.rating >= 800) color = '#fff'; 
-                else if (item.rating < 500) color = 'var(--text-muted)'; 
-                if(!isAuth) color = 'var(--secondary)';
-
-                const delay = index * 0.05;
-                const barWidth = isAuth ? `${(item.rating / 1000) * 100}%` : `0%`;
-                const scoreText = isAuth ? item.rating : `🔒`;
-
-                setTimeout(() => { const bar = document.getElementById(`bar-${item.id}`); if(bar) bar.style.width = barWidth; }, 100 + (index * 50));
-
-                c.innerHTML += `
-                    <div class="rating-item glass-panel" style="animation-delay: ${delay}s">
-                        <div class="rating-rank" style="color: ${color}">0${index + 1}</div>
-                        <div class="rating-img" style="background-image: url('${item.img}')"></div>
-                        <div class="rating-info">
-                            <div class="rating-title">${item.name} <span style="font-size:0.8rem; color:var(--text-muted); font-family:'Jura';">[${item.country}]</span></div>
-                            <div class="rating-bar-bg"><div class="rating-bar-fill" id="bar-${item.id}" style="width: 0%; background: ${color}; box-shadow: 0 0 10px ${color}"></div></div>
-                        </div>
-                        <div class="rating-score" style="color: ${color}">${scoreText}</div>
                     </div>`;
             });
         }
