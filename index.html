@@ -70,10 +70,16 @@
             color: transparent; -webkit-text-stroke: 2px rgba(66, 245, 227, 0.1);
             letter-spacing: 5px;
             transition: font-size 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: pulseMWL 4s infinite alternate ease-in-out;
+            animation: pulseMWL 3s infinite alternate ease-in-out;
         }
         #global-mwl-wrapper.center #global-mwl-text { font-size: 25vw; }
         #global-mwl-wrapper.right #global-mwl-text { font-size: 20vw; }
+
+        /* Усиленная пульсация фона */
+        @keyframes pulseMWL {
+            0% { transform: scale(0.97); color: rgba(66, 245, 227, 0.01); text-shadow: 0 0 10px rgba(66, 245, 227, 0.05); filter: drop-shadow(0 0 5px rgba(66,245,227,0.05)); }
+            100% { transform: scale(1.03); color: rgba(66, 245, 227, 0.08); text-shadow: 0 0 40px rgba(66, 245, 227, 0.3); filter: drop-shadow(0 0 20px rgba(66,245,227,0.2)); }
+        }
 
         /* --- ГЛОБАЛЬНЫЕ ИСКРЫ --- */
         #sparks-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; overflow: hidden; }
@@ -145,8 +151,6 @@
             100% { opacity: 1; transform: translateY(0); } 
         }
 
-        .max-lvl-disclaimer { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; font-family: 'Inter'; font-weight: 500;}
-
         /* --- HOME PAGE --- */
         #page-home { height: calc(100vh - 80px); padding: 0 5%; overflow: hidden; display: none; }
         #page-home.active { display: flex; align-items: center; justify-content: space-between; }
@@ -190,11 +194,29 @@
         .val-lose { color: var(--text-muted); opacity: 0.8; }
         .bar-lose { background: rgba(255,255,255,0.1); }
 
-        /* --- COMPARE GRID --- */
-        .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; width: 100%;}
-        .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.05); }
+        /* --- COMPARE GRID & VS ANIMATION --- */
+        .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; width: 100%; overflow: hidden;}
+        .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 10;}
         .card-winner { border-color: var(--primary); box-shadow: 0 10px 40px rgba(66,245,227,0.1), inset 0 0 20px rgba(66,245,227,0.05); }
         .card-loser { opacity: 0.8; }
+
+        @keyframes flyInLeft { 0% { opacity: 0; transform: translateX(-300px); } 100% { opacity: 1; transform: translateX(0); } }
+        @keyframes flyInRight { 0% { opacity: 0; transform: translateX(300px); } 100% { opacity: 1; transform: translateX(0); } }
+
+        .vs-badge {
+            font-family: 'Orbitron', sans-serif; font-size: 8rem; font-weight: 900; color: var(--secondary);
+            text-shadow: 0 0 30px var(--secondary), 0 0 80px var(--secondary);
+            animation: vsPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;
+        }
+        @keyframes vsPop { 
+            0% { transform: scale(0.5); opacity: 0; filter: blur(10px); } 
+            60% { transform: scale(1.2); opacity: 1; filter: blur(0); } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+        @keyframes fadeOutVs { 
+            to { opacity: 0; transform: scale(1.5); filter: blur(10px); } 
+        }
 
         .weapon-showcase { position: relative; width: 100%; height: 260px; margin-bottom: 20px; display: flex; justify-content: center; align-items: flex-end; perspective: 1000px;}
         .equip-img-container { 
@@ -216,7 +238,7 @@
         .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 15px; text-align: center;}
 
         /* --- ANALYTICS CORE --- */
-        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); width: 100%; position: relative;}
+        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); width: 100%; position: relative; z-index: 5;}
         
         .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px; margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow); text-align: center;}
         .center-subtitle { font-family: 'Share Tech Mono'; color: #fff; letter-spacing: 5px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.7; text-align: center;}
@@ -327,6 +349,7 @@
             .weapon-showcase { height: 160px; }
             .equip-img-container { bottom: 15px; }
             .item-title { font-size: 1.1rem; }
+            .vs-badge { font-size: 5rem; }
             
             .analysis-cols { flex-direction: column; gap: 15px; }
             .analysis-col { border-left: none; border-top: 2px solid var(--primary-dim); padding: 15px 5px 5px 5px; }
@@ -629,8 +652,6 @@
                 handleFilter();
             }
             if(document.getElementById('page-compare').classList.contains('active') && compareQueue.length === 0) {
-                // Если сейчас открыт анализатор и анализ уже завершен (очередь пуста, но карточки заполнены)
-                // Для надежности просто перерендерим анализ, если он был сделан
                 const n1 = document.getElementById('name-equip-1').innerText;
                 const n2 = document.getElementById('name-equip-2').innerText;
                 if(n1 !== "СЛОТ 1" && n2 !== "СЛОТ 2") {
@@ -662,7 +683,6 @@
             updateAuthStateUI();
             showToast("ВЫХОД ВЫПОЛНЕН");
             
-            // Если мы находимся в конструкторе - выкидываем на главную
             if (document.getElementById('page-builder').classList.contains('active')) {
                 switchMainPage('page-home', document.getElementById('nav-home'));
             }
@@ -700,7 +720,6 @@
         let currentCategory = "Ракеты";
         let searchQuery = "";
         
-        // РАЗДЕЛЬНЫЕ ЭТАЛОНЫ ХАРАКТЕРИСТИК ДЛЯ РАДАРА
         const CATEGORY_MAX_STATS = {
             "Пушки": {
                 damage_burst: 170000, dpm: 660000, damage: 50000, accuracy: 100,
@@ -913,19 +932,18 @@
                 let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
                 if (hasCluster) { 
                     if (item.anti_jamming === 1) {
-                        score += 20; // Бонус за неотводимый кластер
+                        score += 20; 
                     } else {
-                        score += 10; // Бонус за отводимый кластер (шанс 20% на 10% урона)
+                        score += 10; 
                     }
                 }
                 
-                score += (item.projectiles * 45); // Перегруз ПВО (чем больше ракет в залпе, тем лучше)
-                score += (item.hp / 400) * 160;   // Прочность критически важна
-                score += (item.start_speed / 400) * 120; // Рывок со старта
-                score -= (item.accel_time * 25);  // Чем дольше разгон, тем хуже
+                score += (item.projectiles * 45); 
+                score += (item.hp / 400) * 160;   
+                score += (item.start_speed / 400) * 120; 
+                score -= (item.accel_time * 25);  
                 score += (item.max_speed / 600) * 100; 
                 
-                // Кап дальности (бои идут до 10 км)
                 let cappedRange = Math.min(item.range, 10);
                 score += (cappedRange / 10) * 20;
 
@@ -940,7 +958,7 @@
                 if (item.sub_launch === 1) score += 50;
                 
                 if (item.lock_time === 0) { 
-                    score += 40; // Лазер: можно выцеливать края корабля, но минус за прямую траекторию
+                    score += 40; 
                 } else if (item.lock_time > 1.5) { 
                     score -= ((item.lock_time - 1.5) * 30); 
                 }
@@ -1133,12 +1151,45 @@
                 const id1 = compareQueue[0]; const id2 = itemId;
                 
                 updateEquipView(1, id1); updateEquipView(2, id2);
-                runAnalysis(id1, id2);
                 switchMainPage('page-compare', document.getElementById('nav-compare'));
-                showToast("АНАЛИЗ ЗАВЕРШЕН");
+                
+                // --- АНИМАЦИЯ ПОЯВЛЕНИЯ VS ---
+                const card1 = document.getElementById('card-equip-1');
+                const card2 = document.getElementById('card-equip-2');
+                const verdictScreen = document.getElementById('verdict-screen');
+                
+                card1.className = 'equip-card glass-panel';
+                card2.className = 'equip-card glass-panel';
+                
+                card1.style.animation = 'none'; card2.style.animation = 'none';
+                void card1.offsetWidth; void card2.offsetWidth; 
+                card1.style.animation = 'flyInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                card2.style.animation = 'flyInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                
+                verdictScreen.style.animation = 'none';
+                verdictScreen.innerHTML = `<div class="vs-badge">VS</div>`;
+                showToast("СИМУЛЯЦИЯ БОЯ...");
                 
                 compareQueue = []; 
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('selected'));
+                
+                // Переход от VS к результатам
+                setTimeout(() => {
+                    const vsBadge = verdictScreen.querySelector('.vs-badge');
+                    if (vsBadge) {
+                        vsBadge.style.animation = 'fadeOutVs 0.4s ease forwards';
+                        setTimeout(() => {
+                            card1.style.animation = ''; card2.style.animation = '';
+                            runAnalysis(id1, id2);
+                            
+                            verdictScreen.style.animation = 'none';
+                            void verdictScreen.offsetWidth;
+                            verdictScreen.style.animation = 'itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                            
+                            showToast("АНАЛИЗ ЗАВЕРШЕН");
+                        }, 400);
+                    }
+                }, 1400);
             }
         }
 
@@ -1300,7 +1351,7 @@
                 if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
                 else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры от островов`);
                 
-                if (item.air_target === 1) pros.push("Универсальное орудие ПВО");
+                if (item.air_target === 1) pros.push("Универса орудие ПВО");
             }
 
             return `<div class="analysis-col glass-panel">
@@ -1386,7 +1437,6 @@
         function runAnalysis(id1, id2) {
             const e1 = DB[id1]; const e2 = DB[id2];
             const card1 = document.getElementById('card-equip-1'); const card2 = document.getElementById('card-equip-2');
-            card1.className = 'equip-card glass-panel'; card2.className = 'equip-card glass-panel';
 
             for (let key in STATS_LOGIC) {
                 if (e1[key] === undefined && e2[key] === undefined) continue;
