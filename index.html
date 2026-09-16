@@ -1019,13 +1019,42 @@
             },
             "Ракеты": function(item) {
                 let score = 100;
-                item.effectiveDpm = item.dpm;
-                item.effectiveBurst = item.damage_burst;
                 item.accuracyScore = 100;
 
+                // НОВАЯ ЛОГИКА ШТРАФОВ ЗА ОТВОД (С УЧЕТОМ ОШИБКИ ПРОТИВНИКА)
+                if (item.anti_jamming === 1) {
+                    // Неотводимые ракеты наносят 100% урона
+                    item.effectiveDpm = item.dpm;
+                    item.effectiveBurst = item.damage_burst;
+                } else {
+                    let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
+                    let clusterBonus = hasCluster ? 0.1 : 0; // Кластеры проносят ~10% урона даже сквозь ловушки
+                    
+                    if (item.reload >= 11.0) {
+                        // Если перезарядка дольше отката ловушек (>= 11 сек):
+                        // Оставляем 25% эффективности (расчет на ошибку врага/сброс ловушек на другие цели)
+                        item.effectiveDpm = item.dpm * (0.25 + clusterBonus);
+                        
+                        // Эффективный альфа-страйк в среднем по бою тоже падает до 25%
+                        item.effectiveBurst = item.damage_burst * 0.25; 
+                    } else {
+                        // Математика спама (перезарядка быстрее 11 сек):
+                        let totalSalvos = 60 / item.reload;
+                        let flaredSalvos = 60 / 11.0; // Враг может прожать РЭБ ~5.4 раза в минуту
+                        let hitRatio = Math.max(0, (totalSalvos - flaredSalvos) / totalSalvos);
+                        
+                        // DPM с учетом вычета отведенных залпов
+                        item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
+                        // При спаме первый залп гарантированно улетает в ловушки
+                        item.effectiveBurst = item.damage_burst * clusterBonus; 
+                    }
+                }
+
                 score += 150; 
-                score += (item.dpm / 300000) * 250; 
-                score += (item.damage_burst / 60000) * 100; 
+                
+                // Считаем влияние на рейтинг от ЭФФЕКТИВНЫХ значений
+                score += (item.effectiveDpm / 300000) * 250; 
+                score += (item.effectiveBurst / 60000) * 100; 
                 
                 if (item.anti_jamming === 1) {
                     score += 200; 
@@ -1418,6 +1447,11 @@
                         pros.push(`Гарантированный подлет: ракета преодолевает всю свою дальность быстрее, чем откатываются ловушки (11 сек).`);
                     }
                 }
+
+                // ДОБАВЛЕНО: Предупреждение об уязвимости к РЭБ при долгой перезарядке
+                if (item.reload >= 11.0 && item.anti_jamming === 0) {
+                    cons.push("Уязвима к РЭБ: урон пройдет только если противник отвлечется или ошибется с ловушками.");
+                }
                 
                 if (item.air_target === 1) {
                     if (item.dedicated_aa) {
@@ -1516,15 +1550,16 @@
             let labels, d1, d2;
 
             if (e1.category === "Ракеты") {
-                labels = ['Урон/мин', 'Альфа', 'Живучесть', 'Скорость', 'Скорострельность', 'Дальность'];
+                // ДОБАВЛЕНО: обновлены лейблы для ракет на эффективные значения
+                labels = ['Эффект. DPM', 'Эффект. Альфа', 'Живучесть', 'Скорость', 'Скорострельность', 'Дальность'];
                 let catMax = CATEGORY_MAX_STATS["Ракеты"];
                 d1 = [
-                    Math.min(100, (e1.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.damage_burst / catMax.damage_burst) * 100) || 0,
+                    Math.min(100, (e1.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.effectiveBurst / catMax.damage_burst) * 100) || 0,
                     Math.min(100, (e1.hp / catMax.hp) * 100) || 0, Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0,
                     Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0
                 ];
                 d2 = [
-                    Math.min(100, (e2.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.damage_burst / catMax.damage_burst) * 100) || 0,
+                    Math.min(100, (e2.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.effectiveBurst / catMax.damage_burst) * 100) || 0,
                     Math.min(100, (e2.hp / catMax.hp) * 100) || 0, Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0,
                     Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0
                 ];
