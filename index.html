@@ -1195,7 +1195,7 @@
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
                 return score;
             },
-            "Гранатометы": function(item) {
+                        "Гранатометы": function(item) {
                 let score = 100;
 
                 // Расчет влияния отдачи (от 11 до 20)
@@ -1210,7 +1210,7 @@
                     let speedFactor = 800 / item.max_speed; 
                     let evasionPenalty = (metaDistance * speedFactor * 1.5);
                     
-                    // НОВОЕ: Эффект дробовика. Чем дальше цель, выше отдача и больше снарядов в залпе — тем шире облако
+                    // Эффект дробовика. Чем дальше цель, выше отдача и больше снарядов в залпе — тем шире облако
                     let projCount = item.projectiles || 1;
                     let spreadPenalty = (item.range / 10) * recoil * (1 + (projCount * 0.1));
                     
@@ -1233,7 +1233,7 @@
                     score += (item.effectiveBurst / 50000) * 150;
                     if (item.start_speed) score += (item.start_speed / 300) * 50;
                     
-                    // НОВОЕ: Бонус за перегруз ПВО и спам ловушек
+                    // Бонус за перегруз ПВО и спам ловушек
                     if (item.anti_jamming === 1) {
                         score += 50; // Неотводимые ракеты получают стабильные 50 баллов
                     } else {
@@ -1285,8 +1285,7 @@
                     score += 0;  
                 }
 
-                // Обычная защита от помех (для не-ракетных систем)
-                if (item.anti_jamming === 1 && item.gl_type !== "missile") score += 50;
+                // Атака авиации
                 if (item.air_target === 1) score += 60;
 
                 let cappedRange = Math.min(item.range, 12);
@@ -1294,8 +1293,6 @@
 
                 return score;
             }
-
-
         };
 
         function calculateRating(item) {
