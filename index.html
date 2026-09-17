@@ -1195,7 +1195,7 @@
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
                 return score;
             },
-                        "Гранатометы": function(item) {
+            "Гранатометы": function(item) {
                 let score = 100;
 
                 // Расчет влияния отдачи (от 11 до 20)
@@ -1222,7 +1222,7 @@
                     score += (item.effectiveBurst / 50000) * 150;
                     score += (item.max_speed / 600) * 80;
                 } else if (item.gl_type === "missile") {
-                    item.accuracyScore = 100;
+                    item.accuracyScore = 100; // Идеальная меткость на любой дистанции
                     let effectiveHp = item.hp || 100;
                     score += (effectiveHp / 200) * 120;
                     
@@ -1261,13 +1261,16 @@
                     
                     score += (item.effectiveDpm / 300000) * 180;
                     score += (item.effectiveBurst / 50000) * 150;
-                    score += 50;
+                    
+                    // Увеличенный бонус за отсутствие привязки к центру
+                    // (позволяет выцеливать открытые части корабля из-за укрытия)
+                    score += 80; 
                 }
 
                 // Утилитарность (Защита / ПТЗ / ПЛО)
                 if (item.can_hit_torpedoes === 1) {
                     let splashFactor = (item.splash_radius || 0) / 50;
-                    score += 50 + (splashFactor * 15);
+                    score += 50 + (splashFactor * 15); // База ПТЗ снижена со 120 до 50
                     if (item.projectiles) score += (item.projectiles * 10);
                 }
                 if (item.can_hit_subs === 1) score += 80;
@@ -1282,7 +1285,7 @@
                 if (item.fire_mode === "burst") {
                     score += 40; 
                 } else if (item.fire_mode === "manual") {
-                    score += 0;  
+                    score += 0;  // Нейтрально, без штрафа
                 }
 
                 // Атака авиации
