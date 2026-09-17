@@ -1195,12 +1195,11 @@
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
                 return score;
             },
-            "Гранатометы": function(item) {
+                        "Гранатометы": function(item) {
                 let score = 100;
 
                 // Расчет влияния разброса/отдачи (от 11 до 20)
-                // Чем меньше отдача, тем выше точность и тем больше бонус (до +30 баллов)
-                let recoil = item.recoil !== undefined ? item.recoil : 15; // 15 по умолчанию для остальных
+                let recoil = item.recoil !== undefined ? item.recoil : 15; // 15 по умолчанию
                 let recoilBonus = ((20 - recoil) / (20 - 11)) * 30;
                 score += Math.max(0, Math.min(30, recoilBonus));
 
@@ -1258,9 +1257,12 @@
                 if (item.splash_radius > 0) score += (item.splash_radius / 50) * 15;
                 if (item.detonation_radius > 0) score += (item.detonation_radius / 30) * 10;
 
-                // Режим огня
-                if (item.fire_mode === "burst") score += 40;
-                else if (item.fire_mode === "manual") score -= 40;
+                // Режим огня (ОБНОВЛЕНО: УБРАН ШТРАФ)
+                if (item.fire_mode === "burst") {
+                    score += 40; // Бонус за моментальную разрядку из укрытия
+                } else if (item.fire_mode === "manual") {
+                    score += 0;  // Нейтрально. Больше не наказываем за ручной спам
+                }
 
                 if (item.anti_jamming === 1) score += 50;
                 if (item.air_target === 1) score += 60;
