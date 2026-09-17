@@ -1048,31 +1048,38 @@ const DB = {
                 score -= (item.fire_penalty * 0.5);
                 return score;
             },
-            "Ракеты": function(item) {
+           "Ракеты": function(item) {
                 let score = 100;
                 item.accuracyScore = 100;
 
-             if (item.anti_jamming === 1) {
+                if (item.anti_jamming === 1) {
                     item.effectiveDpm = item.dpm;
                     item.effectiveBurst = item.damage_burst;
                 } else {
                     let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
                     let clusterBonus = hasCluster ? 0.1 : 0; 
                     
-                    // Альфа-страйк (урон за залп) не режется, так как это разовый потенциал при попадании
+                    // Альфа-страйк (урон за залп) не режется, так как это разовый потенциал
                     item.effectiveBurst = item.damage_burst;
                     
-                    if (item.reload >= 11.0) {
-                        // Режем только DPM (урон в минуту), так как ракета слишком долго перезаряжается
-                        item.effectiveDpm = item.dpm * (0.25 + clusterBonus);
-                    } else {
-                        let totalSalvos = 60 / item.reload;
-                        let flaredSalvos = 60 / 11.0; 
-                        let hitRatio = Math.max(0, (totalSalvos - flaredSalvos) / totalSalvos);
-                        
-                        // DPM масштабируется от шанса пробить окно ловушек
-                        item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
+                    let flareCycle = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
+                    let hitRatio = 0;
+
+                    if (item.reload <= (flareCycle / 2)) {
+                        // 1. СПАМ-РАКЕТЫ (до 5.5 сек). Сбивают 1 залп, остальные летят в цель.
+                        hitRatio = 1 - (item.reload / flareCycle);
+                    } 
+                    else if (item.reload < flareCycle) {
+                        // 2. СРЕДНИЕ РАКЕТЫ (5.5 - 11.0 сек). Залетает ровно каждый второй залп.
+                        hitRatio = 0.50; 
+                    } 
+                    else {
+                        // 3. ТЯЖЕЛЫЕ РАКЕТЫ (11+ сек). Вынуждены простаивать, теряя урон в минуту.
+                        hitRatio = 0.30; 
                     }
+
+                    // DPM масштабируется от тактического шанса пробить окно ловушек
+                    item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
                 }
 
                 score += 150; 
