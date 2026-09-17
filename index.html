@@ -892,7 +892,6 @@
             "p900alfa": { name: "P-900 ALFA", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31200, dpm: 241389, reload: 7.00, lock_time: 1.20, projectiles: 3, anti_jamming: 0, hp: 88, start_speed: 194, max_speed: 515, accel_time: 2.36, range: 9.97, fire_penalty: 40, sub_launch: 1, img: "img/P900Alfa.png" },
             "agnii": { name: "AGNI-I", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 1, min_range: 1.33, damage_burst: 39500, dpm: 301379, reload: 7.70, lock_time: 1.25, detonation_radius: 13, splash_damage: 500, splash_radius: 100, fragmentation_damage: 13000, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 68, max_speed: 485, accel_time: 1.54, range: 13.87, fire_penalty: 55, img: "img/Agni1.png" },
             "haeseongiii": { name: "HAESEONG III", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 23500, dpm: 120565, reload: 11.50, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 270, start_speed: 77, max_speed: 485, accel_time: 3.00, range: 9.33, fire_penalty: 40, img: "img/HaeseongIII.png" },
-            "redshark": { name: "RED SHARK (382 MM)", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 20800, dpm: 217295, reload: 5.60, lock_time: 1.50, projectiles: 1, anti_jamming: 1, hp: 150, start_speed: 38, max_speed: 485, accel_time: 3.83, range: 12.13, fire_penalty: 32, img: "img/RedShark.png" },
             "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125.png" },
             "asn4g": { name: "ASN4G", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 32699, dpm: 246304, reload: 7.70, lock_time: 2.00, detonation_radius: 33, splash_damage: 1500, splash_radius: 333, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 145, max_speed: 583, accel_time: 2.50, range: 12.13, fire_penalty: 40, img: "img/ASN4G.png" },
             "fattah1": { name: "FATTAH-1", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33000, dpm: 275785, reload: 7.00, lock_time: 1.50, splash_damage: 500, splash_radius: 100, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 505, accel_time: 2.10, range: 10.83, fire_penalty: 40, img: "img/Fattah1.png" },
@@ -1023,36 +1022,26 @@
 
                 // НОВАЯ ЛОГИКА ШТРАФОВ ЗА ОТВОД (С УЧЕТОМ ОШИБКИ ПРОТИВНИКА)
                 if (item.anti_jamming === 1) {
-                    // Неотводимые ракеты наносят 100% урона
                     item.effectiveDpm = item.dpm;
                     item.effectiveBurst = item.damage_burst;
                 } else {
                     let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
-                    let clusterBonus = hasCluster ? 0.1 : 0; // Кластеры проносят ~10% урона даже сквозь ловушки
+                    let clusterBonus = hasCluster ? 0.1 : 0; 
                     
                     if (item.reload >= 11.0) {
-                        // Если перезарядка дольше отката ловушек (>= 11 сек):
-                        // Оставляем 25% эффективности (расчет на ошибку врага/сброс ловушек на другие цели)
                         item.effectiveDpm = item.dpm * (0.25 + clusterBonus);
-                        
-                        // Эффективный альфа-страйк в среднем по бою тоже падает до 25%
                         item.effectiveBurst = item.damage_burst * 0.25; 
                     } else {
-                        // Математика спама (перезарядка быстрее 11 сек):
                         let totalSalvos = 60 / item.reload;
-                        let flaredSalvos = 60 / 11.0; // Враг может прожать РЭБ ~5.4 раза в минуту
+                        let flaredSalvos = 60 / 11.0; 
                         let hitRatio = Math.max(0, (totalSalvos - flaredSalvos) / totalSalvos);
                         
-                        // DPM с учетом вычета отведенных залпов
                         item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
-                        // При спаме первый залп гарантированно улетает в ловушки
                         item.effectiveBurst = item.damage_burst * clusterBonus; 
                     }
                 }
 
                 score += 150; 
-                
-                // Считаем влияние на рейтинг от ЭФФЕКТИВНЫХ значений
                 score += (item.effectiveDpm / 300000) * 250; 
                 score += (item.effectiveBurst / 60000) * 100; 
                 
@@ -1075,7 +1064,15 @@
                 }
                 
                 score += (item.projectiles * 45); 
-                score += (item.hp / 400) * 160;   
+
+                // --- РАСЧЕТ ПРОРЫВА ПВО (ЭФФЕКТИВНАЯ ЖИВУЧЕСТЬ) ---
+                let effectiveHp = item.hp;
+                if (item.lock_time === 0) {
+                    // Штраф за лазерное наведение (прямая траектория)
+                    effectiveHp *= 0.6; 
+                }
+                score += (effectiveHp / 400) * 160;   
+
                 score += (item.start_speed / 400) * 120; 
                 score -= (item.accel_time * 25);  
                 score += (item.max_speed / 600) * 100; 
@@ -1187,6 +1184,7 @@
                     document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
                     document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
                     renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
+                    switchMainPage('page-catalog', document.getElementById('nav-catalog'));
                 };
                 bar.appendChild(btn);
             });
@@ -1198,6 +1196,7 @@
             if (currentCategory === "Ракеты") {
                 container.innerHTML = `
                     <label><input type="checkbox" class="mech-checkbox" id="cb-jamming" onchange="handleFilter()"><span class="cat-btn-sub">РЭБ-ЗАЩИТА</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-flared" onchange="handleFilter()"><span class="cat-btn-sub">ОТВОДИМЫЕ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-sub" onchange="handleFilter()"><span class="cat-btn-sub">ПОДЛОДКИ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-cluster" onchange="handleFilter()"><span class="cat-btn-sub">КЛАСТЕРНЫЕ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-air" onchange="handleFilter()"><span class="cat-btn-sub">АВИАЦИЯ</span></label>
@@ -1235,6 +1234,7 @@
                 
                 if (currentCategory === "Ракеты") {
                     const cbJam = document.getElementById('cb-jamming'); if (cbJam && cbJam.checked && item.anti_jamming === 0) return false;
+                    const cbFlared = document.getElementById('cb-flared'); if (cbFlared && cbFlared.checked && item.anti_jamming !== 0) return false;
                     const cbSub = document.getElementById('cb-sub'); if (cbSub && cbSub.checked && item.sub_launch !== 1) return false;
                     const cbCluster = document.getElementById('cb-cluster'); if (cbCluster && cbCluster.checked && item.cluster !== 1 && (!item.fragmentation_damage || item.fragmentation_damage <= 0)) return false;
                     const cbAir = document.getElementById('cb-air'); if (cbAir && cbAir.checked && item.air_target !== 1) return false;
@@ -1448,7 +1448,6 @@
                     }
                 }
 
-                // ДОБАВЛЕНО: Предупреждение об уязвимости к РЭБ при долгой перезарядке
                 if (item.reload >= 11.0 && item.anti_jamming === 0) {
                     cons.push("Уязвима к РЭБ: урон пройдет только если противник отвлечется или ошибется с ловушками.");
                 }
@@ -1550,7 +1549,6 @@
             let labels, d1, d2;
 
             if (e1.category === "Ракеты") {
-                // ДОБАВЛЕНО: обновлены лейблы для ракет на эффективные значения
                 labels = ['Эффект. DPM', 'Эффект. Альфа', 'Живучесть', 'Скорость', 'Скорострельность', 'Дальность'];
                 let catMax = CATEGORY_MAX_STATS["Ракеты"];
                 d1 = [
