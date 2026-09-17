@@ -890,7 +890,7 @@ const DB = {
             "p900alfa": { name: "P-900 ALFA", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31200, dpm: 241389, reload: 7.00, lock_time: 1.20, projectiles: 3, anti_jamming: 0, hp: 88, start_speed: 194, max_speed: 515, accel_time: 2.36, range: 9.97, fire_penalty: 40, sub_launch: 1, img: "img/P900Alfa.png" },
             "agnii": { name: "AGNI-I", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 1, min_range: 1.33, damage_burst: 39500, dpm: 301379, reload: 7.70, lock_time: 1.25, detonation_radius: 13, splash_damage: 500, splash_radius: 100, fragmentation_damage: 13000, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 68, max_speed: 485, accel_time: 1.54, range: 13.87, fire_penalty: 55, img: "img/Agni1.png" },
             "haeseongiii": { name: "HAESEONG III", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 23500, dpm: 120565, reload: 11.50, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 270, start_speed: 77, max_speed: 485, accel_time: 3.00, range: 9.33, fire_penalty: 40, img: "img/HaeseongIII.png" },
-            "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125SeaLance.png" },
+            "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125.png" },
             "asn4g": { name: "ASN4G", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 32699, dpm: 246304, reload: 7.70, lock_time: 2.00, detonation_radius: 33, splash_damage: 1500, splash_radius: 333, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 145, max_speed: 583, accel_time: 2.50, range: 12.13, fire_penalty: 40, img: "img/ASN4G.png" },
             "fattah1": { name: "FATTAH-1", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33000, dpm: 275785, reload: 7.00, lock_time: 1.50, splash_damage: 500, splash_radius: 100, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 505, accel_time: 2.10, range: 10.83, fire_penalty: 40, img: "img/Fattah1.png" },
             "fattah2": { name: "FATTAH-2", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 44200, dpm: 268541, reload: 9.45, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 641, accel_time: 2.64, range: 15.60, fire_penalty: 40, img: "img/Fattah2.png" },
@@ -1052,23 +1052,26 @@ const DB = {
                 let score = 100;
                 item.accuracyScore = 100;
 
-                if (item.anti_jamming === 1) {
+             if (item.anti_jamming === 1) {
                     item.effectiveDpm = item.dpm;
                     item.effectiveBurst = item.damage_burst;
                 } else {
                     let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
                     let clusterBonus = hasCluster ? 0.1 : 0; 
                     
+                    // Альфа-страйк (урон за залп) не режется, так как это разовый потенциал при попадании
+                    item.effectiveBurst = item.damage_burst;
+                    
                     if (item.reload >= 11.0) {
+                        // Режем только DPM (урон в минуту), так как ракета слишком долго перезаряжается
                         item.effectiveDpm = item.dpm * (0.25 + clusterBonus);
-                        item.effectiveBurst = item.damage_burst * (0.25 + clusterBonus); 
                     } else {
                         let totalSalvos = 60 / item.reload;
                         let flaredSalvos = 60 / 11.0; 
                         let hitRatio = Math.max(0, (totalSalvos - flaredSalvos) / totalSalvos);
                         
+                        // DPM масштабируется от шанса пробить окно ловушек
                         item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
-                        item.effectiveBurst = item.damage_burst * Math.min(1, hitRatio + clusterBonus); 
                     }
                 }
 
