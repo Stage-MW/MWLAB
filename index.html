@@ -104,8 +104,7 @@
         }
         @keyframes pulseIntro { 0% { opacity: 0.5; filter: blur(2px); } 100% { opacity: 1; filter: blur(0px); } }
 
-        .app-wrapper { opacity: 0; position: relative; z-index: 10; width: 100%; transition: opacity 1s ease; }
-        .app-wrapper.active { opacity: 1; }
+        .app-wrapper { position: relative; z-index: 10; width: 100%; }
 
         /* --- GLASSMORPHISM CLASS --- */
         .glass-panel {
@@ -425,9 +424,7 @@
         <div id="global-mwl-text">MWL</div>
     </div>
 
-    <div id="intro-screen">
-        <div id="intro-logo">MWLAB</div>
-    </div>
+    <!-- Блок intro-screen удален отсюда -->
 
     <div class="app-wrapper">
         <nav class="glass-panel" style="border-radius: 0; border-left:none; border-right:none; border-top:none;">
@@ -721,15 +718,7 @@
         }
         setInterval(spawnSpark, 200);
 
-        function triggerIntro() {
-            setTimeout(() => {
-                const introScreen = document.getElementById('intro-screen');
-                introScreen.style.opacity = '0'; 
-                introScreen.style.transition = 'opacity 0.8s ease';
-                document.querySelector('.app-wrapper').classList.add('active'); 
-                setTimeout(() => introScreen.remove(), 800);
-            }, 1000);
-        }
+        // Функция triggerIntro была удалена
 
         const CATEGORIES = ["Ракеты", "Пушки", "Торпеды"];
         let currentCategory = "Ракеты";
@@ -783,7 +772,8 @@
             min_range: { label: "Мертвая зона (км)", higherIsBetter: false },
             fire_penalty: { label: "Штраф маскировки", higherIsBetter: false }
         };
-const DB = {
+
+        const DB = {
             // ----- ПУШКИ -----
             "a192": { name: "A-192 ARMAT (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 308225, damage_burst: 15925, damage: 3185, accuracy: 100, reload: 2.80, crit_chance: 50, projectiles: 4, range: 17.33, max_speed: 777, fire_penalty: 35, img: "img/A192.png" },
             "a200navigator": { name: "A-200 NAVIGATOR (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 326132, damage_burst: 46800, damage: 46800, accuracy: 100, reload: 8.61, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/A200.png" },
@@ -880,7 +870,7 @@ const DB = {
             "gabrielv": { name: "GABRIEL V", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 52650, dpm: 280002, reload: 9.80, lock_time: 1.50, projectiles: 3, anti_jamming: 0, hp: 90, start_speed: 58, max_speed: 485, accel_time: 3.14, range: 10.83, fire_penalty: 40, img: "img/GabrielV.png" },
             "navalspikeer": { name: "NAVAL SPIKE ER", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27300, dpm: 266175, reload: 5.60, lock_time: 1.50, projectiles: 3, anti_jamming: 1, hp: 75, start_speed: 29, max_speed: 349, accel_time: 4.71, range: 6.93, fire_penalty: 32, img: "img/NavalSpikeER.png" },
             "stratus": { name: "STRATUS RS", category: "Ракеты", country: "Европейский Союз", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27000, dpm: 282053, reload: 5.60, lock_time: 1.50, splash_damage: 1000, splash_radius: 133, projectiles: 1, anti_jamming: 0, hp: 260, start_speed: 38, max_speed: 583, accel_time: 2.24, range: 12.13, fire_penalty: 40, img: "img/Stratus.png" },
-            "mansuper": { name: "MANSUP-ER", category: "Ракеты", country: "Бразилия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 28899, dpm: 257025, reload: 6.30, lock_time: 1.30, splash_damage: 150, splash_radius: 500, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 437, accel_time: 2.58, range: 11.27, fire_penalty: 40, img: "img/MANSUPER.png" },
+            "mansuper": { name: "MANSUP-ER", category: "Бразилия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 28899, dpm: 257025, reload: 6.30, lock_time: 1.30, splash_damage: 150, splash_radius: 500, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 437, accel_time: 2.58, range: 11.27, fire_penalty: 40, img: "img/MANSUPER.png" },
             "s10granat": { name: "S-10 GRANAT", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 30000, dpm: 162272, reload: 11.00, lock_time: 0.50, detonation_radius: 33, splash_damage: 7500, splash_radius: 500, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 29, max_speed: 485, accel_time: 2.76, range: 10.00, fire_penalty: 40, sub_launch: 1, img: "img/S10Granat.png" },
             "nasir": { name: "NASIR", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 22100, dpm: 257833, reload: 4.90, lock_time: 0.50, detonation_radius: 10, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 116, max_speed: 466, accel_time: 1.80, range: 8.67, fire_penalty: 40, img: "img/Nasir.png" },
             "hyfly2": { name: "HYFLY-2", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 38200, dpm: 133644, reload: 17.15, lock_time: 0, splash_damage: 500, splash_radius: 133, projectiles: 1, anti_jamming: 1, hp: 110, start_speed: 272, max_speed: 515, accel_time: 1.79, range: 13.87, fire_penalty: 42, img: "img/Hyfly2.png" },
@@ -890,7 +880,7 @@ const DB = {
             "p900alfa": { name: "P-900 ALFA", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31200, dpm: 241389, reload: 7.00, lock_time: 1.20, projectiles: 3, anti_jamming: 0, hp: 88, start_speed: 194, max_speed: 515, accel_time: 2.36, range: 9.97, fire_penalty: 40, sub_launch: 1, img: "img/P900Alfa.png" },
             "agnii": { name: "AGNI-I", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 1, min_range: 1.33, damage_burst: 39500, dpm: 301379, reload: 7.70, lock_time: 1.25, detonation_radius: 13, splash_damage: 500, splash_radius: 100, fragmentation_damage: 13000, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 68, max_speed: 485, accel_time: 1.54, range: 13.87, fire_penalty: 55, img: "img/Agni1.png" },
             "haeseongiii": { name: "HAESEONG III", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 23500, dpm: 120565, reload: 11.50, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 270, start_speed: 77, max_speed: 485, accel_time: 3.00, range: 9.33, fire_penalty: 40, img: "img/HaeseongIII.png" },
-            "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125SeaLance.png" },
+            "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125.png" },
             "asn4g": { name: "ASN4G", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 32699, dpm: 246304, reload: 7.70, lock_time: 2.00, detonation_radius: 33, splash_damage: 1500, splash_radius: 333, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 145, max_speed: 583, accel_time: 2.50, range: 12.13, fire_penalty: 40, img: "img/ASN4G.png" },
             "fattah1": { name: "FATTAH-1", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33000, dpm: 275785, reload: 7.00, lock_time: 1.50, splash_damage: 500, splash_radius: 100, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 505, accel_time: 2.10, range: 10.83, fire_penalty: 40, img: "img/Fattah1.png" },
             "fattah2": { name: "FATTAH-2", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 44200, dpm: 268541, reload: 9.45, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 641, accel_time: 2.64, range: 15.60, fire_penalty: 40, img: "img/Fattah2.png" },
@@ -975,8 +965,7 @@ const DB = {
             "pinaka": { name: "PINAKA MK3", category: "Гранатометы", country: "Индия", rarity: "Эпический", dpm: 268513, damage_burst: 41172, damage: 2210, reload: 7.00, crit_chance: 20, detonation_radius: 166, splash_damage: 1000, splash_radius: 200, projectiles: 1, ammo_clip: 16, range: 13.00, max_speed: 456, start_speed: 456, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "manual", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/PinakaMK3.png" },
             "mar290": { name: "MAR-290 (290 MM)", category: "Гранатометы", country: "Израиль", rarity: "Эпический", dpm: 253231, damage_burst: 33300, damage: 8124, reload: 7.35, detonation_radius: 26, splash_damage: 200, splash_radius: 166, projectiles: 4, range: 11.27, max_speed: 515, start_speed: 515, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/MAR290.png" }
         };
-
-        // Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
+// Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
         function getSafeDistance(item) {
             const MW_COEF = 0.00278; 
             let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
@@ -2256,7 +2245,7 @@ const DB = {
             }, 500);
         }
 
-        window.onload = () => { initApp(); triggerIntro(); };
+        window.onload = () => { initApp(); };
     </script>
 </body>
 </html>
