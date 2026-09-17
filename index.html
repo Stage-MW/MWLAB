@@ -290,8 +290,10 @@
             visibility: hidden; opacity: 0; transform: translateY(-10px); transition: 0.2s ease;
         }
         .custom-select-dropdown.active { visibility: visible; opacity: 1; transform: translateY(0); }
-        .dropdown-filter { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); }
-        .dropdown-filter select { width: 100%; background: rgba(0,0,0,0.6); color: var(--primary); border: 1px solid rgba(66,245,227,0.3); padding: 8px; border-radius: 4px; font-family: 'Jura'; font-weight: bold; outline: none; }
+        .dropdown-filter { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
+        .dropdown-filter select, .dropdown-filter input { width: 100%; background: rgba(0,0,0,0.6); color: var(--primary); border: 1px solid rgba(66,245,227,0.3); padding: 8px; border-radius: 4px; font-family: 'Jura'; font-weight: bold; outline: none; transition: 0.3s; }
+        .dropdown-filter input::placeholder { color: var(--text-muted); }
+        .dropdown-filter input:focus, .dropdown-filter select:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(66,245,227,0.2); }
         .dropdown-filter select option { background: #071017; color: #fff; }
         
         .dropdown-list { max-height: 280px; overflow-y: auto; padding: 5px; scrollbar-width: thin; scrollbar-color: var(--primary) rgba(0,0,0,0.2); }
@@ -618,8 +620,8 @@
             <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ:</b> Разделение на осколки обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%, а урон составит 10% от базы.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +5 баллов за каждую последующую в залпе).</i></li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ (урон взрыва/детонация) получают огромный бонус за счет поражения нескольких целей авиации.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
                 </ul>
             </div>
@@ -627,8 +629,7 @@
     </div>
 
     <div id="toast-container"></div>
-
-    <script>
+<script>
         // --- AUTH LOGIC ---
         let isAuth = localStorage.getItem('mw_auth') === 'true';
         let siteVisits = localStorage.getItem('mw_site_visits') || 0; 
@@ -782,8 +783,7 @@
             min_range: { label: "Мертвая зона (км)", higherIsBetter: false },
             fire_penalty: { label: "Штраф маскировки", higherIsBetter: false }
         };
-
-        const DB = {
+const DB = {
             // ----- ПУШКИ -----
             "a192": { name: "A-192 ARMAT (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 308225, damage_burst: 15925, damage: 3185, accuracy: 100, reload: 2.80, crit_chance: 50, projectiles: 4, range: 17.33, max_speed: 777, fire_penalty: 35, img: "img/A192.png" },
             "a200navigator": { name: "A-200 NAVIGATOR (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 326132, damage_burst: 46800, damage: 46800, accuracy: 100, reload: 8.61, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/A200.png" },
@@ -826,7 +826,7 @@
             "sahi209": { name: "SAHI-209 BLOCK-II", category: "Пушки", country: "Турция", rarity: "Эпический", dpm: 298424, damage_burst: 28599, damage: 14299, accuracy: 100, reload: 4.55, detonation_radius: 26, splash_damage: 25, splash_radius: 66, projectiles: 2, range: 17.33, max_speed: 894, fire_penalty: 35, img: "img/Sahi209.png" },
             "sh16": { name: "SH-16 (155 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 301241, damage_burst: 36400, damage: 18200, accuracy: 100, reload: 7.00, projectiles: 2, range: 11.27, max_speed: 933, fire_penalty: 40, img: "img/SH16.png" },
             "denshogun_alt": { name: "DEN SHO GUN (203 MM)", category: "Пушки", country: "Япония", rarity: "Легендарный", dpm: 299104, damage_burst: 50100, damage: 24050, accuracy: 100, reload: 9.10, detonation_radius: 13, splash_damage: 1000, splash_radius: 200, projectiles: 2, range: 17.33, max_speed: 855, fire_penalty: 35, img: "img/Shogun.png" },
-            "spgheva": { name: "SPGH EVA (155 MM)", category: "Пушки", country: "Европейский Союз", rarity: "Эпический", dpm: 343363, damage_burst: 46068, damage: 40950, accuracy: 100, reload: 8.05, crit_chance: 25, detonation_radius: 20, projectiles: 1, range: 13.00, max_speed: 923, fire_penalty: 40, img: "img/SPGH155EVA.png" },
+            "spgheva": { name: "SPGH EVA (155 MM)", category: "Европейский Союз", country: "Европейский Союз", rarity: "Эпический", dpm: 343363, damage_burst: 46068, damage: 40950, accuracy: 100, reload: 8.05, crit_chance: 25, detonation_radius: 20, projectiles: 1, range: 13.00, max_speed: 923, fire_penalty: 40, img: "img/SPGH155EVA.png" },
             "xm1203": { name: "XM1203 NLOS-C (155 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330925, damage_burst: 19304, damage: 14299, accuracy: 100, reload: 3.50, crit_chance: 70, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/XM1203.png" },
             "xm2001": { name: "XM2001 CRUSADER", category: "Пушки", country: "США", rarity: "Эпический", dpm: 348036, damage_burst: 38400, damage: 19200, accuracy: 100, reload: 6.44, splash_damage: 1000, splash_radius: 133, projectiles: 2, range: 13.00, max_speed: 1069, fire_penalty: 25, img: "img/XM2001Crusader.png" },
             "hpj33b": { name: "H/PJ-33B (100 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 326181, damage_burst: 35880, damage: 5980, accuracy: 100, reload: 5.60, projectiles: 6, range: 10.40, max_speed: 777, fire_penalty: 35, img: "img/hpj33b.png" },
@@ -1020,7 +1020,6 @@
                 let score = 100;
                 item.accuracyScore = 100;
 
-                // НОВАЯ ЛОГИКА ШТРАФОВ ЗА ОТВОД (С УЧЕТОМ ОШИБКИ ПРОТИВНИКА)
                 if (item.anti_jamming === 1) {
                     item.effectiveDpm = item.dpm;
                     item.effectiveBurst = item.damage_burst;
@@ -1030,14 +1029,14 @@
                     
                     if (item.reload >= 11.0) {
                         item.effectiveDpm = item.dpm * (0.25 + clusterBonus);
-                        item.effectiveBurst = item.damage_burst * 0.25; 
+                        item.effectiveBurst = item.damage_burst * (0.25 + clusterBonus); 
                     } else {
                         let totalSalvos = 60 / item.reload;
                         let flaredSalvos = 60 / 11.0; 
                         let hitRatio = Math.max(0, (totalSalvos - flaredSalvos) / totalSalvos);
                         
                         item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
-                        item.effectiveBurst = item.damage_burst * clusterBonus; 
+                        item.effectiveBurst = item.damage_burst * Math.min(1, hitRatio + clusterBonus); 
                     }
                 }
 
@@ -1056,20 +1055,41 @@
                 
                 let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
                 if (hasCluster) { 
-                    if (item.anti_jamming === 1) {
-                        score += 20; 
-                    } else {
-                        score += 10; 
-                    }
+                    if (item.anti_jamming === 1) score += 20; else score += 10;
                 }
                 
-                score += (item.projectiles * 45); 
+                // === НОВАЯ ЛОГИКА ДЛЯ ПВО РАКЕТ (АВИАЦИЯ) ===
+                let isAA = (item.air_target === 1 || item.dedicated_aa === 1);
+                
+                if (isAA) {
+                    score += 45; 
+                    
+                    // Повышаем ценность многозарядности (шанс сбить несколько целей в звене)
+                    if (item.projectiles > 1) {
+                        score += (item.projectiles - 1) * 20; 
+                    }
+                    
+                    // Жестко разделяем сплэш-урон (стирает звено) и детонацию (просто помогает зацепить)
+                    if (item.splash_damage > 0 && item.splash_radius > 0) {
+                        score += 60; // Огромный бонус за реальное АУЕ
+                        score += (item.splash_radius / 50) * 15; // Масштабируем профит от радиуса
+                        score += (item.splash_damage / 1000) * 10; // Учитываем саму силу осколков
+                    } else if (item.detonation_radius > 0) {
+                        // У SM-6 есть только детонация. Она не сбреет звено, но сработает надежнее по одной цели
+                        score += 20; 
+                    }
+                } else {
+                    // Стандартная логика для ракет
+                    score += (item.projectiles * 45);
+                    if (item.splash_damage) score += (item.splash_damage / 5000) * 30; 
+                    if (item.splash_radius) score += (item.splash_radius / 300) * 20; 
+                    if (item.detonation_radius) score += (item.detonation_radius / 20) * 15;
+                }
 
-                // --- РАСЧЕТ ПРОРЫВА ПВО (ЭФФЕКТИВНАЯ ЖИВУЧЕСТЬ) ---
+                // --- ПРОРЫВ ПВО (ЭФФЕКТИВНАЯ ЖИВУЧЕСТЬ) ---
                 let effectiveHp = item.hp;
                 if (item.lock_time === 0) {
-                    // Штраф за лазерное наведение (прямая траектория)
-                    effectiveHp *= 0.6; 
+                    effectiveHp *= 0.6; // Штраф за лазерное наведение (прямая траектория)
                 }
                 score += (effectiveHp / 400) * 160;   
 
@@ -1084,10 +1104,6 @@
                 }
 
                 if (item.reload <= 8.0) score += (8.0 - item.reload) * 15;
-
-                if (item.splash_damage) score += (item.splash_damage / 5000) * 30; 
-                if (item.splash_radius) score += (item.splash_radius / 300) * 20; 
-                if (item.detonation_radius) score += (item.detonation_radius / 20) * 15;
                 if (item.fragmentation_damage) score += (item.fragmentation_damage / 25000) * 40;
                 
                 if (item.air_target === 1 && !item.dedicated_aa) score += 50;
@@ -1234,7 +1250,10 @@
                 
                 if (currentCategory === "Ракеты") {
                     const cbJam = document.getElementById('cb-jamming'); if (cbJam && cbJam.checked && item.anti_jamming === 0) return false;
-                    const cbFlared = document.getElementById('cb-flared'); if (cbFlared && cbFlared.checked && item.anti_jamming !== 0) return false;
+                    const cbFlared = document.getElementById('cb-flared'); 
+                    if (cbFlared && cbFlared.checked) {
+                        if (item.anti_jamming !== 0 || item.air_target === 1) return false;
+                    }
                     const cbSub = document.getElementById('cb-sub'); if (cbSub && cbSub.checked && item.sub_launch !== 1) return false;
                     const cbCluster = document.getElementById('cb-cluster'); if (cbCluster && cbCluster.checked && item.cluster !== 1 && (!item.fragmentation_damage || item.fragmentation_damage <= 0)) return false;
                     const cbAir = document.getElementById('cb-air'); if (cbAir && cbAir.checked && item.air_target !== 1) return false;
@@ -1300,7 +1319,6 @@
             addBuildSlot(2);
             switchMainPage('page-home', document.getElementById('nav-home'));
             
-            // Close dropdowns on outside click
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.custom-select-wrapper')) {
                     closeAllBuildDropdowns();
@@ -1328,7 +1346,6 @@
                 updateEquipView(1, id1); updateEquipView(2, id2);
                 switchMainPage('page-compare', document.getElementById('nav-compare'));
                 
-                // --- АНИМАЦИЯ ПОЯВЛЕНИЯ VS ---
                 const card1 = document.getElementById('card-equip-1');
                 const card2 = document.getElementById('card-equip-2');
                 const verdictScreen = document.getElementById('verdict-screen');
@@ -1348,7 +1365,6 @@
                 compareQueue = []; 
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('selected'));
                 
-                // Переход от VS к результатам
                 setTimeout(() => {
                     const vsBadge = verdictScreen.querySelector('.vs-badge');
                     if (vsBadge) {
@@ -1740,21 +1756,31 @@
             }
         }
 
-        function renderBuildOptions(slotId, filterCountry) {
+        function renderBuildOptions(slotId) {
             const list = document.getElementById('list-' + slotId);
+            
+            const searchEl = document.getElementById('search-' + slotId);
+            const catEl = document.getElementById('cat-' + slotId);
+            const countryEl = document.getElementById('country-' + slotId);
+            
+            const searchVal = searchEl ? searchEl.value.toLowerCase() : '';
+            const filterCat = catEl ? catEl.value : '';
+            const filterCountry = countryEl ? countryEl.value : '';
+
             let html = '';
             CATEGORIES.forEach(cat => {
-                html += `<div class="dropdown-category-title">${cat}</div>`;
+                if (filterCat && filterCat !== cat) return;
                 
-                // Sort items alphabetically inside category for better UX
                 let itemsInCategory = Object.keys(DB).filter(k => DB[k].category === cat);
                 itemsInCategory.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
                 
+                let catHtml = '';
                 itemsInCategory.forEach(key => {
                     let item = DB[key];
                     if (filterCountry && item.country !== filterCountry) return;
+                    if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
                     
-                    html += `
+                    catHtml += `
                     <div class="dropdown-option" onclick="selectSlotOption('${slotId}', '${key}', event)">
                         <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
                         <div class="dropdown-option-text">
@@ -1763,7 +1789,16 @@
                         </div>
                     </div>`;
                 });
+                
+                if (catHtml !== '') {
+                    html += `<div class="dropdown-category-title">${cat}</div>` + catHtml;
+                }
             });
+            
+            if (html === '') {
+                html = `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Jura'; font-weight:bold;">Оружие не найдено</div>`;
+            }
+            
             list.innerHTML = html;
         }
 
@@ -1787,7 +1822,6 @@
             const colorClass = shipNum === 1 ? '' : 'ship2';
             const colorStyle = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
             
-            // Get first item as default
             let defaultItemKey = Object.keys(DB)[0];
 
             const slotHtml = `
@@ -1804,7 +1838,14 @@
                         </div>
                         <div class="custom-select-dropdown" id="dropdown-${slotId}">
                             <div class="dropdown-filter">
-                                <select onchange="renderBuildOptions('${slotId}', this.value)" onclick="event.stopPropagation()">
+                                <input type="text" id="search-${slotId}" placeholder="ПОИСК..." oninput="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
+                                <select id="cat-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
+                                    <option value="">ВСЕ КАТЕГОРИИ</option>
+                                    <option value="Ракеты">Ракеты</option>
+                                    <option value="Пушки">Пушки</option>
+                                    <option value="Торпеды">Торпеды</option>
+                                </select>
+                                <select id="country-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
                                     <option value="">ВСЕ НАЦИИ</option>
                                     <option value="Бразилия">Бразилия</option>
                                     <option value="Великобритания">Великобритания</option>
@@ -1838,8 +1879,8 @@
             `;
             container.insertAdjacentHTML('beforeend', slotHtml);
             
-            // Pre-render the options list for this dropdown
-            renderBuildOptions(slotId, '');
+            // Render the options list for this dropdown correctly based on DOM search inputs
+            renderBuildOptions(slotId);
         }
 
         function getShipStats(shipNum) {
@@ -1849,7 +1890,7 @@
                 const itemKey = slot.querySelector('.custom-select-wrapper').dataset.value;
                 const qty = parseInt(slot.querySelector('.slot-qty').value);
                 
-                if (!itemKey || !DB[itemKey]) return; // Fallback
+                if (!itemKey || !DB[itemKey]) return; 
                 
                 const item = DB[itemKey];
 
@@ -1962,7 +2003,7 @@
             showToast("СИСТЕМЫ РАССЧИТАНЫ");
         }
 
-        /* --- ГЕНЕРАТОР ИНФОГРАФИКИ (ФИКС ДЛЯ МОБИЛОК) --- */
+        /* --- ГЕНЕРАТОР ИНФОГРАФИКИ --- */
         function exportToImage(elementId, filename) {
             const el = document.getElementById(elementId);
             if (!el || el.style.display === 'none') return showToast("ОШИБКА: НЕТ ДАННЫХ", true);
