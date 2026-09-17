@@ -1195,10 +1195,10 @@
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
                 return score;
             },
-                        "Гранатометы": function(item) {
+                                "Гранатометы": function(item) {
                 let score = 100;
 
-                // Расчет влияния разброса/отдачи (от 11 до 20)
+                // Расчет влияния отдачи (от 11 до 20)
                 let recoil = item.recoil !== undefined ? item.recoil : 15; // 15 по умолчанию
                 let recoilBonus = ((20 - recoil) / (20 - 11)) * 30;
                 score += Math.max(0, Math.min(30, recoilBonus));
@@ -1210,7 +1210,12 @@
                     let speedFactor = 800 / item.max_speed; 
                     let evasionPenalty = (metaDistance * speedFactor * 1.5);
                     
-                    item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty); 
+                    // НОВОЕ: Динамический штраф за разброс снарядов на дистанции
+                    // Формула: (Дальность / 10) * Отдача * 1.5
+                    // Пример: Дальность 13.8 км, Отдача 18 -> Штраф меткости ~37%
+                    let spreadPenalty = (item.range / 10) * recoil * 1.5;
+                    
+                    item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty - spreadPenalty); 
                     item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
                     item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100);
 
@@ -1246,7 +1251,7 @@
                 // Утилитарность (Защита / ПТЗ / ПЛО)
                 if (item.can_hit_torpedoes === 1) {
                     let splashFactor = (item.splash_radius || 0) / 50;
-                    score += 120 + (splashFactor * 15);
+                    score += 50 + (splashFactor * 15); // ИЗМЕНЕНО: базовая ПТЗ теперь дает 50 баллов вместо 120
                     if (item.projectiles) score += (item.projectiles * 10);
                 }
                 if (item.can_hit_subs === 1) score += 80;
@@ -1257,11 +1262,11 @@
                 if (item.splash_radius > 0) score += (item.splash_radius / 50) * 15;
                 if (item.detonation_radius > 0) score += (item.detonation_radius / 30) * 10;
 
-                // Режим огня (ОБНОВЛЕНО: УБРАН ШТРАФ)
+                // Режим огня
                 if (item.fire_mode === "burst") {
-                    score += 40; // Бонус за моментальную разрядку из укрытия
+                    score += 40; 
                 } else if (item.fire_mode === "manual") {
-                    score += 0;  // Нейтрально. Больше не наказываем за ручной спам
+                    score += 0;  
                 }
 
                 if (item.anti_jamming === 1) score += 50;
