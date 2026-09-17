@@ -620,8 +620,8 @@
             <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +5 баллов за каждую последующую в залпе).</i></li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ (урон взрыва/детонация) получают огромный бонус за счет поражения нескольких целей авиации.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
+                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
                 </ul>
             </div>
@@ -1132,6 +1132,11 @@ const DB = {
                 if (item.anti_jamming === 1) score += 150; 
                 if (item.ammo_clip && item.ammo_clip > 1) score += (item.ammo_clip * 10);
                 
+                // Награждаем торпеды за количество в залпе (помогает перегрузить гранатометы врага)
+                if (item.projectiles) {
+                    score += (item.projectiles * 25); 
+                }
+                
                 let cappedRange = Math.min(item.range, 12);
                 score += (cappedRange / 12) * 30;
 
@@ -1430,11 +1435,20 @@ const DB = {
                 if (key === 'fire_penalty' || key === 'accuracy' || key === 'dispersion') val = `${val}%`;
 
                 let max = catMax[key] || 100;
+
+                // Динамическое правило для снарядов: ракетам и торпедам нужно больше, пушкам - меньше
+                let isHigherBetter = STATS_LOGIC[key].higherIsBetter;
+                if (key === 'projectiles') {
+                    isHigherBetter = (item.category === 'Ракеты' || item.category === 'Торпеды');
+                }
+
                 let pct = 0;
-                if (typeof rawVal === 'number' && STATS_LOGIC[key].higherIsBetter) {
-                    pct = Math.min(100, (rawVal / max) * 100);
-                } else if (typeof rawVal === 'number' && !STATS_LOGIC[key].higherIsBetter) {
-                    pct = Math.max(0, 100 - Math.min(100, (rawVal / max) * 100)); 
+                if (typeof rawVal === 'number') {
+                    if (isHigherBetter) {
+                        pct = Math.min(100, (rawVal / max) * 100);
+                    } else {
+                        pct = Math.max(0, 100 - Math.min(100, (rawVal / max) * 100)); 
+                    }
                 }
 
                 html += `
@@ -1663,7 +1677,12 @@ const DB = {
                 const v1 = e1[key] !== undefined ? parseFloat(e1[key]) : 0; const v2 = e2[key] !== undefined ? parseFloat(e2[key]) : 0;
                 if (v1 === v2 || STATS_LOGIC[key].isString) { el1.classList.add('neutral'); el2.classList.add('neutral'); continue; }
                 
-                const isV1Better = STATS_LOGIC[key].higherIsBetter ? v1 > v2 : v1 < v2;
+                let isHigherBetter = STATS_LOGIC[key].higherIsBetter;
+                if (key === 'projectiles') {
+                    isHigherBetter = (e1.category === 'Ракеты' || e1.category === 'Торпеды');
+                }
+
+                const isV1Better = isHigherBetter ? v1 > v2 : v1 < v2;
                 
                 if (isV1Better) { 
                     el1.classList.add('val-win'); el2.classList.add('val-lose'); 
