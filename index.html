@@ -1195,7 +1195,7 @@
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
                 return score;
             },
-                                "Гранатометы": function(item) {
+            "Гранатометы": function(item) {
                 let score = 100;
 
                 // Расчет влияния отдачи (от 11 до 20)
@@ -1210,10 +1210,9 @@
                     let speedFactor = 800 / item.max_speed; 
                     let evasionPenalty = (metaDistance * speedFactor * 1.5);
                     
-                    // НОВОЕ: Динамический штраф за разброс снарядов на дистанции
-                    // Формула: (Дальность / 10) * Отдача * 1.5
-                    // Пример: Дальность 13.8 км, Отдача 18 -> Штраф меткости ~37%
-                    let spreadPenalty = (item.range / 10) * recoil * 1.5;
+                    // НОВОЕ: Эффект дробовика. Чем дальше цель, выше отдача и больше снарядов в залпе — тем шире облако
+                    let projCount = item.projectiles || 1;
+                    let spreadPenalty = (item.range / 10) * recoil * (1 + (projCount * 0.1));
                     
                     item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty - spreadPenalty); 
                     item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
@@ -1234,7 +1233,24 @@
                     score += (item.effectiveBurst / 50000) * 150;
                     if (item.start_speed) score += (item.start_speed / 300) * 50;
                     
-                    if (item.projectiles > 3) score += 40;
+                    // НОВОЕ: Бонус за перегруз ПВО и спам ловушек
+                    if (item.anti_jamming === 1) {
+                        score += 50; // Неотводимые ракеты получают стабильные 50 баллов
+                    } else {
+                        // Отводимые получают балл пропорционально тому, как часто они пробивают окно ловушек (11 сек)
+                        let flareCycle = 11.0; 
+                        let hitRatio = 0;
+                        if (item.reload <= (flareCycle / 2)) {
+                            hitRatio = 1 - (item.reload / flareCycle); // Спам
+                        } else if (item.reload < flareCycle) {
+                            hitRatio = 0.50; // Средняя частота
+                        } else {
+                            hitRatio = 0.30; // Долгая перезарядка
+                        }
+                        score += 50 * hitRatio;
+                    }
+
+                    if (item.projectiles > 3) score += 20; // Доп. бонус за облако ракет (перегруз лазеров ПВО)
                 } else if (item.gl_type === "laser") {
                     item.accuracyScore = 100;
                     let effectiveHp = (item.hp || 100) * 0.6;
@@ -1251,7 +1267,7 @@
                 // Утилитарность (Защита / ПТЗ / ПЛО)
                 if (item.can_hit_torpedoes === 1) {
                     let splashFactor = (item.splash_radius || 0) / 50;
-                    score += 50 + (splashFactor * 15); // ИЗМЕНЕНО: базовая ПТЗ теперь дает 50 баллов вместо 120
+                    score += 50 + (splashFactor * 15);
                     if (item.projectiles) score += (item.projectiles * 10);
                 }
                 if (item.can_hit_subs === 1) score += 80;
@@ -1269,7 +1285,8 @@
                     score += 0;  
                 }
 
-                if (item.anti_jamming === 1) score += 50;
+                // Обычная защита от помех (для не-ракетных систем)
+                if (item.anti_jamming === 1 && item.gl_type !== "missile") score += 50;
                 if (item.air_target === 1) score += 60;
 
                 let cappedRange = Math.min(item.range, 12);
@@ -1277,6 +1294,7 @@
 
                 return score;
             }
+
 
         };
 
