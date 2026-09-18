@@ -946,7 +946,7 @@ const DB = {
             "k731": { name: "K731 WHITE SHARK", category: "Торпеды", country: "Южная Корея", rarity: "Эпический", anti_jamming: 1, dpm: 210235, damage_burst: 40800, damage: 12350, reload: 10.85, lock_time: 1.00, detonation_radius: 26, splash_damage: 1250, splash_radius: 333, projectiles: 1, ammo_clip: 3, range: 12.13, max_speed: 126, start_speed: 13, accel_time: 5.80, fire_penalty: 10, img: "img/K731WhiteShark.png" },
 
             // ----- ГРАНАТОМЕТЫ -----
-            "sr5_122": { name: "SR-5 122/300", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 130807, damage_burst: 17550, damage: 5850, reload: 6.65, projectiles: 3, range: 9.53, max_speed: 349, start_speed: 15, accel_time: 2.29, hp: 80, fire_penalty: 30, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/SR5.png" },
+            "sr5_122": { name: "SR-5 122/300", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 18, dpm: 259826, damage_burst: 34860, damage: 8450, reload: 6.65, lock_time: 1.0, crit_chance: 20, splash_damage: 25, splash_radius: 100, projectiles: 9, range: 9.53, max_speed: 485, start_speed: 15, accel_time: 2.29, hp: 80, fire_penalty: 30, anti_jamming: 0, gl_type: "mixed", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/SR5.png" },
             "rbu12000": { name: "RBU-12000 (300 MM)", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 18, dpm: 188687, damage_burst: 19026, damage: 2860, reload: 4.55, crit_chance: 20, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 6, range: 13.87, max_speed: 388, start_speed: 388, fire_penalty: 30, anti_jamming: 0, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/RBU12000.png" },
             "hwhh003b": { name: "HWHH-003B (300 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 20, dpm: 196746, damage_burst: 18527, damage: 4094, reload: 4.90, crit_chance: 25, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 4, range: 9.53, max_speed: 388, start_speed: 388, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/HWHH003B.png" },
             "himars": { name: "M142 HIMARS GMLRS", category: "Гранатометы", country: "США", rarity: "Эпический", recoil: 11, dpm: 273506, damage_burst: 36000, damage: 6000, reload: 5.95, lock_time: 1.5, detonation_radius: 26, splash_damage: 150, splash_radius: 66, projectiles: 6, range: 11.27, max_speed: 485, start_speed: 58, accel_time: 2.69, hp: 65, ammo_clip: 1, fire_penalty: 40, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/M142HIMARS.png" },
@@ -1254,8 +1254,9 @@ const DB = {
                     score += (item.max_speed / 600) * 80;
                     
                     // 2. ГЛАВНЫЙ БОНУС ЗА НЕУПРАВЛЯЕМОСТЬ: 
-                    // Абсолютный иммунитет к ПВО и ловушкам (гарантированный урон)
-                    score += 150; 
+                    // Чистые пушки (gun) получают +150 за 100% иммунитет к ПВО и РЭБ.
+                    // Гибриды (mixed) получают +75, так как половина их урона (ракеты) уводится ловушками.
+                    score += (item.gl_type === "mixed") ? 75 : 150;
                     
                 } else if (item.gl_type === "missile") {
                     item.accuracyScore = 100; 
