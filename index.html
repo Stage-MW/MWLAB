@@ -1224,7 +1224,7 @@ const DB = {
                 if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
                 return score;
             },
-            "Гранатометы": function(item) {
+          "Гранатометы": function(item) {
                 let score = 100;
 
                 // 1. Агрессивный штраф за отдачу (11 = 0 штрафа, 20 = -45 баллов штрафа)
@@ -1242,21 +1242,19 @@ const DB = {
                     let spreadPenalty = (item.range / 10) * recoil * (1 + (projCount * 0.1));
                     
                     item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty - spreadPenalty); 
-                    
-                    // Слегка смягчаем штраф меткости, так как на дистанции 5-8 км это мощный дробовик
+                    // Смягчаем штраф точности (на дистанции 5-8 км это мощный дробовик)
                     let hitRatio = Math.min(1, (item.accuracyScore / 100) + 0.15); 
                     
                     item.effectiveDpm = item.dpm * hitRatio;
                     item.effectiveBurst = item.damage_burst * hitRatio;
 
-                    score += (item.effectiveDpm / 300000) * 180;
-                    score += (item.effectiveBurst / 50000) * 150;
+                    // Увеличенный вес урона в мете
+                    score += (item.effectiveDpm / 300000) * 220; 
+                    score += (item.effectiveBurst / 50000) * 200; 
                     score += (item.max_speed / 600) * 80;
                     
-                    // 2. ГЛАВНЫЙ БОНУС ЗА НЕУПРАВЛЯЕМОСТЬ: 
-                    // Чистые пушки (gun) получают +150 за 100% иммунитет к ПВО и РЭБ.
-                    // Гибриды (mixed) получают +75, так как половина их урона (ракеты) уводится ловушками.
-                    score += (item.gl_type === "mixed") ? 75 : 150;
+                    // Иммунитет к ПВО и ловушкам: +120 чистым пушкам, +60 гибридам
+                    score += (item.gl_type === "mixed") ? 60 : 120; 
                     
                 } else if (item.gl_type === "missile") {
                     item.accuracyScore = 100; 
@@ -1266,10 +1264,12 @@ const DB = {
                     item.effectiveDpm = item.dpm * 0.7; 
                     item.effectiveBurst = item.damage_burst * 0.7;
                     
-                    score += (item.effectiveDpm / 300000) * 180;
-                    score += (item.effectiveBurst / 50000) * 150;
+                    // Увеличенный вес урона
+                    score += (item.effectiveDpm / 300000) * 220; 
+                    score += (item.effectiveBurst / 50000) * 200; 
                     if (item.start_speed) score += (item.start_speed / 300) * 50;
                     
+                    // Бонус за прорыв ловушек
                     if (item.anti_jamming === 1) {
                         score += 100; 
                     } else {
@@ -1282,7 +1282,6 @@ const DB = {
                         } else {
                             hitRatio = 0.40; 
                         }
-                        // Для ракетных отводимых бонус ощутимо меньше, чем иммунитет пушечных
                         score += 80 * hitRatio; 
                     }
 
@@ -1295,34 +1294,40 @@ const DB = {
                     item.effectiveDpm = item.dpm * 0.6; 
                     item.effectiveBurst = item.damage_burst * 0.6;
                     
-                    score += (item.effectiveDpm / 300000) * 180;
-                    score += (item.effectiveBurst / 50000) * 150;
+                    // Увеличенный вес урона
+                    score += (item.effectiveDpm / 300000) * 220; 
+                    score += (item.effectiveBurst / 50000) * 200; 
                     
                     score += 80; 
                 }
 
-                // Бонусы за утилитарность (ПЛО / ПТЗ)
+                // --- УТИЛИТИ (ПЛО / ПТЗ) ---
                 if (item.can_hit_torpedoes === 1) {
                     let splashFactor = (item.splash_radius || 0) / 50;
-                    score += 50 + (splashFactor * 15); 
-                    if (item.projectiles) score += (item.projectiles * 10);
+                    score += 30 + (splashFactor * 10); 
+                    // Лимит на бонус от спама мелких снарядов
+                    if (item.projectiles) score += Math.min(40, item.projectiles * 5); 
                 }
-                if (item.can_hit_subs === 1) score += 80;
-                if (item.only_torpedoes === 1) score += 250;
+                // Сниженный бонус за подлодки
+                if (item.can_hit_subs === 1) score += 40; 
+                if (item.only_torpedoes === 1) score += 200;
 
-                if (item.splash_damage > 0) score += (item.splash_damage / 1000) * 5;
-                if (item.splash_radius > 0) score += (item.splash_radius / 50) * 15;
+                // --- СПЛЭШ ---
+                if (item.splash_damage > 0) score += (item.splash_damage / 1000) * 15; 
+                if (item.splash_radius > 0) score += (item.splash_radius / 50) * 20; 
                 if (item.detonation_radius > 0) score += (item.detonation_radius / 30) * 10;
 
+                // --- РЕЖИМ ОГНЯ ---
                 if (item.fire_mode === "burst") {
                     score += 40; 
                 } else if (item.fire_mode === "manual") {
-                    score += 0; 
+                    score -= 40; // Жесткий штраф за ручную стрельбу
                 }
 
                 if (item.air_target === 1) score += 60;
 
-                // 3. Добавлен ровно 2 балла за каждый километр дальности
+                // --- ДАЛЬНОСТЬ ---
+                // Прямой бонус по 2 балла за 1 км
                 score += (item.range * 2);
 
                 let cappedRange = Math.min(item.range, 12);
