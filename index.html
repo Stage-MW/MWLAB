@@ -1227,7 +1227,7 @@ const DB = {
           "Гранатометы": function(item) {
                 let score = 100;
 
-                // Штраф за отдачу
+                // 1. Штраф за отдачу
                 let recoil = item.recoil !== undefined ? item.recoil : 15; 
                 let recoilPenalty = (recoil - 11) * 5; 
                 score -= Math.max(0, recoilPenalty);
@@ -1253,23 +1253,27 @@ const DB = {
                     
                     score += (item.gl_type === "mixed") ? 60 : 120; 
                     
+                    // ИСПРАВЛЕНИЕ 1: Штраф за время захвата для гибридов (SR-5)
+                    if (item.lock_time > 0) {
+                        score -= (item.lock_time * 50); 
+                    }
+                    
                 } else if (item.gl_type === "missile") {
                     item.accuracyScore = 100; 
                     let effectiveHp = item.hp || 100;
                     score += (effectiveHp / 200) * 120;
                     
-                    // --- ИСПРАВЛЕНИЕ: ЖЕСТКИЙ НЕРФ ОТВОДИМЫХ РАКЕТ ---
-                    // Первый залп уходит в ловушки, поэтому показатель "Альфы" режется на 60%
                     let isFlarable = (item.anti_jamming === 0);
                     item.effectiveDpm = item.dpm * (isFlarable ? 0.6 : 0.85); 
                     item.effectiveBurst = item.damage_burst * (isFlarable ? 0.4 : 0.85); 
                     
                     score += (item.effectiveDpm / 300000) * 220; 
                     score += (item.effectiveBurst / 50000) * 200; 
-                    if (item.start_speed) score += (item.start_speed / 300) * 50;
                     
-                    // --- ИСПРАВЛЕНИЕ: ШТРАФ ЗА ВРЕМЯ ЗАХВАТА ---
-                    // Пушки бьют инстантом, ракеты стоят и сводятся
+                    if (item.start_speed) score += (item.start_speed / 300) * 50;
+                    // ИСПРАВЛЕНИЕ 3: Добавлен бонус за максимальную скорость для ракетных ГЛ
+                    if (item.max_speed) score += (item.max_speed / 600) * 60;
+                    
                     if (item.lock_time > 0) {
                         score -= (item.lock_time * 50); 
                     }
@@ -1304,8 +1308,12 @@ const DB = {
                     if (item.lock_time > 0) {
                         score -= (item.lock_time * 50);
                     }
-                    
                     score += 80; 
+                }
+
+                // ИСПРАВЛЕНИЕ 2: Возвращен учет шанса критического урона
+                if (item.crit_chance > 0) {
+                    score += (item.crit_chance / 30) * 25; 
                 }
 
                 // Утилити
@@ -1317,9 +1325,9 @@ const DB = {
                 if (item.can_hit_subs === 1) score += 40; 
                 if (item.only_torpedoes === 1) score += 200;
 
-                // Сплэш
-                if (item.splash_damage > 0) score += (item.splash_damage / 1000) * 15; 
-                if (item.splash_radius > 0) score += (item.splash_radius / 50) * 20; 
+                // ИСПРАВЛЕНИЕ 4: Возвращены мощные противоракетные множители сплэша
+                if (item.splash_damage > 0) score += (item.splash_damage / 1000) * 35; 
+                if (item.splash_radius > 0) score += (item.splash_radius / 50) * 10; 
                 if (item.detonation_radius > 0) score += (item.detonation_radius / 30) * 10;
 
                 // Режим огня
