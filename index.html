@@ -424,8 +424,6 @@
         <div id="global-mwl-text">MWL</div>
     </div>
 
-    <!-- Блок intro-screen удален отсюда -->
-
     <div class="app-wrapper">
         <nav class="glass-panel" style="border-radius: 0; border-left:none; border-right:none; border-top:none;">
             <div class="nav-logo-small">MWLAB</div>
@@ -1646,129 +1644,7 @@
             }
             document.getElementById(`stats-equip-${side}`).innerHTML = html;
         }
-
-        function generateTactics(item) {
-            let pros = []; let cons = [];
-            
-            // Включаем логику ракет и для Ракет А/А
-            if (item.category === "Ракеты" || item.category === "Ракеты А/А") {
-                if (item.anti_jamming === 1) {
-                    pros.push("Абсолютная защита от ловушек (РЭБ)");
-                } else {
-                    let vuln_dist = getSafeDistance(item);
-                    if (vuln_dist < item.range) {
-                        cons.push(`ОКНО УЯЗВИМОСТИ: на дистанции свыше ${vuln_dist.toFixed(1)} км враг успеет дважды сбросить ловушки (подлет дольше 11 сек).`);
-                    } else {
-                        pros.push(`Гарантированный подлет: ракета преодолевает всю свою дальность быстрее, чем откатываются ловушки (11 сек).`);
-                    }
-                }
-
-                if (item.reload >= 11.0 && item.anti_jamming === 0) {
-                    cons.push("Уязвима к РЭБ: урон пройдет только если противник отвлечется или ошибется с ловушками.");
-                }
-                
-                if (item.air_target === 1) {
-                    if (item.dedicated_aa) {
-                        pros.push("Зенитная ракета (специализируется на перехвате авиации)");
-                    } else {
-                        pros.push("Многоцелевая (может дополнительно поражать авиацию)");
-                    }
-                }
-                if (item.sub_launch === 1) pros.push("Подводный пуск (атака из-под воды)");
-                
-                if (item.cluster === 1 || item.fragmentation_damage > 0) {
-                    if (item.anti_jamming === 0) pros.push("Частичный урон сквозь РЭБ (при сбросе ловушками шанс 20% нанести 10% урона)"); 
-                    else pros.push("Кластерная БЧ (ПВО не сбивает мелкие осколки, гарантия урона)");
-                }
-                
-                if (item.dpm > 250000) pros.push("Колоссальный математический DPM");
-                if (item.damage_burst >= 40000) pros.push("Разрушительный альфа-страйк (урон за залп)");
-                if (item.projectiles > 1) pros.push(`Залп из ${item.projectiles} ед. (помогает перегрузить ПВО врага)`);
-                
-                if (item.start_speed >= 200) pros.push("Резкий старт (ПВО не успевает среагировать в ближнем бою)"); 
-                else if (item.start_speed < 50) cons.push("Критически медленный старт (легко сбивается ПВО)");
-                
-                if (item.lock_time === 0) {
-                    pros.push("Лазерное наведение (моментальный пуск, позволяет выцеливать торчащие из-за скал части корабля)");
-                    cons.push("Летит по прямой траектории (ПВО гораздо легче сбить такую ракету)");
-                } else if (item.lock_time >= 3.0) {
-                    cons.push(`Долгий захват цели (${item.lock_time} сек)`);
-                }
-                
-                if (item.range < 11.5) cons.push(`Уязвимость на открытой воде (дальность ${item.range} км недостаточна для 40% карт)`);
-            } else if (item.category === "Пушки") {
-                let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
-                let pCount = item.projectiles || 1;
-                let totalShots = pCount * (item.ammo_clip || 1);
-                
-                if (item.accuracy < 100) {
-                    cons.push(`Врожденный разброс (Дробовик): точность ${item.accuracy}%. Облако снарядов теряет урон вдаль.`);
-                }
-
-                if (item.crit_chance && item.crit_chance > 0) {
-                    let pureBaseDamage = item.damage_burst / (1 + (item.crit_chance / 100) * 0.5);
-                    let maxCritBurst = Math.round(pureBaseDamage * 1.5).toLocaleString('ru');
-                    pros.push(`Шанс Крита (${item.crit_chance}%): идеальный залп выдаст до ${maxCritBurst} урона`);
-                }
-
-                if (item.accuracyScore < 75 && item.accuracy === 100) cons.push(`Потеря урона (до ${Math.round(100 - item.accuracyScore)}% промахов из-за уклонения цели)`);
-                
-                if (item.dpm > 300000 && item.accuracyScore < 80) pros.push(`Монстр ближнего боя (выдает все ${Math.round(item.dpm).toLocaleString('ru')} DPM в упор)`);
-
-                if (item.splash_radius >= 100) pros.push(`Сплэш ${item.splash_radius} м — сбривает ракеты при их вылете!`);
-                
-                if (item.max_speed >= 950) pros.push(`Идеальная баллистика (${item.max_speed} уз.)`);
-                else if (item.max_speed < 650) cons.push(`Медленные снаряды (${item.max_speed} уз.)`);
-                
-                if (hasClip) {
-                    pros.push(`Автонаведение: система сама ведет цель`);
-                    cons.push(`Привязка к центру: из-за укрытия снаряды бьют в скалу`);
-                }
-                
-                if (totalShots >= 10) cons.push(`Долгая разрядка (${totalShots} выстр.) требует удержания цели`);
-                else if (totalShots >= 4 && !hasClip) cons.push(`Многоствольный залп (${totalShots} выстр.) растягивает урон`);
-
-                if (totalShots <= 2 && item.damage_burst >= 30000 && item.range >= 12) pros.push("Снайпер: 'Выстрелил-Спрятался'");
-                else if (totalShots === 1) pros.push("Вся мощь в одном снаряде");
-                
-                if (item.effectiveDpm > 250000 && totalShots <= 4) pros.push(`Подавляющий эффект. DPM (~${Math.round(item.effectiveDpm).toLocaleString('ru')})`);
-                
-                if (item.range >= 12.0) pros.push("Избыточная дальность (позволяет стрелять через всю карту)");
-                else if (item.range < 6.5) cons.push(`Критически малая дальность (${item.range} км) — требует игры от островов`);
-                
-                if (item.air_target === 1) pros.push("Универса орудие ПВО");
-            } else if (item.category === "Торпеды") {
-                if (item.anti_jamming === 1) pros.push("Невосприимчивость к ловушкам (РЭБ)"); else cons.push("Сбрасывается вражескими ловушками");
-                if (item.ammo_clip > 1) pros.push(`Имеет обойму (x${item.ammo_clip}), позволяя спамить торпедами`);
-                if (item.accel_time < 5) pros.push("Быстрый набор скорости (отличная реакция вблизи)"); else cons.push("Долго набирает максимальную скорость");
-                if (item.max_speed >= 120) pros.push("Высокая максимальная скорость (цели тяжело увернуться)"); else cons.push("Медленный ход");
-                if (item.splash_damage > 0) pros.push("Имеет сплэш-урон по области (может задеть несколько целей)");
-            } else if (item.category === "Гранатометы") {
-                if (item.can_hit_torpedoes === 1) pros.push(`Глухая оборона: стирает торпеды (сплэш ${item.splash_radius || item.detonation_radius} м)`);
-                else cons.push(`Беззащитен от торпед (не перехватывает веер)`);
-
-                if (item.can_hit_subs === 1) pros.push("Глубинные бомбы: достает подлодки на глубине");
-                
-                if (item.fire_mode === "burst") pros.push("Быстрая разрядка (Burst): позволяет играть от скал 'выстрелил-спрятался'");
-                else if (item.fire_mode === "manual") cons.push("Долгая разрядка (Зажим): вынуждает стоять на открытой воде под огнем");
-
-                if (item.gl_type === "missile") cons.push("Уязвим к ПВО: ракетный тип легко перехватывается зенитками");
-                else if (item.gl_type === "laser") {
-                    pros.push("Лазерная траектория: моментальный урон без упреждения");
-                    cons.push("Летит по прямой: легчайшая цель для корабельного ПВО");
-                } else if (item.gl_type === "gun") pros.push("Пушечный навес: снаряды не сбиваются системами ПВО");
-                
-                if (item.air_target === 1) pros.push("Способен наводиться и сбивать авиацию");
-            }
-
-            return `<div class="analysis-col glass-panel">
-                <div class="col-title">${item.name}</div>
-                <div>${pros.map(p => `<div class="pro-item">${p}</div>`).join('')}</div>
-                <div style="margin-top:10px;">${cons.map(c => `<div class="con-item">${c}</div>`).join('')}</div>
-            </div>`;
-        }
-
-        function drawRadarChart(e1, e2) {
+function drawRadarChart(e1, e2) {
             let canvas = document.getElementById('radarChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
@@ -1919,76 +1795,97 @@
                 }
             }
 
-            let analysisCols = `<div class="analysis-cols">${generateTactics(e1)}${generateTactics(e2)}</div>`;
             let summaryText = "";
 
             if (Math.abs(e1.rating - e2.rating) < 15) {
                 let diff = Math.abs(e1.rating - e2.rating);
                 let pDiff = ((diff / Math.min(e1.rating, e2.rating)) * 100).toFixed(1);
-                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (откл. ${pDiff}%). Выбор зависит от тактики.</span>`;
+                summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ПРАКТИЧЕСКИ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (разница ${pDiff}%).<br><br>Выбор зависит исключительно от ваших личных предпочтений и стиля игры.</span>`;
                 card1.classList.add('card-tie'); card2.classList.add('card-tie');
             } else {
-                const winner = e1.rating > e2.rating ? e1 : e2; const loser = e1.rating > e2.rating ? e2 : e1;
-                if (e1.rating > e2.rating) { card1.classList.add('card-winner'); card2.classList.add('card-loser'); } else { card1.classList.add('card-loser'); card2.classList.add('card-winner'); }
+                const winner = e1.rating > e2.rating ? e1 : e2; 
+                const loser = e1.rating > e2.rating ? e2 : e1;
+                
+                if (e1.rating > e2.rating) { 
+                    card1.classList.add('card-winner'); card2.classList.add('card-loser'); 
+                } else { 
+                    card1.classList.add('card-loser'); card2.classList.add('card-winner'); 
+                }
                 
                 let percentDiff = (((winner.rating - loser.rating) / loser.rating) * 100).toFixed(1);
                 
-                let reason = "превосходства";
+                // --- ГЕНЕРАТОР КРАТКИХ ОПИСАНИЙ ПОЧЕМУ ОРУЖИЕ ЛУЧШЕ ---
+                let reason = "отличному балансу характеристик";
                 if (e1.category === "Ракеты" || e1.category === "Ракеты А/А") {
-                    if (loser.min_range > 0 && winner.min_range === 0) reason = "отсутствия мертвой зоны пуска";
-                    else if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reason = "кластерной БЧ (урон сквозь ПВО)";
-                    else if (winner.anti_jamming === 1 && winner.anti_jamming > loser.anti_jamming) reason = "независимости от РЭБ (ловушек)";
-                    else if (winner.damage_burst > loser.damage_burst + 10000) reason = "разрушительного разового урона";
+                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "абсолютной защите от РЭБ (не сбрасывается ловушками)";
+                    else if (loser.min_range > 0 && winner.min_range === 0) reason = "отсутствию мертвой зоны пуска (можно бить в упор)";
+                    else if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reason = "кластерной БЧ, наносящей урон даже сквозь системы ПВО";
+                    else if (winner.damage_burst > loser.damage_burst + 10000) reason = "сокрушительному разовому урону, идеальному для игры от укрытий";
+                    else if (winner.start_speed > loser.start_speed + 150) reason = "очень резкому старту — вражеское ПВО просто не успевает среагировать";
+                    else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "колоссальному математическому урону в минуту (DPM)";
+                    else reason = "превосходной баллистике и плотности огня";
                 } else if (e1.category === "Торпеды") {
-                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек";
-                    else if (winner.max_speed > loser.max_speed + 15) reason = "высокой скорости хода (цели сложнее уклониться)";
-                    else if (winner.damage_burst > loser.damage_burst + 10000) reason = "тяжелого разового урона";
-                    else if (winner.dpm > loser.dpm + 20000) reason = "высокого урона в минуту";
-                    else reason = "лучших общих характеристик";
+                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек (гарантированное попадание)";
+                    else if (winner.max_speed > loser.max_speed + 15) reason = "высокой скорости хода (цели гораздо сложнее уклониться)";
+                    else if (winner.damage_burst > loser.damage_burst + 10000) reason = "тяжелому разовому урону";
+                    else if (winner.dpm > loser.dpm + 20000) reason = "высокому стабильному урону в минуту";
+                    else reason = "лучшим общим характеристикам";
                 } else if (e1.category === "Гранатометы") {
-                    if (winner.can_hit_torpedoes === 1 && loser.can_hit_torpedoes === 0) reason = "способности уничтожать вражеские торпеды";
-                    else if (winner.fire_mode === "burst" && loser.fire_mode === "manual") reason = "моментальной разрядки (Burst)";
-                    else if (winner.splash_radius > loser.splash_radius + 50) reason = "огромного радиуса сплэша (лучшая ПТЗ)";
-                    else if (winner.gl_type === "gun" && loser.gl_type === "missile") reason = "навесной баллистики (снаряды не перехватываются ПВО)";
-                    else if (winner.dpm > loser.dpm + 20000) reason = "мощного урона в минуту";
+                    if (winner.can_hit_torpedoes === 1 && loser.can_hit_torpedoes === 0) reason = "способности перехватывать вражеские торпеды (отличная защита)";
+                    else if (winner.fire_mode === "burst" && loser.fire_mode === "manual") reason = "моментальной разрядке, позволяющей агрессивно играть от скал";
+                    else if (winner.splash_radius > loser.splash_radius + 50) reason = "огромному радиусу сплэша (лучшая ПТЗ в игре)";
+                    else if (winner.gl_type === "gun" && loser.gl_type === "missile") reason = "навесной пушечной баллистике (снаряды не сбиваются ПВО)";
+                    else if (winner.dpm > loser.dpm + 20000) reason = "мощнейшему урону в минуту";
                 } else if (e1.category === "Пушки") {
                     let wHasClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
                     let lHasClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
                     let wTotalShots = (winner.projectiles || 1) * (winner.ammo_clip || 1);
 
-                    if (loser.range < 6.5 && winner.range >= 10) reason = `превосходства в дальности`;
-                    else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `мощи в ближнем бою`;
-                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперского потенциала (урон за секунду)";
-                    else if (!wHasClip && lHasClip) reason = "отсутствия привязки к центру";
-                    else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной баллистики (нет промахов вдаль)";
-                    else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокого эффективного DPM с учетом попаданий";
+                    if (loser.range < 6.5 && winner.range >= 10) reason = `превосходству в дальности стрельбы`;
+                    else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `невероятной мощи в ближнем бою`;
+                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперскому потенциалу (наносит огромный урон за секунду)";
+                    else if (!wHasClip && lHasClip) reason = "отсутствию привязки к центру (снаряды не летят в скалу из-за укрытий)";
+                    else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной точности (снаряды не мажут по маневрирующей цели)";
+                    else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокому эффективному DPM с учетом попаданий";
                     else if (wTotalShots > 2 && winner.damage_burst > loser.damage_burst + 15000) reason = "огромной плотности огня";
-                    else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости снаряда";
+                    else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости полета снаряда";
                 }
 
-                summaryText = `<span style="color:var(--primary); font-size: 1.3rem; display:block; margin-bottom: 8px; font-family:'Orbitron'; letter-spacing:1px;">ТАКТИЧЕСКОЕ ПРЕВОСХОДСТВО: ${winner.name}</span><span style="color:var(--text-main);">В мете закрытых карт (5-10км) это оружие эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b> за счет ${reason}.</span>`;
+                summaryText = `<span style="color:var(--primary); font-size: 1.4rem; display:block; margin-bottom: 15px; font-family:'Orbitron'; letter-spacing:1px; text-transform: uppercase;">ПОБЕДИТЕЛЬ: ${winner.name}</span>
+                <span style="color:var(--text-main); font-size: 1rem; line-height: 1.6;">
+                    В актуальной мете ближнего боя (5-10 км) это оружие эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b>.<br><br>
+                    <span style="color:var(--text-muted); font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;">Ключевой фактор:</span><br>
+                    <b style="color:#fff; font-size: 1.05rem;">Победа достигается благодаря ${reason}.</b>
+                </span>`;
             }
 
             let metaLegend = `
-                <div class="meta-legend">
+                <div class="meta-legend" style="margin-top: 25px;">
                     <b style="color:#fff;">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
-                    <span style="color:#fff;">0-5%</span>: ТАКТИЧЕСКИЙ ПАРИТЕТ | 
+                    <span style="color:#fff;">0-5%</span>: ПАРИТЕТ | 
                     <span style="color:var(--primary);">5-15%</span>: УВЕРЕННОЕ ПРЕИМУЩЕСТВО | 
-                    <span style="color:var(--secondary);">>15%</span>: АБСОЛЮТНОЕ ДОМИНИРОВАНИЕ
+                    <span style="color:var(--secondary);">>15%</span>: АБСОЛЮТНАЯ ДОМИНАЦИЯ
                 </div>
             `;
 
             let visualsHTML = isAuth 
-                ? `<div class="radar-container" style="position: relative; height: 250px;"><canvas id="radarChart"></canvas></div>` 
+                ? `<div class="radar-container" style="position: relative; height: 250px; margin-top:20px;"><canvas id="radarChart"></canvas></div>` 
                 : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Jura'; font-weight:bold; border: 1px dashed rgba(255,60,90,0.3); margin-top:15px; border-radius:12px; background:rgba(255,60,90,0.05);">🔒 ДИАГРАММА АНАЛИЗА ДОСТУПНА В PRO ВЕРСИИ</div>`;
 
-            let finalVerdictHTML = `<div class="final-summary-block glass-panel"><div style="font-family:'Jura'; font-size:1rem; line-height: 1.6; text-transform: none;">${summaryText}</div>${metaLegend}${visualsHTML}</div>`;
-            document.getElementById('verdict-screen').innerHTML = analysisCols + finalVerdictHTML;
+            let finalVerdictHTML = `<div class="final-summary-block glass-panel" style="padding:30px; width:100%;">
+                <div style="font-family:'Jura'; text-transform: none;">${summaryText}</div>
+                ${metaLegend}
+                ${visualsHTML}
+            </div>`;
+            
+            document.getElementById('verdict-screen').innerHTML = finalVerdictHTML;
+            
             if(isAuth) {
                 setTimeout(() => { drawRadarChart(e1, e2); }, 100);
             }
         }
-/* --- ЛОГИКА КОНСТРУКТОРА СБОРОК --- */
+
+        /* --- ЛОГИКА КОНСТРУКТОРА СБОРОК --- */
         let slotCounter = 0;
         
         function closeAllBuildDropdowns() {
@@ -2041,7 +1938,6 @@
                 });
                 
                 if (catHtml !== '') {
-                    // Теперь название категории выводится напрямую ("Ракеты А/А")
                     html += `<div class="dropdown-category-title">${cat}</div>` + catHtml;
                 }
             });
@@ -2153,7 +2049,7 @@
                 s.itemsCount += qty;
 
                 if (item.range > s.maxRange) s.maxRange = item.range;
-                if (item.air_target === 1 || item.dedicated_aa === 1 || item.category === "Ракеты А/А") s.hasAir = true;
+                if (item.air_target === 1 || item.dedicated_aa === 1 || item.category === "Ракеты А/А") s.hasAir = true; 
                 if (item.sub_launch === 1 || item.can_hit_subs === 1) s.hasSub = true;
                 if (item.anti_jamming === 1) s.hasAntiJamming = true;
             });
