@@ -1221,9 +1221,10 @@ const DB = {
             "Гранатометы": function(item) {
                 let score = 100;
 
+                // 1. Агрессивный штраф за отдачу (11 = 0 штрафа, 20 = -45 баллов штрафа)
                 let recoil = item.recoil !== undefined ? item.recoil : 15; 
-                let recoilBonus = ((20 - recoil) / (20 - 11)) * 30;
-                score += Math.max(0, Math.min(30, recoilBonus));
+                let recoilPenalty = (recoil - 11) * 5; 
+                score -= Math.max(0, recoilPenalty);
 
                 if (item.gl_type === "gun" || item.gl_type === "mixed") {
                     let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
@@ -1253,22 +1254,24 @@ const DB = {
                     score += (item.effectiveBurst / 50000) * 150;
                     if (item.start_speed) score += (item.start_speed / 300) * 50;
                     
+                    // 3. Увеличенный бонус ракетным ГЛ перед отводимыми
                     if (item.anti_jamming === 1) {
-                        score += 50; 
+                        score += 100; // Неотводимые ракетные ГЛ получают колоссальный буст
                     } else {
                         let flareCycle = 11.0; 
                         let hitRatio = 0;
+                        // Отводимые ракетные ГЛ всё равно лучше спамят ПВО, чем обычные ракеты
                         if (item.reload <= (flareCycle / 2)) {
-                            hitRatio = 1 - (item.reload / flareCycle); 
+                            hitRatio = 1.2 - (item.reload / flareCycle); 
                         } else if (item.reload < flareCycle) {
-                            hitRatio = 0.50; 
+                            hitRatio = 0.70; 
                         } else {
-                            hitRatio = 0.30; 
+                            hitRatio = 0.40; 
                         }
-                        score += 50 * hitRatio;
+                        score += 80 * hitRatio; // Макс бонус вырос с 50 до 80
                     }
 
-                    if (item.projectiles > 3) score += 20; 
+                    if (item.projectiles > 3) score += 30; // Доп. бонус за облако ракет (было 20)
                 } else if (item.gl_type === "laser") {
                     item.accuracyScore = 100;
                     let effectiveHp = (item.hp || 100) * 0.6;
@@ -1302,6 +1305,9 @@ const DB = {
                 }
 
                 if (item.air_target === 1) score += 60;
+
+                // 2. Ровно 2 балла за каждый километр дальности
+                score += (item.range * 2);
 
                 let cappedRange = Math.min(item.range, 12);
                 score += (cappedRange / 12) * 20;
