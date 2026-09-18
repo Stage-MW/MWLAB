@@ -718,9 +718,8 @@
         }
         setInterval(spawnSpark, 200);
 
-        // Функция triggerIntro была удалена
-
-        const CATEGORIES = ["Ракеты", "Пушки", "Торпеды"];
+        // ВАЖНО: Новая категория "Ракеты А/А" добавлена сразу после обычных "Ракет"
+        const ALL_CATEGORIES = ["Ракеты", "Ракеты А/А", "Пушки", "Торпеды", "Гранатометы"];
         let currentCategory = "Ракеты";
         let searchQuery = "";
         
@@ -736,6 +735,12 @@
                 reload: 25, lock_time: 4.5, projectiles: 4, 
                 splash_damage: 10000, splash_radius: 700, fragmentation_damage: 25000, detonation_radius: 100,
                 hp: 400, start_speed: 400, max_speed: 650, accel_time: 12, range: 16, min_range: 4, fire_penalty: 60
+            },
+            "Ракеты А/А": {
+                damage_burst: 30000, dpm: 230000, damage: 30000, accuracy: 100,
+                reload: 8, lock_time: 1.5, projectiles: 3, 
+                splash_damage: 5000, splash_radius: 500, detonation_radius: 100,
+                hp: 400, start_speed: 400, max_speed: 600, accel_time: 3, range: 16, min_range: 4, fire_penalty: 50
             },
             "Торпеды": {
                 damage_burst: 70000, dpm: 300000, damage: 50000, accuracy: 100,
@@ -800,7 +805,7 @@
             "l52a1": { name: "L/52A1 (155 MM)", category: "Пушки", country: "Германия", rarity: "Эпический", dpm: 336421, damage_burst: 47099, damage: 14949, accuracy: 100, reload: 7.70, splash_damage: 750, splash_radius: 133, projectiles: 3, range: 13.87, max_speed: 874, fire_penalty: 40, img: "img/L52A1.png" },
             "mark42": { name: "MARK 42 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 292167, damage_burst: 75720, damage: 3055, accuracy: 100, reload: 5.80, detonation_radius: 33, splash_damage: 100, splash_radius: 66, projectiles: 8, ammo_clip: 3, range: 10.83, max_speed: 923, fire_penalty: 35, air_target: 1, img: "img/Mark42.png" },
             "mark45": { name: "MARK 45 MOD 4 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330352, damage_burst: 18720, damage: 4680, accuracy: 100, reload: 2.80, projectiles: 4, range: 12.13, max_speed: 680, fire_penalty: 35, img: "img/Mark45MoD4.png" },
-            "mark45mod4b": { name: "MARK-45 MOD 4B (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 255857, damage_burst: 14328, damage: 1560, accuracy: 100, reload: 2.10, crit_chance: 20, detonation_radius: 20, splash_damage: 75, splash_radius: 166, projectiles: 8, range: 10.40, max_speed: 826, fire_penalty: 35, air_target: 1, img: "img/Mark45Mod4.png" },
+            "mark45mod4b": { name: "MARK-45 MOD 4B (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 255857, damage_burst: 14328, damage: 1560, accuracy: 100, reload: 2.10, crit_chance: 20, detonation_radius: 20, splash_damage: 75, splash_radius: 166, projectiles: 8, range: 10.40, max_speed: 826, fire_penalty: 35, air_target: 1, img: "img/Mark45MoD4B.png" },
             "mark71": { name: "MARK-71 (203 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 345812, damage_burst: 35100, damage: 35100, accuracy: 100, reload: 6.09, projectiles: 1, range: 13.87, max_speed: 826, fire_penalty: 40, img: "img/Mark71.png" },
             "mark5512": { name: "MARK 55/12 (305 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 289591, damage_burst: 47300, damage: 46800, accuracy: 100, reload: 9.80, splash_damage: 500, splash_radius: 166, projectiles: 1, range: 14.73, max_speed: 777, fire_penalty: 40, img: "img/Mark5512.png" },
             "mk8mod1": { name: "MK8 MOD 1 (155 MM)", category: "Пушки", country: "Великобритания", rarity: "Эпический", dpm: 319084, damage_burst: 46799, damage: 15599, accuracy: 100, reload: 8.40, projectiles: 3, range: 12.13, max_speed: 826, fire_penalty: 40, img: "img/MK8Mod1.png" },
@@ -886,20 +891,19 @@
             "fattah2": { name: "FATTAH-2", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 44200, dpm: 268541, reload: 9.45, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 641, accel_time: 2.64, range: 15.60, fire_penalty: 40, img: "img/Fattah2.png" },
             "brahmosng": { name: "BRAHMOS NG", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 26000, dpm: 271607, reload: 5.60, lock_time: 1.50, detonation_radius: 23, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 622, accel_time: 2.70, range: 15.60, fire_penalty: 40, img: "img/BrahmosNG.png" },
             "yj19": { name: "YJ-19", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29674, dpm: 130435, reload: 13.65, lock_time: 0, detonation_radius: 33, splash_damage: 750, splash_radius: 133, projectiles: 1, anti_jamming: 1, hp: 130, start_speed: 194, max_speed: 622, accel_time: 2.44, range: 15.60, fire_penalty: 42, img: "img/YJ19.png" },
-
-            // --- ЗЕНИТНЫЕ РАКЕТЫ (DEDICATED AA) ---
-            "idas": { name: "IDAS", category: "Ракеты", country: "Германия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 16900, dpm: 194187, reload: 4.90, lock_time: 0.25, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 77, max_speed: 524, accel_time: 2.30, range: 8.67, detonation_radius: 100, fire_penalty: 35, sub_launch: 1, air_target: 1, dedicated_aa: 1, img: "img/IDAS.png" },
-            "micam": { name: "MICA-M", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 16950, dpm: 173121, reload: 5.25, lock_time: 0.25, detonation_radius: 46, splash_damage: 1750, splash_radius: 200, projectiles: 3, anti_jamming: 0, hp: 70, start_speed: 194, max_speed: 544, accel_time: 0.90, range: 12.57, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/MICAA3SM.png" },
-            "rim174sm6": { name: "RIM-174 (SM-6)", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 14949, dpm: 212667, reload: 4.20, lock_time: 0.35, detonation_radius: 100, projectiles: 1, anti_jamming: 0, hp: 240, start_speed: 233, max_speed: 485, accel_time: 1.63, range: 10.40, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM174.png" },
-            "feitian1": { name: "FEITIAN-1", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29249, dpm: 226394, reload: 7.70, lock_time: 0.40, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 325, start_speed: 155, max_speed: 583, accel_time: 2.00, range: 11.70, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/Feitian1.png" },
-            "hq26": { name: "HQ-26", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 12250, dpm: 174125, reload: 4.20, lock_time: 0.30, detonation_radius: 33, splash_damage: 2500, splash_radius: 500, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 155, max_speed: 505, accel_time: 1.80, range: 10.40, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/HQ26.png" },
-            "akashng": { name: "AKASH NG", category: "Ракеты", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 12050, dpm: 212122, reload: 3.15, lock_time: 0.50, projectiles: 2, anti_jamming: 0, hp: 130, start_speed: 155, max_speed: 505, accel_time: 1.80, range: 13.00, detonation_radius: 33, splash_damage: 500, splash_radius: 166, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/AkashNG.png" },
-            "hstdv": { name: "HSTDV", category: "Ракеты", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 17550, dpm: 213465, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 116, max_speed: 583, accel_time: 2.00, range: 14.73, detonation_radius: 66, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/HSTDV.png" },
-            "rim174um": { name: "RIM-174UM", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13700, dpm: 183641, reload: 4.20, lock_time: 0.35, detonation_radius: 66, splash_damage: 1000, splash_radius: 100, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 58, max_speed: 466, accel_time: 1.40, range: 10.83, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM174UM.png" },
-            "s350vityaz": { name: "S-350 VITYAZ", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 16249, dpm: 184774, reload: 5.25, lock_time: 0.30, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 116, max_speed: 524, accel_time: 1.62, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S350Vityaz.png" },
-            "s500": { name: "S-500 PROMETHEUS", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 19500, dpm: 210954, reload: 4.90, lock_time: 0.50, detonation_radius: 66, projectiles: 1, ammo_clip: 3, anti_jamming: 0, hp: 95, start_speed: 291, max_speed: 427, accel_time: 1.40, range: 9.53, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S500.png" },
-            "shtil1": { name: "SHTIL-1", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 12550, dpm: 194855, reload: 3.50, lock_time: 1.00, detonation_radius: 33, splash_damage: 750, splash_radius: 100, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 524, accel_time: 1.82, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/Shtil1.png" },
-            "sm3": { name: "RIM-161 (SM-3)", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13000, dpm: 158122, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 213, max_speed: 408, accel_time: 1.25, range: 8.67, detonation_radius: 33, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM161.png" },
+// --- ЗЕНИТНЫЕ РАКЕТЫ (DEDICATED AA) ---
+            "idas": { name: "IDAS", category: "Ракеты А/А", country: "Германия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 16900, dpm: 194187, reload: 4.90, lock_time: 0.25, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 77, max_speed: 524, accel_time: 2.30, range: 8.67, detonation_radius: 100, fire_penalty: 35, sub_launch: 1, air_target: 1, dedicated_aa: 1, img: "img/IDAS.png" },
+            "micam": { name: "MICA-M", category: "Ракеты А/А", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 16950, dpm: 173121, reload: 5.25, lock_time: 0.25, detonation_radius: 46, splash_damage: 1750, splash_radius: 200, projectiles: 3, anti_jamming: 0, hp: 70, start_speed: 194, max_speed: 544, accel_time: 0.90, range: 12.57, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/MICAA3SM.png" },
+            "rim174sm6": { name: "RIM-174 (SM-6)", category: "Ракеты А/А", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 14949, dpm: 212667, reload: 4.20, lock_time: 0.35, detonation_radius: 100, projectiles: 1, anti_jamming: 0, hp: 240, start_speed: 233, max_speed: 485, accel_time: 1.63, range: 10.40, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM174.png" },
+            "feitian1": { name: "FEITIAN-1", category: "Ракеты А/А", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29249, dpm: 226394, reload: 7.70, lock_time: 0.40, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 325, start_speed: 155, max_speed: 583, accel_time: 2.00, range: 11.70, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/Feitian1.png" },
+            "hq26": { name: "HQ-26", category: "Ракеты А/А", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 12250, dpm: 174125, reload: 4.20, lock_time: 0.30, detonation_radius: 33, splash_damage: 2500, splash_radius: 500, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 155, max_speed: 505, accel_time: 1.80, range: 10.40, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/HQ26.png" },
+            "akashng": { name: "AKASH NG", category: "Ракеты А/А", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 12050, dpm: 212122, reload: 3.15, lock_time: 0.50, projectiles: 2, anti_jamming: 0, hp: 130, start_speed: 155, max_speed: 505, accel_time: 1.80, range: 13.00, detonation_radius: 33, splash_damage: 500, splash_radius: 166, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/AkashNG.png" },
+            "hstdv": { name: "HSTDV", category: "Ракеты А/А", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 17550, dpm: 213465, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 116, max_speed: 583, accel_time: 2.00, range: 14.73, detonation_radius: 66, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/HSTDV.png" },
+            "rim174um": { name: "RIM-174UM", category: "Ракеты А/А", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13700, dpm: 183641, reload: 4.20, lock_time: 0.35, detonation_radius: 66, splash_damage: 1000, splash_radius: 100, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 58, max_speed: 466, accel_time: 1.40, range: 10.83, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM174UM.png" },
+            "s350vityaz": { name: "S-350 VITYAZ", category: "Ракеты А/А", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 16249, dpm: 184774, reload: 5.25, lock_time: 0.30, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 116, max_speed: 524, accel_time: 1.62, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S350Vityaz.png" },
+            "s500": { name: "S-500 PROMETHEUS", category: "Ракеты А/А", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 19500, dpm: 210954, reload: 4.90, lock_time: 0.50, detonation_radius: 66, projectiles: 1, ammo_clip: 3, anti_jamming: 0, hp: 95, start_speed: 291, max_speed: 427, accel_time: 1.40, range: 9.53, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S500.png" },
+            "shtil1": { name: "SHTIL-1", category: "Ракеты А/А", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 12550, dpm: 194855, reload: 3.50, lock_time: 1.00, detonation_radius: 33, splash_damage: 750, splash_radius: 100, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 524, accel_time: 1.82, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/Shtil1.png" },
+            "sm3": { name: "RIM-161 (SM-3)", category: "Ракеты А/А", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13000, dpm: 158122, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 213, max_speed: 408, accel_time: 1.25, range: 8.67, detonation_radius: 33, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM161.png" },
 
             // ----- ТОРПЕДЫ -----
             "mark48": { name: "MARK 48 (533 MM)", category: "Торпеды", country: "США", rarity: "Эпический", anti_jamming: 0, dpm: 237656, damage_burst: 22750, damage: 22750, reload: 5.60, lock_time: 1.50, detonation_radius: 16, projectiles: 1, range: 11.70, max_speed: 106, start_speed: 11, accel_time: 9.80, fire_penalty: 15, img: "img/Mark48.png" },
@@ -931,7 +935,7 @@
             "torped_62": { name: "TORPED 62 (533 MM)", category: "Торпеды", country: "Швеция", rarity: "Эпический", anti_jamming: 0, dpm: 235415, damage_burst: 40300, damage: 20150, reload: 9.80, lock_time: 1.00, detonation_radius: 33, projectiles: 2, range: 10.40, max_speed: 116, start_speed: 17, accel_time: 3.48, fire_penalty: 15, img: "img/Torped62.png" },
             "k731": { name: "K731 WHITE SHARK", category: "Торпеды", country: "Южная Корея", rarity: "Эпический", anti_jamming: 1, dpm: 210235, damage_burst: 40800, damage: 12350, reload: 10.85, lock_time: 1.00, detonation_radius: 26, splash_damage: 1250, splash_radius: 333, projectiles: 1, ammo_clip: 3, range: 12.13, max_speed: 126, start_speed: 13, accel_time: 5.80, fire_penalty: 10, img: "img/K731WhiteShark.png" },
 
-                        // ----- ГРАНАТОМЕТЫ -----
+            // ----- ГРАНАТОМЕТЫ -----
             "sr5_122": { name: "SR-5 122/300", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 130807, damage_burst: 17550, damage: 5850, reload: 6.65, projectiles: 3, range: 9.53, max_speed: 349, start_speed: 15, accel_time: 2.29, hp: 80, fire_penalty: 30, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/SR5.png" },
             "rbu12000": { name: "RBU-12000 (300 MM)", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 18, dpm: 188687, damage_burst: 19026, damage: 2860, reload: 4.55, crit_chance: 20, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 6, range: 13.87, max_speed: 388, start_speed: 388, fire_penalty: 30, anti_jamming: 0, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/RBU12000.png" },
             "hwhh003b": { name: "HWHH-003B (300 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 20, dpm: 196746, damage_burst: 18527, damage: 4094, reload: 4.90, crit_chance: 25, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 4, range: 9.53, max_speed: 388, start_speed: 388, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/HWHH003B.png" },
@@ -966,7 +970,7 @@
             "mar290": { name: "MAR-290 (290 MM)", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 15, dpm: 253231, damage_burst: 33300, damage: 8124, reload: 7.35, detonation_radius: 26, splash_damage: 200, splash_radius: 166, projectiles: 4, range: 11.27, max_speed: 515, start_speed: 515, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/MAR290.png" }
         };
 
-// Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
+        // Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
         function getSafeDistance(item) {
             const MW_COEF = 0.00278; 
             let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
@@ -1298,6 +1302,9 @@
             }
         };
 
+        // Подключаем логику калькулятора Ракет к "Ракеты А/А"
+        RATING_CALCULATORS["Ракеты А/А"] = RATING_CALCULATORS["Ракеты"];
+
         function calculateRating(item) {
             if (RATING_CALCULATORS[item.category]) {
                 return Math.min(1000, Math.max(50, Math.round(RATING_CALCULATORS[item.category](item))));
@@ -1340,16 +1347,16 @@
             if(val !== undefined) searchQuery = val.toLowerCase();
             handleFilter();
         }
-
-        // --- ВАЖНО: Добавлен класс Гранатометы в категории ---
-        const ALL_CATEGORIES = ["Ракеты", "Пушки", "Торпеды", "Гранатометы"];
         
         function renderCategoryBar() {
             const bar = document.getElementById('category-bar'); bar.innerHTML = '';
             ALL_CATEGORIES.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = `cat-btn-main ${currentCategory === cat ? 'active' : ''}`;
+                
+                // Название теперь берется напрямую из массива ALL_CATEGORIES
                 btn.innerText = cat;
+                
                 btn.onclick = () => { 
                     currentCategory = cat; compareQueue = []; 
                     document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
@@ -1371,7 +1378,11 @@
                     <label><input type="checkbox" class="mech-checkbox" id="cb-flared" onchange="handleFilter()"><span class="cat-btn-sub">ОТВОДИМЫЕ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-sub" onchange="handleFilter()"><span class="cat-btn-sub">ПОДЛОДКИ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-cluster" onchange="handleFilter()"><span class="cat-btn-sub">КЛАСТЕРНЫЕ</span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-air" onchange="handleFilter()"><span class="cat-btn-sub">АВИАЦИЯ</span></label>
+                `;
+            } else if (currentCategory === "Ракеты А/А") { 
+                container.innerHTML = `
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-splash" onchange="handleFilter()"><span class="cat-btn-sub">СПЛЭШ-УРОН</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-sub" onchange="handleFilter()"><span class="cat-btn-sub">ПОДВОДНЫЙ ПУСК</span></label>
                 `;
             } else if (currentCategory === "Пушки") {
                 container.innerHTML = `
@@ -1419,7 +1430,9 @@
                     }
                     const cbSub = document.getElementById('cb-sub'); if (cbSub && cbSub.checked && item.sub_launch !== 1) return false;
                     const cbCluster = document.getElementById('cb-cluster'); if (cbCluster && cbCluster.checked && item.cluster !== 1 && (!item.fragmentation_damage || item.fragmentation_damage <= 0)) return false;
-                    const cbAir = document.getElementById('cb-air'); if (cbAir && cbAir.checked && item.air_target !== 1) return false;
+                } else if (currentCategory === "Ракеты А/А") { 
+                    const cbSplash = document.getElementById('cb-splash'); if (cbSplash && cbSplash.checked && (!item.splash_damage || item.splash_damage <= 0)) return false;
+                    const cbSub = document.getElementById('cb-sub'); if (cbSub && cbSub.checked && item.sub_launch !== 1) return false;
                 } else if (currentCategory === "Пушки") {
                     const cbCrit = document.getElementById('cb-crit'); if (cbCrit && cbCrit.checked && (!item.crit_chance || item.crit_chance <= 0)) return false;
                     const cbAir = document.getElementById('cb-air'); if (cbAir && cbAir.checked && item.air_target !== 1) return false;
@@ -1582,7 +1595,6 @@
             document.getElementById(`holo-rays-${side}`).style.display = 'block';
             document.getElementById(`holo-scan-${side}`).style.display = 'block';
             
-            // Расширенная шкала для поддержки Гранатометов
             let catMax = CATEGORY_MAX_STATS[item.category] || CATEGORY_MAX_STATS["Пушки"];
             if (item.category === "Гранатометы") {
                 catMax = {
@@ -1611,7 +1623,7 @@
                 // Динамическое правило для снарядов
                 let isHigherBetter = STATS_LOGIC[key].higherIsBetter;
                 if (key === 'projectiles') {
-                    isHigherBetter = (item.category === 'Ракеты' || item.category === 'Торпеды' || item.category === 'Гранатометы');
+                    isHigherBetter = (item.category === 'Ракеты' || item.category === 'Ракеты А/А' || item.category === 'Торпеды' || item.category === 'Гранатометы');
                 }
 
                 let pct = 0;
@@ -1638,7 +1650,8 @@
         function generateTactics(item) {
             let pros = []; let cons = [];
             
-            if (item.category === "Ракеты") {
+            // Включаем логику ракет и для Ракет А/А
+            if (item.category === "Ракеты" || item.category === "Ракеты А/А") {
                 if (item.anti_jamming === 1) {
                     pros.push("Абсолютная защита от ловушек (РЭБ)");
                 } else {
@@ -1766,18 +1779,19 @@
             
             let labels, d1, d2;
 
-            if (e1.category === "Ракеты") {
+            if (e1.category === "Ракеты" || e1.category === "Ракеты А/А") {
                 labels = ['Эффект. DPM', 'Эффект. Альфа', 'Живучесть', 'Скорость', 'Скорострельность', 'Дальность'];
-                let catMax = CATEGORY_MAX_STATS["Ракеты"];
+                let catMax = CATEGORY_MAX_STATS[e1.category]; 
+                let catMax2 = CATEGORY_MAX_STATS[e2.category];
                 d1 = [
                     Math.min(100, (e1.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.effectiveBurst / catMax.damage_burst) * 100) || 0,
                     Math.min(100, (e1.hp / catMax.hp) * 100) || 0, Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0,
                     Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0
                 ];
                 d2 = [
-                    Math.min(100, (e2.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.effectiveBurst / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, (e2.hp / catMax.hp) * 100) || 0, Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0,
-                    Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0
+                    Math.min(100, (e2.effectiveDpm / catMax2.dpm) * 100) || 0, Math.min(100, (e2.effectiveBurst / catMax2.damage_burst) * 100) || 0,
+                    Math.min(100, (e2.hp / catMax2.hp) * 100) || 0, Math.min(100, (e2.max_speed / catMax2.max_speed) * 100) || 0,
+                    Math.max(0, 100 - (e2.reload / catMax2.reload) * 100) || 0, Math.min(100, (e2.range / catMax2.range) * 100) || 0
                 ];
             } else if (e1.category === "Торпеды") {
                 labels = ['Урон/мин', 'Альфа', 'Ускорение', 'Макс. Скорость', 'Скорострельность', 'Дальность'];
@@ -1891,7 +1905,7 @@
                 
                 let isHigherBetter = STATS_LOGIC[key].higherIsBetter;
                 if (key === 'projectiles') {
-                    isHigherBetter = (e1.category === 'Ракеты' || e1.category === 'Торпеды' || e1.category === 'Гранатометы');
+                    isHigherBetter = (e1.category === 'Ракеты' || e1.category === 'Ракеты А/А' || e1.category === 'Торпеды' || e1.category === 'Гранатометы');
                 }
 
                 const isV1Better = isHigherBetter ? v1 > v2 : v1 < v2;
@@ -1920,7 +1934,7 @@
                 let percentDiff = (((winner.rating - loser.rating) / loser.rating) * 100).toFixed(1);
                 
                 let reason = "превосходства";
-                if (e1.category === "Ракеты") {
+                if (e1.category === "Ракеты" || e1.category === "Ракеты А/А") {
                     if (loser.min_range > 0 && winner.min_range === 0) reason = "отсутствия мертвой зоны пуска";
                     else if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reason = "кластерной БЧ (урон сквозь ПВО)";
                     else if (winner.anti_jamming === 1 && winner.anti_jamming > loser.anti_jamming) reason = "независимости от РЭБ (ловушек)";
@@ -1974,8 +1988,7 @@
                 setTimeout(() => { drawRadarChart(e1, e2); }, 100);
             }
         }
-
-        /* --- ЛОГИКА КОНСТРУКТОРА СБОРОК --- */
+/* --- ЛОГИКА КОНСТРУКТОРА СБОРОК --- */
         let slotCounter = 0;
         
         function closeAllBuildDropdowns() {
@@ -2028,6 +2041,7 @@
                 });
                 
                 if (catHtml !== '') {
+                    // Теперь название категории выводится напрямую ("Ракеты А/А")
                     html += `<div class="dropdown-category-title">${cat}</div>` + catHtml;
                 }
             });
@@ -2079,6 +2093,7 @@
                                 <select id="cat-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
                                     <option value="">ВСЕ КАТЕГОРИИ</option>
                                     <option value="Ракеты">Ракеты</option>
+                                    <option value="Ракеты А/А">Ракеты А/А</option>
                                     <option value="Пушки">Пушки</option>
                                     <option value="Торпеды">Торпеды</option>
                                     <option value="Гранатометы">Гранатометы</option>
@@ -2138,7 +2153,7 @@
                 s.itemsCount += qty;
 
                 if (item.range > s.maxRange) s.maxRange = item.range;
-                if (item.air_target === 1) s.hasAir = true;
+                if (item.air_target === 1 || item.dedicated_aa === 1 || item.category === "Ракеты А/А") s.hasAir = true;
                 if (item.sub_launch === 1 || item.can_hit_subs === 1) s.hasSub = true;
                 if (item.anti_jamming === 1) s.hasAntiJamming = true;
             });
