@@ -1236,12 +1236,21 @@ const DB = {
                     let spreadPenalty = (item.range / 10) * recoil * (1 + (projCount * 0.1));
                     
                     item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty - spreadPenalty); 
-                    item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
-                    item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100);
+                    
+                    // Слегка смягчаем штраф меткости, так как на дистанции 5-8 км это мощный дробовик
+                    let hitRatio = Math.min(1, (item.accuracyScore / 100) + 0.15); 
+                    
+                    item.effectiveDpm = item.dpm * hitRatio;
+                    item.effectiveBurst = item.damage_burst * hitRatio;
 
                     score += (item.effectiveDpm / 300000) * 180;
                     score += (item.effectiveBurst / 50000) * 150;
                     score += (item.max_speed / 600) * 80;
+                    
+                    // 2. ГЛАВНЫЙ БОНУС ЗА НЕУПРАВЛЯЕМОСТЬ: 
+                    // Абсолютный иммунитет к ПВО и ловушкам (гарантированный урон)
+                    score += 150; 
+                    
                 } else if (item.gl_type === "missile") {
                     item.accuracyScore = 100; 
                     let effectiveHp = item.hp || 100;
@@ -1254,13 +1263,11 @@ const DB = {
                     score += (item.effectiveBurst / 50000) * 150;
                     if (item.start_speed) score += (item.start_speed / 300) * 50;
                     
-                    // 3. Увеличенный бонус ракетным ГЛ перед отводимыми
                     if (item.anti_jamming === 1) {
-                        score += 100; // Неотводимые ракетные ГЛ получают колоссальный буст
+                        score += 100; 
                     } else {
                         let flareCycle = 11.0; 
                         let hitRatio = 0;
-                        // Отводимые ракетные ГЛ всё равно лучше спамят ПВО, чем обычные ракеты
                         if (item.reload <= (flareCycle / 2)) {
                             hitRatio = 1.2 - (item.reload / flareCycle); 
                         } else if (item.reload < flareCycle) {
@@ -1268,10 +1275,11 @@ const DB = {
                         } else {
                             hitRatio = 0.40; 
                         }
-                        score += 80 * hitRatio; // Макс бонус вырос с 50 до 80
+                        // Для ракетных отводимых бонус ощутимо меньше, чем иммунитет пушечных
+                        score += 80 * hitRatio; 
                     }
 
-                    if (item.projectiles > 3) score += 30; // Доп. бонус за облако ракет (было 20)
+                    if (item.projectiles > 3) score += 30; 
                 } else if (item.gl_type === "laser") {
                     item.accuracyScore = 100;
                     let effectiveHp = (item.hp || 100) * 0.6;
@@ -1286,6 +1294,7 @@ const DB = {
                     score += 80; 
                 }
 
+                // Бонусы за утилитарность (ПЛО / ПТЗ)
                 if (item.can_hit_torpedoes === 1) {
                     let splashFactor = (item.splash_radius || 0) / 50;
                     score += 50 + (splashFactor * 15); 
@@ -1306,7 +1315,7 @@ const DB = {
 
                 if (item.air_target === 1) score += 60;
 
-                // 2. Ровно 2 балла за каждый километр дальности
+                // 3. Добавлен ровно 2 балла за каждый километр дальности
                 score += (item.range * 2);
 
                 let cappedRange = Math.min(item.range, 12);
