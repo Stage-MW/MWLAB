@@ -1422,72 +1422,75 @@
                 return score;
             },
             "ПВО": function(item) {
-                let scorePRO = 0;   // Очки противоракетной обороны
-                let scoreAir = 0;   // Очки против быстрых самолетов
-                let scoreHeli = 0;  // Очки против жирных вертолетов
+                let score = 100;
                 
-                // 1. Присвоение индекса точности
+                // 1. Точность по вашему ТЗ
                 let aa_accuracy = 11; 
                 if (item.aa_type === "Пулеметное") aa_accuracy = 22;
                 else if (item.aa_type === "Гибрид") aa_accuracy = 16;
-                
                 item.aa_accuracy = aa_accuracy; 
 
-                // 2. РАСЧЕТ ПРО (Ракеты противника)
-                // Цель: Мало ХП, высокая скорость, летят стаями. Ловушки не применяются.
-                if (item.aa_type === "Лазерное") {
-                    scorePRO += 200 + (item.dpm / 200000) * 100; // Мгновенный перехват идеален
-                } else if (item.aa_type === "Ракетное") {
-                    if (item.splash_radius > 0) scorePRO += 250; // Сплэш стирает стаи ракет (ТОП для ПРО)
-                    else scorePRO += 120 + (item.max_speed / 1000) * 50;
-                } else if (item.aa_type === "Пулеметное") {
-                    scorePRO += 100 + (item.max_speed / 1000) * 80; // Эффективность зависит от скорости пули
-                } else if (item.aa_type === "Гибрид") {
-                    scorePRO += 150 + (item.max_speed / 1000) * 50; 
-                }
-
-                // 3. РАСЧЕТ АВИАЦИИ (Самолеты/Бомбардировщики)
-                // Цель: Высокая скорость, маневры, ловушки (5 сек).
-                if (item.aa_type === "Пулеметное") {
-                    scoreAir += 200; 
-                    if (item.ammo_clip > 100) scoreAir += 80; // Длинная очередь не дает уйти безнаказанно
-                } else if (item.aa_type === "Лазерное") {
-                    scoreAir += 150; // Стабильно бьет игнорируя маневры и ловушки
-                } else if (item.aa_type === "Ракетное") {
-                    if (item.reload <= 3.5) scoreAir += 160; // Успевает дважды ударить до отката ловушек
-                    else scoreAir += 40; // Легко контрится ловушками (самолет уходит)
-                } else if (item.aa_type === "Гибрид") {
-                    scoreAir += 160; // Пулемет бьет всегда, ракеты как бонус
-                }
-
-                // 4. РАСЧЕТ ВЕРТОЛЕТОВ (Зависшие цели)
-                // Цель: Мало маневров, очень много ХП, есть ловушки. Решает чистый долгий DPM.
-                if (item.aa_type === "Пулеметное") {
-                    scoreHeli += 180 + (item.dpm / 200000) * 120;
-                } else if (item.aa_type === "Гибрид") {
-                    scoreHeli += 170 + (item.dpm / 200000) * 100;
-                } else if (item.aa_type === "Лазерное") {
-                    scoreHeli += 140 + (item.dpm / 200000) * 80;
-                } else if (item.aa_type === "Ракетное") {
-                    if (item.reload <= 3.5) scoreHeli += 120;
-                    else scoreHeli += 50; // Вертолет просто "танкует" ловушками редкие ракеты
-                }
-
-                // 5. ИТОГОВЫЙ СИНТЕЗ ОЦЕНКИ
-                // Смешиваем роли: 40% важности на ПРО, 30% на самолеты, 30% на вертолеты
-                let baseScore = (scorePRO * 0.4) + (scoreAir * 0.3) + (scoreHeli * 0.3);
+                // 2. Математика ловушек (Откат 5 сек)
+                // Рассчитываем эффективный DPM, опираясь на скорость перезарядки
+                let effectiveDpm = item.dpm || 0;
+                let flareCycle = 5.0; 
                 
-                // Добавляем универсальные характеристики
-                baseScore += (item.range / 6) * 120; // Дальность критична для любого ПВО
-                baseScore += (aa_accuracy / 22) * 60; // Бонус за механику точности пулеметов
-                baseScore += (item.damage_burst / 20000) * 40; // Бонус за разовый урон
+                if (item.aa_type === "Ракетное") {
+                    // Если перезарядка дольше 5 сек — ракеты уходят "в молоко". 
+                    // Чем быстрее перезарядка, тем больше шансов пробить ловушки.
+                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
+                    effectiveDpm = item.dpm * Math.min(0.6, flarePenalty); 
+                } 
+                else if (item.aa_type === "Гибрид") {
+                    effectiveDpm = item.dpm * 0.75; // Частичный срез за ракетную составляющую
+                }
+                item.effectiveDpm = effectiveDpm;
+
+                // 3. Фундаментальный урон
+                score += (effectiveDpm / 200000) * 280; 
+                score += ((item.damage_burst || 0) / 20000) * 80; 
+
+                // 4. Дальность и Точность
+                score += ((item.range || 3) / 6) * 100; 
+                score += (aa_accuracy / 22) * 60; 
+
+                // 5. Баллистика и скорость перехвата (Определяет эффективность ПРО)
+                // Чем выше стартовая скорость и меньше время разгона, тем быстрее перехват.
+                // Лазеры здесь получают максимум очков из-за статов: start_speed = max_speed = ~777
+                let startSpd = item.start_speed || item.max_speed || 0;
+                let maxSpd = item.max_speed || 0;
+                let avgSpeed = (startSpd + maxSpd) / 2;
                 
-                if (item.fire_penalty) baseScore -= (item.fire_penalty * 0.5);
+                if (item.accel_time > 0) {
+                    // Штраф за время набора скорости (ракеты медленно стартуют)
+                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10));
+                }
+                score += (avgSpeed / 800) * 130;
 
-                // Сохраняем расчетный DPM для радара и графиков (штрафуем ракетные из-за ловушек)
-                item.effectiveDpm = item.aa_type === "Ракетное" && item.reload > 5.0 ? item.dpm * 0.4 : item.dpm;
+                // 6. АОЕ и Сплэш (Определяет эффективность против стай)
+                // Ракеты вроде RIM-162D или Oerlikon вырвутся вперед за счет цифр радиуса
+                if (item.splash_radius > 0 || item.detonation_radius > 0) {
+                    let aoeValue = ((item.splash_radius || 0) * 1.5) + ((item.detonation_radius || 0) * 3);
+                    if (item.splash_damage > 0) {
+                        aoeValue += (item.splash_damage / 1000) * 10;
+                    }
+                    score += Math.min(150, aoeValue); // Ограничиваем бонус, чтобы не сломать баланс
+                }
 
-                return Math.round(baseScore);
+                // 7. Плотность огня (Определяет стабильность по авиации)
+                // Системы с большими обоймами (CIWS/Пулеметы) получат очки за параметр ammo_clip
+                if (item.ammo_clip > 1) {
+                    score += Math.min(100, (item.ammo_clip / 150) * 80);
+                }
+                
+                // 8. Критический урон
+                if (item.crit_chance > 0) {
+                    score += (item.crit_chance / 40) * 30;
+                }
+
+                if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
+
+                return Math.round(score);
             }
         };
 
