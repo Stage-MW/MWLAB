@@ -499,6 +499,45 @@
                 <button class="cat-btn-main btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ</button>
             </div>
             
+            <!-- === СИМУЛЯТОР ПРОРЫВА ПВО === -->
+            <div class="glass-panel" style="padding: 30px; margin: 0 auto 30px auto; max-width: 1200px; text-align: center; border-left: 4px solid var(--primary); border-right: 4px solid var(--secondary);">
+                <h3 style="color:#fff; font-family:'Inter'; margin-bottom:20px; font-weight:900; letter-spacing:1px;">СИМУЛЯТОР ПРОРЫВА ПВО</h3>
+                <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom: 25px; align-items:center;">
+                    
+                    <!-- Выбор ПВО -->
+                    <div style="display:flex; flex-direction:column; gap:10px; align-items:center; flex:1; min-width:250px;">
+                        <span style="color:var(--primary); font-family:'Jura'; font-weight:bold; letter-spacing:1px;">СИСТЕМА ПВО</span>
+                        <select id="sim-aa-select" class="search-input" style="width:100%; text-align:center; background:rgba(0,0,0,0.6);"></select>
+                        <select id="sim-aa-qty" class="search-input" style="width:100px; text-align:center;">
+                            <option value="1">1 СЛОТ</option><option value="2">2 СЛОТА</option>
+                            <option value="3">3 СЛОТА</option><option value="4">4 СЛОТА</option>
+                            <option value="5">5 СЛОТОВ</option><option value="6">6 СЛОТОВ</option>
+                            <option value="7">7 СЛОТОВ</option><option value="8">8 СЛОТОВ</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Значок VS -->
+                    <div class="vs-badge" style="font-size:2.5rem; position:static; animation:none; color:var(--text-muted); text-shadow:none; flex:0 0 auto; filter:none; transform:none;">VS</div>
+                    
+                    <!-- Выбор ракеты -->
+                    <div style="display:flex; flex-direction:column; gap:10px; align-items:center; flex:1; min-width:250px;">
+                        <span style="color:var(--secondary); font-family:'Jura'; font-weight:bold; letter-spacing:1px;">РАКЕТНЫЙ ЗАЛП</span>
+                        <select id="sim-missile-select" class="search-input" style="width:100%; text-align:center; background:rgba(0,0,0,0.6);"></select>
+                        <select id="sim-missile-qty" class="search-input" style="width:100px; text-align:center;">
+                            <option value="1">1 СЛОТ</option><option value="2">2 СЛОТА</option>
+                            <option value="3">3 СЛОТА</option><option value="4">4 СЛОТА</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="cat-btn-main active" style="border:none; padding:12px 40px;" onclick="simulateAA()">АНАЛИЗ ПЕРЕХВАТА</button>
+                
+                <!-- Результат -->
+                <div id="sim-result" style="margin-top:25px; display:none; padding:20px; background:rgba(0,0,0,0.5); border-radius:12px; border:1px solid rgba(255,255,255,0.05); transition: 0.3s ease;">
+                </div>
+            </div>
+            <!-- ============================== -->
+
             <div class="build-columns">
                 <div class="build-col">
                     <h3 style="text-align:center; color:var(--primary); font-family:'Inter'; font-weight:900; margin-bottom:15px; letter-spacing:1px;">КОРАБЛЬ 1</h3>
@@ -623,7 +662,7 @@
     </div>
 
     <div id="toast-container"></div>
-<script>
+    <script>
         // --- AUTH LOGIC ---
         let isAuth = localStorage.getItem('mw_auth') === 'true';
         let siteVisits = localStorage.getItem('mw_site_visits') || 0; 
@@ -1424,78 +1463,68 @@
             "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Установка индекса разброса (Чем меньше, тем лучше)
-                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
-                if (item.aa_type === "Пулеметное") aa_dispersion = 22;
-                else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
-                
-                item.aa_dispersion = aa_dispersion; 
+                // 1. Установка базового разброса (Индекс точности)
+                let aa_accuracy = 11; // Ракеты и Лазеры (Точные всегда)
+                if (item.aa_type === "Пулеметное") aa_accuracy = 22; // Сильный разброс
+                else if (item.aa_type === "Гибрид") aa_accuracy = 16; // Средний разброс
+                item.aa_accuracy = aa_accuracy; 
 
-                // 2. Математика точности (Зависимость от разброса и дальности)
-                // 11 (Лазер) — нет штрафа (точность 100%).
-                // 14 (Ракеты) — небольшой штраф на большой дистанции.
-                // 16 (Гибрид) — средний штраф.
-                // 22 (Пулемет) — максимальный штраф от отдачи.
-                let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
-                let accuracyScore = Math.max(10, 100 - spreadPenalty); 
-                item.accuracyScore = accuracyScore;
+                // 2. Расчет падения точности на дистанции (Механика Дробовика/Гранатомета)
+                // Если разброс 11 -> штраф = 0 (Точность 100%).
+                // Если разброс 22 -> чем больше дальность, тем жестче штраф.
+                let spreadPenalty = Math.max(0, (aa_accuracy - 11)) * (item.range / 3.5) * 4.5; 
                 
-                // Коэффициент попаданий
-                let hitRatio = accuracyScore / 100;
+                item.accuracyScore = Math.max(20, 100 - spreadPenalty); // Итоговая точность (не падает ниже 20%)
+                let hitRatio = item.accuracyScore / 100; // Процент попаданий
 
-                // 3. Эффективный урон (Точность + Ловушки)
-                let effectiveDpm = (item.dpm || 0) * hitRatio;
-                let effectiveBurst = (item.damage_burst || 0) * hitRatio;
-                
-                let flareCycle = 5.0; // Откат ловушек
+                // 3. Математика ловушек (Откат 5 сек)
+                let flareHitRatio = 1.0;
+                let flareCycle = 5.0; 
                 
                 if (item.aa_type === "Ракетное") {
-                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
-                    effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
-                } 
-                else if (item.aa_type === "Гибрид") {
-                    effectiveDpm = item.dpm * 0.75; 
+                    flareHitRatio = Math.max(0.2, 1 - (item.reload / flareCycle)); 
+                    flareHitRatio = Math.min(0.6, flareHitRatio); // Максимум 60% ракет долетает
+                } else if (item.aa_type === "Гибрид") {
+                    flareHitRatio = 0.75; // Гибрид теряет лишь часть урона
                 }
-                
-                item.effectiveDpm = effectiveDpm;
-                item.effectiveBurst = effectiveBurst;
 
-                // 4. Фундаментальный урон с учетом точности
-                score += (effectiveDpm / 200000) * 280; 
-                score += (effectiveBurst / 20000) * 80; 
+                // 4. ИТОГОВЫЙ ЭФФЕКТИВНЫЙ УРОН
+                // DPM режется и ловушками (для ракет), и разбросом на дистанции (для пулеметов)
+                item.effectiveDpm = (item.dpm || 0) * flareHitRatio * hitRatio;
 
-                // 5. Оценка дальности и чистоты попаданий
-                score += ((item.range || 3) / 6) * 80; 
-                // Чем МЕНЬШЕ разброс (ближе к 11), тем БОЛЬШЕ бонус к очкам рейтинга
-                let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
-                score += dispersionBonus; 
+                // 5. Фундаментальный рейтинг
+                // Увеличил влияние DPM, так как теперь он сильно режется реалистичными штрафами
+                score += (item.effectiveDpm / 200000) * 300; 
+                score += ((item.damage_burst || 0) / 20000) * 80; 
 
-                // 6. Баллистика и скорость перехвата
+                // 6. Дальность
+                score += ((item.range || 3) / 6) * 90; 
+
+                // 7. Баллистика и скорость перехвата (Важно для ПРО)
                 let startSpd = item.start_speed || item.max_speed || 0;
                 let maxSpd = item.max_speed || 0;
                 let avgSpeed = (startSpd + maxSpd) / 2;
                 
                 if (item.accel_time > 0) {
-                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10));
+                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10)); // Штраф за долгий разгон
                 }
-                score += (avgSpeed / 800) * 130;
+                score += (avgSpeed / 800) * 120;
 
-                // 7. АОЕ и Сплэш (Эффективность против роев ракет)
+                // 8. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || item.detonation_radius > 0) {
                     let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
                     if (item.splash_damage > 0) {
                         aoeValue += (item.splash_damage / 1000) * 15;
                     }
-                    score += Math.min(200, aoeValue); 
+                    score += Math.min(200, aoeValue); // Лимит в 200 очков за сплэш
                 }
 
-                // 8. Плотность огня (Боезапас)
+                // 9. Плотность огня 
                 if (item.ammo_clip > 1) {
-                    score += Math.min(100, (item.ammo_clip / 150) * 80);
+                    score += Math.min(100, (item.ammo_clip / 150) * 70);
                 }
                 
-                // 9. Критический урон
+                // 10. Критический урон
                 if (item.crit_chance > 0) {
                     score += (item.crit_chance / 40) * 30;
                 }
@@ -1611,10 +1640,10 @@
                 `;
             } else if (currentCategory === "ПВО") {
                 container.innerHTML = `
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-missile" onchange="handleFilter()"><span class="cat-btn-sub">РАКЕТНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-gun" onchange="handleFilter()"><span class="cat-btn-sub">ПУЛЕМЕТНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-laser" onchange="handleFilter()"><span class="cat-btn-sub">ЛАЗЕРНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-hybrid" onchange="handleFilter()"><span class="cat-btn-sub">ГИБРИД </span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-missile" onchange="handleFilter()"><span class="cat-btn-sub">РАКЕТНОЕ (ОТВОДИТСЯ)</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-gun" onchange="handleFilter()"><span class="cat-btn-sub">ПУЛЕМЕТНОЕ (ТОЧНОСТЬ 22)</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-laser" onchange="handleFilter()"><span class="cat-btn-sub">ЛАЗЕРНОЕ (МГНОВЕННОЕ)</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-hybrid" onchange="handleFilter()"><span class="cat-btn-sub">ГИБРИД (ТОЧНОСТЬ 16)</span></label>
                 `;
             }
         }
@@ -1714,22 +1743,6 @@
                 if (pageId === 'page-home') { mwlBg.className = 'right'; } 
                 else { mwlBg.className = 'center'; }
             }
-        }
-
-        function initApp() {
-            updateAuthStateUI();
-            renderCategoryBar();
-            renderDynamicFilters();
-            handleFilter();
-            addBuildSlot(1);
-            addBuildSlot(2);
-            switchMainPage('page-home', document.getElementById('nav-home'));
-            
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.custom-select-wrapper')) {
-                    closeAllBuildDropdowns();
-                }
-            });
         }
 
         function handleCatalogClick(itemId) {
@@ -2258,6 +2271,7 @@
                                     <option value="Европейский Союз">Европейский Союз</option>
                                     <option value="Израиль">Израиль</option>
                                     <option value="Индия">Индия</option>
+                                    <option value="Индонезия">Индонезия</option>
                                     <option value="Иран">Иран</option>
                                     <option value="Италия">Италия</option>
                                     <option value="Китай">Китай</option>
@@ -2461,7 +2475,101 @@
             }, 500);
         }
 
+        // --- ЛОГИКА СИМУЛЯТОРА ПВО ---
+        function initSimulatorDropdowns() {
+            const aaSelect = document.getElementById('sim-aa-select');
+            const misSelect = document.getElementById('sim-missile-select');
+            if (!aaSelect || !misSelect) return;
+            
+            let aaOptions = '';
+            let misOptions = '';
+            
+            const sortedKeys = Object.keys(DB).sort((a, b) => DB[a].name.localeCompare(DB[b].name));
+            
+            sortedKeys.forEach(key => {
+                let item = DB[key];
+                if (item.category === "ПВО" || (item.category === "Автопушки" && item.air_target === 1)) {
+                    aaOptions += `<option value="${key}">${item.name}</option>`;
+                }
+                if (item.category === "Ракеты") {
+                    misOptions += `<option value="${key}">${item.name}</option>`;
+                }
+            });
+            
+            aaSelect.innerHTML = aaOptions;
+            misSelect.innerHTML = misOptions;
+        }
+
+        function simulateAA() {
+            const aaKey = document.getElementById('sim-aa-select').value;
+            const misKey = document.getElementById('sim-missile-select').value;
+            const aaQty = parseInt(document.getElementById('sim-aa-qty').value);
+            const misQty = parseInt(document.getElementById('sim-missile-qty').value);
+            
+            const aa = DB[aaKey];
+            const mis = DB[misKey];
+            
+            // 1. Расчет времени в зоне поражения ПВО (в секундах)
+            // Дальность в игре (км) / (Скорость ракеты (узлы) / 100) * балансировочный коэффициент
+            const timeSec = (aa.range / (mis.max_speed / 100)) * 1.2;
+            
+            let totalDmg = 0;
+            
+            // 2. Расчет наносимого урона за это время
+            if (aa.aa_type === "Ракетное") {
+                let bursts = Math.ceil(timeSec / (aa.reload || 3.0));
+                if (timeSec < 1.0) bursts = 1;
+                totalDmg = (aa.damage_burst || aa.damage) * bursts * aaQty * 0.85; // Штраф ловушек 15%
+            } else {
+                let accuracy = 1.0; 
+                if (aa.aa_type === "Пулеметное") accuracy = 0.45; 
+                if (aa.aa_type === "Гибрид") accuracy = 0.70;
+                if (aa.category === "Автопушки") accuracy = 0.60;
+                
+                let dps = (aa.dpm / 60);
+                totalDmg = dps * timeSec * aaQty * accuracy;
+            }
+            
+            // 3. Вычисление стойкости залпа
+            const misProjectiles = mis.projectiles || 1;
+            const totalMissilesInVolley = misQty * misProjectiles;
+            const singleHp = mis.hp || 100;
+            
+            // 4. Итоги
+            let destroyed = Math.floor(totalDmg / singleHp);
+            if (destroyed > totalMissilesInVolley) destroyed = totalMissilesInVolley;
+            
+            let prob = Math.round((destroyed / totalMissilesInVolley) * 100);
+            
+            let color = prob < 50 ? 'var(--secondary)' : (prob >= 100 ? 'var(--primary)' : '#ffaa00');
+            
+            const resDiv = document.getElementById('sim-result');
+            resDiv.style.display = 'block';
+            resDiv.innerHTML = `
+                <div style="font-family:'Share Tech Mono'; font-size:1.05rem; color:var(--text-main); line-height:1.8; text-align: left; max-width: 600px; margin: 0 auto;">
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:5px;">
+                        <span>Время ракеты в зоне ПВО:</span> <b style="color:#fff">${timeSec.toFixed(1)} сек.</b>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:5px;">
+                        <span>Эффективный урон ПВО:</span> <b style="color:#fff">${Math.round(totalDmg)} HP</b>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:15px;">
+                        <span>Прочность залпа (HP):</span> <b style="color:#fff">${singleHp} HP × ${totalMissilesInVolley} шт. = ${singleHp * totalMissilesInVolley} HP</b>
+                    </div>
+                    
+                    <div style="text-align:center; padding:20px; background:rgba(0,0,0,0.4); border-radius:8px;">
+                        <span style="font-family:'Inter'; font-size:0.9rem; color:var(--text-muted); letter-spacing:1px;">ТАКТИЧЕСКАЯ СВОДКА</span><br>
+                        <span style="font-size:1.2rem; display:block; margin: 10px 0;">Уничтожено ракет: <b style="color:#fff;">${destroyed} из ${totalMissilesInVolley}</b></span>
+                        <span style="font-size:1.2rem; display:block;">ВЕРОЯТНОСТЬ ПЕРЕХВАТА ЗАЛПА: <br>
+                            <b style="color:${color}; font-size:2.5rem; text-shadow: 0 0 15px ${color}; display:inline-block; margin-top:5px;">${prob}%</b>
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
         window.onload = () => { initApp(); };
     </script>
 </body>
 </html>
+
