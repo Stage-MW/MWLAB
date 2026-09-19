@@ -1422,45 +1422,72 @@
                 return score;
             },
             "ПВО": function(item) {
-                let score = 100;
+                let scorePRO = 0;   // Очки противоракетной обороны
+                let scoreAir = 0;   // Очки против быстрых самолетов
+                let scoreHeli = 0;  // Очки против жирных вертолетов
                 
-                // 1. Присвоение индекса точности согласно ТЗ
-                let aa_accuracy = 11; // По умолчанию для лазеров и ракет
+                // 1. Присвоение индекса точности
+                let aa_accuracy = 11; 
                 if (item.aa_type === "Пулеметное") aa_accuracy = 22;
                 else if (item.aa_type === "Гибрид") aa_accuracy = 16;
                 
                 item.aa_accuracy = aa_accuracy; 
 
-                // 2. Расчет эффективного урона с учетом ловушек (5 сек)
-                let effectiveDpm = item.dpm;
-                let flareCycle = 5.0; // Откат ловушек у авиации
-                
-                if (item.aa_type === "Ракетное") {
-                    let hitRatio = 0.5; 
-                    if (item.reload > flareCycle) hitRatio = 0.3; 
-                    effectiveDpm = item.dpm * hitRatio;
-                    score -= 30; 
-                } 
-                else if (item.aa_type === "Гибрид") {
-                    effectiveDpm = item.dpm * 0.75; 
-                }
-
-                item.effectiveDpm = effectiveDpm;
-
-                // 3. Начисление очков рейтинга
-                score += (effectiveDpm / 200000) * 300; 
-                score += (item.damage_burst / 20000) * 100; 
-                score += (item.range / 6) * 100; 
-                score += (aa_accuracy / 22) * 80; 
-
-                // 4. Уникальные бонусы типов
+                // 2. РАСЧЕТ ПРО (Ракеты противника)
+                // Цель: Мало ХП, высокая скорость, летят стаями. Ловушки не применяются.
                 if (item.aa_type === "Лазерное") {
-                    score += 100; 
+                    scorePRO += 200 + (item.dpm / 200000) * 100; // Мгновенный перехват идеален
+                } else if (item.aa_type === "Ракетное") {
+                    if (item.splash_radius > 0) scorePRO += 250; // Сплэш стирает стаи ракет (ТОП для ПРО)
+                    else scorePRO += 120 + (item.max_speed / 1000) * 50;
                 } else if (item.aa_type === "Пулеметное") {
-                    score += 60; 
+                    scorePRO += 100 + (item.max_speed / 1000) * 80; // Эффективность зависит от скорости пули
+                } else if (item.aa_type === "Гибрид") {
+                    scorePRO += 150 + (item.max_speed / 1000) * 50; 
                 }
 
-                return score;
+                // 3. РАСЧЕТ АВИАЦИИ (Самолеты/Бомбардировщики)
+                // Цель: Высокая скорость, маневры, ловушки (5 сек).
+                if (item.aa_type === "Пулеметное") {
+                    scoreAir += 200; 
+                    if (item.ammo_clip > 100) scoreAir += 80; // Длинная очередь не дает уйти безнаказанно
+                } else if (item.aa_type === "Лазерное") {
+                    scoreAir += 150; // Стабильно бьет игнорируя маневры и ловушки
+                } else if (item.aa_type === "Ракетное") {
+                    if (item.reload <= 3.5) scoreAir += 160; // Успевает дважды ударить до отката ловушек
+                    else scoreAir += 40; // Легко контрится ловушками (самолет уходит)
+                } else if (item.aa_type === "Гибрид") {
+                    scoreAir += 160; // Пулемет бьет всегда, ракеты как бонус
+                }
+
+                // 4. РАСЧЕТ ВЕРТОЛЕТОВ (Зависшие цели)
+                // Цель: Мало маневров, очень много ХП, есть ловушки. Решает чистый долгий DPM.
+                if (item.aa_type === "Пулеметное") {
+                    scoreHeli += 180 + (item.dpm / 200000) * 120;
+                } else if (item.aa_type === "Гибрид") {
+                    scoreHeli += 170 + (item.dpm / 200000) * 100;
+                } else if (item.aa_type === "Лазерное") {
+                    scoreHeli += 140 + (item.dpm / 200000) * 80;
+                } else if (item.aa_type === "Ракетное") {
+                    if (item.reload <= 3.5) scoreHeli += 120;
+                    else scoreHeli += 50; // Вертолет просто "танкует" ловушками редкие ракеты
+                }
+
+                // 5. ИТОГОВЫЙ СИНТЕЗ ОЦЕНКИ
+                // Смешиваем роли: 40% важности на ПРО, 30% на самолеты, 30% на вертолеты
+                let baseScore = (scorePRO * 0.4) + (scoreAir * 0.3) + (scoreHeli * 0.3);
+                
+                // Добавляем универсальные характеристики
+                baseScore += (item.range / 6) * 120; // Дальность критична для любого ПВО
+                baseScore += (aa_accuracy / 22) * 60; // Бонус за механику точности пулеметов
+                baseScore += (item.damage_burst / 20000) * 40; // Бонус за разовый урон
+                
+                if (item.fire_penalty) baseScore -= (item.fire_penalty * 0.5);
+
+                // Сохраняем расчетный DPM для радара и графиков (штрафуем ракетные из-за ловушек)
+                item.effectiveDpm = item.aa_type === "Ракетное" && item.reload > 5.0 ? item.dpm * 0.4 : item.dpm;
+
+                return Math.round(baseScore);
             }
         };
 
