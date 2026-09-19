@@ -2497,7 +2497,7 @@
             });
         }
 
-        function simulateAA() {
+                function simulateAA() {
             const aaKey = document.getElementById('sim-aa-select').value;
             const misKey = document.getElementById('sim-missile-select').value;
             const aaQty = parseInt(document.getElementById('sim-aa-qty').value);
@@ -2509,7 +2509,7 @@
             const aa = DB[aaKey];
             const mis = DB[misKey];
 
-            // 1. Физика полета ракеты
+            // 1. Физика полета ракеты (как было)
             const MW_COEF = 0.00278; 
             let v0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
             let vmax = (mis.max_speed || 0) * MW_COEF;
@@ -2525,7 +2525,7 @@
                 flyTime = accelTime + ((distance - accelDist) / vmax);
             }
 
-            // 2. Расчет времени в зоне поражения ПВО
+            // 2. Расчет времени в зоне поражения ПВО (как было)
             let aaRange = aa.range || 3.0;
             let timeToEnterAARange = 0;
             
@@ -2547,10 +2547,37 @@
             let singleMissileHP = mis.hp || 50;
             let totalMissileHP = singleMissileHP * totalMissiles;
 
-            // 4. Урон ПВО
-            let dpm = aa.effectiveDpm || aa.dpm || 50000; 
-            let dps = dpm / 60;
-            let totalAADamage = dps * engageTime * aaQty;
+            // 4. НОВЫЙ АЛГОРИТМ УРОНА ПВО С УЧЕТОМ ЗАДЕРЖКИ
+            let ammoClip = aa.ammo_clip || 1;
+            let fireDelay = aa.fire_delay || (aa.aa_type === "Ракетное" ? 0.25 : 0.15); // Фоллбэк, если параметр не найден
+            
+            // Если выстрелов больше 1, считаем время непрерывного огня
+            let burstDuration = (ammoClip > 1) ? (ammoClip * fireDelay) : fireDelay; 
+            
+            // Используем effectiveBurst, который симулятор рассчитывает при загрузке (с учетом точности)
+            let damageBurst = aa.effectiveBurst || aa.damage_burst || 0; 
+            
+            // Урон в секунду В МОМЕНТ ЗАЛПА
+            let burstDps = burstDuration > 0 ? (damageBurst / burstDuration) : damageBurst;
+
+            let reloadTime = aa.reload || 3.0;
+            let cycleTime = burstDuration + reloadTime;
+
+            // Сколько полных циклов (залп + перезарядка) успеет сделать ПВО
+            let fullCycles = Math.floor(engageTime / cycleTime);
+            let remainderTime = engageTime - (fullCycles * cycleTime);
+
+            // Урон за остаток времени (до ухода на очередную перезарядку)
+            let remainderDamage = 0;
+            if (burstDuration > 0) {
+                // ПВО успеет нанести только часть урона из обоймы
+                remainderDamage = Math.min(damageBurst, burstDps * remainderTime);
+            } else {
+                remainderDamage = remainderTime > 0 ? damageBurst : 0; 
+            }
+
+            let damagePerModule = (fullCycles * damageBurst) + remainderDamage;
+            let totalAADamage = damagePerModule * aaQty;
 
             // 5. Итоги перехвата
             let destroyedMissiles = Math.floor(totalAADamage / singleMissileHP);
@@ -2579,6 +2606,7 @@
             
             showToast("СИМУЛЯЦИЯ ЗАВЕРШЕНА");
         }
+
 
         function initApp() {
             initAASimulator();
