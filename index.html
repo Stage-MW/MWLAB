@@ -1424,68 +1424,78 @@
             "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Установка базового разброса (Индекс точности)
-                let aa_accuracy = 11; // Ракеты и Лазеры (Точные всегда)
-                if (item.aa_type === "Пулеметное") aa_accuracy = 22; // Сильный разброс
-                else if (item.aa_type === "Гибрид") aa_accuracy = 16; // Средний разброс
-                item.aa_accuracy = aa_accuracy; 
-
-                // 2. Расчет падения точности на дистанции (Механика Дробовика/Гранатомета)
-                // Если разброс 11 -> штраф = 0 (Точность 100%).
-                // Если разброс 22 -> чем больше дальность, тем жестче штраф.
-                let spreadPenalty = Math.max(0, (aa_accuracy - 11)) * (item.range / 3.5) * 4.5; 
+                // 1. Установка индекса разброса (Чем меньше, тем лучше)
+                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
+                if (item.aa_type === "Пулеметное") aa_dispersion = 22;
+                else if (item.aa_type === "Гибрид") aa_dispersion = 16;
+                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
                 
-                item.accuracyScore = Math.max(20, 100 - spreadPenalty); // Итоговая точность (не падает ниже 20%)
-                let hitRatio = item.accuracyScore / 100; // Процент попаданий
+                item.aa_dispersion = aa_dispersion; 
 
-                // 3. Математика ловушек (Откат 5 сек)
-                let flareHitRatio = 1.0;
-                let flareCycle = 5.0; 
+                // 2. Математика точности (Зависимость от разброса и дальности)
+                // 11 (Лазер) — нет штрафа (точность 100%).
+                // 14 (Ракеты) — небольшой штраф на большой дистанции.
+                // 16 (Гибрид) — средний штраф.
+                // 22 (Пулемет) — максимальный штраф от отдачи.
+                let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
+                let accuracyScore = Math.max(10, 100 - spreadPenalty); 
+                item.accuracyScore = accuracyScore;
+                
+                // Коэффициент попаданий
+                let hitRatio = accuracyScore / 100;
+
+                // 3. Эффективный урон (Точность + Ловушки)
+                let effectiveDpm = (item.dpm || 0) * hitRatio;
+                let effectiveBurst = (item.damage_burst || 0) * hitRatio;
+                
+                let flareCycle = 5.0; // Откат ловушек
                 
                 if (item.aa_type === "Ракетное") {
-                    flareHitRatio = Math.max(0.2, 1 - (item.reload / flareCycle)); 
-                    flareHitRatio = Math.min(0.6, flareHitRatio); // Максимум 60% ракет долетает
-                } else if (item.aa_type === "Гибрид") {
-                    flareHitRatio = 0.75; // Гибрид теряет лишь часть урона
+                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
+                    effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
+                } 
+                else if (item.aa_type === "Гибрид") {
+                    effectiveDpm = item.dpm * 0.75; 
                 }
+                
+                item.effectiveDpm = effectiveDpm;
+                item.effectiveBurst = effectiveBurst;
 
-                // 4. ИТОГОВЫЙ ЭФФЕКТИВНЫЙ УРОН
-                // DPM режется и ловушками (для ракет), и разбросом на дистанции (для пулеметов)
-                item.effectiveDpm = (item.dpm || 0) * flareHitRatio * hitRatio;
+                // 4. Фундаментальный урон с учетом точности
+                score += (effectiveDpm / 200000) * 280; 
+                score += (effectiveBurst / 20000) * 80; 
 
-                // 5. Фундаментальный рейтинг
-                // Увеличил влияние DPM, так как теперь он сильно режется реалистичными штрафами
-                score += (item.effectiveDpm / 200000) * 300; 
-                score += ((item.damage_burst || 0) / 20000) * 80; 
+                // 5. Оценка дальности и чистоты попаданий
+                score += ((item.range || 3) / 6) * 80; 
+                // Чем МЕНЬШЕ разброс (ближе к 11), тем БОЛЬШЕ бонус к очкам рейтинга
+                let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
+                score += dispersionBonus; 
 
-                // 6. Дальность
-                score += ((item.range || 3) / 6) * 90; 
-
-                // 7. Баллистика и скорость перехвата (Важно для ПРО)
+                // 6. Баллистика и скорость перехвата
                 let startSpd = item.start_speed || item.max_speed || 0;
                 let maxSpd = item.max_speed || 0;
                 let avgSpeed = (startSpd + maxSpd) / 2;
                 
                 if (item.accel_time > 0) {
-                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10)); // Штраф за долгий разгон
+                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10));
                 }
-                score += (avgSpeed / 800) * 120;
+                score += (avgSpeed / 800) * 130;
 
-                // 8. АОЕ и Сплэш (Эффективность против роев ракет)
+                // 7. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || item.detonation_radius > 0) {
                     let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
                     if (item.splash_damage > 0) {
                         aoeValue += (item.splash_damage / 1000) * 15;
                     }
-                    score += Math.min(200, aoeValue); // Лимит в 200 очков за сплэш
+                    score += Math.min(200, aoeValue); 
                 }
 
-                // 9. Плотность огня 
+                // 8. Плотность огня (Боезапас)
                 if (item.ammo_clip > 1) {
-                    score += Math.min(100, (item.ammo_clip / 150) * 70);
+                    score += Math.min(100, (item.ammo_clip / 150) * 80);
                 }
                 
-                // 10. Критический урон
+                // 9. Критический урон
                 if (item.crit_chance > 0) {
                     score += (item.crit_chance / 40) * 30;
                 }
@@ -1601,10 +1611,10 @@
                 `;
             } else if (currentCategory === "ПВО") {
                 container.innerHTML = `
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-missile" onchange="handleFilter()"><span class="cat-btn-sub">РАКЕТНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-gun" onchange="handleFilter()"><span class="cat-btn-sub">ПУЛЕМЕТНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-laser" onchange="handleFilter()"><span class="cat-btn-sub">ЛАЗЕРНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-hybrid" onchange="handleFilter()"><span class="cat-btn-sub">ГИБРИД </span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-missile" onchange="handleFilter()"><span class="cat-btn-sub">РАКЕТНОЕ (ОТВОДИТСЯ)</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-gun" onchange="handleFilter()"><span class="cat-btn-sub">ПУЛЕМЕТНОЕ (ТОЧНОСТЬ 22)</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-laser" onchange="handleFilter()"><span class="cat-btn-sub">ЛАЗЕРНОЕ (МГНОВЕННОЕ)</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-hybrid" onchange="handleFilter()"><span class="cat-btn-sub">ГИБРИД (ТОЧНОСТЬ 16)</span></label>
                 `;
             }
         }
