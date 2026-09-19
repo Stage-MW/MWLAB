@@ -415,7 +415,6 @@
     </style>
 </head>
 <body>
-
     <div id="sparks-container"></div>
     <div id="global-mwl-wrapper" class="right">
         <div id="global-mwl-text">MWL</div>
@@ -517,6 +516,48 @@
                     <canvas id="buildRadarChart"></canvas>
                 </div>
                 <div id="build-tactics" style="margin-top: 20px; font-family: 'Jura'; display:flex; flex-wrap:wrap; gap:20px;"></div>
+            </div>
+
+            <!-- СИМУЛЯТОР ПРОРЫВА ПВО -->
+            <div class="glass-panel" style="margin: 40px auto 0 auto; padding: 30px; max-width: 1200px; width: 100%;">
+                <h2 style="text-align:center; color:#fff; font-family:'Inter'; font-size: 1.5rem; margin-bottom: 25px;">СИМУЛЯТОР ПРОРЫВА ПВО</h2>
+
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <!-- ПВО -->
+                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                        <h3 style="color:var(--primary); margin-bottom: 15px; font-family:'Inter';">СИСТЕМА ПВО</h3>
+                        <select id="sim-aa-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
+                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Jura';">Количество модулей ПВО:</label>
+                        <select id="sim-aa-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
+                            <option value="1">1 слот</option><option value="2">2 слота</option>
+                            <option value="3">3 слота</option><option value="4" selected>4 слота</option>
+                            <option value="5">5 слотов</option><option value="6">6 слотов</option>
+                            <option value="7">7 слотов</option><option value="8">8 слотов</option>
+                        </select>
+                    </div>
+
+                    <!-- Ракеты -->
+                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
+                        <h3 style="color:var(--secondary); margin-bottom: 15px; font-family:'Inter';">РАКЕТНЫЙ ЗАЛП</h3>
+                        <select id="sim-missile-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
+                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Jura';">Количество пусковых установок:</label>
+                        <select id="sim-missile-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
+                            <option value="1">1 слот</option><option value="2" selected>2 слота</option>
+                            <option value="3">3 слота</option><option value="4">4 слота</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Дистанция и кнопка запуска -->
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <label style="color: #fff; font-family:'Jura'; font-size: 1.1rem;">Дистанция пуска: <span id="sim-dist-val" style="color:var(--primary); font-weight:bold;">7.0</span> км</label><br>
+                    <input type="range" id="sim-dist" min="1" max="15" step="0.5" value="7" style="width: 100%; max-width: 500px; margin-top: 15px; accent-color: var(--primary);" oninput="document.getElementById('sim-dist-val').innerText = this.value">
+                </div>
+
+                <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto; display: block; border:none; padding: 15px;" onclick="simulateAA()">РАССЧИТАТЬ ВЕРОЯТНОСТЬ</button>
+
+                <!-- Вывод результата -->
+                <div id="sim-result" style="margin-top: 30px; display: none; padding: 20px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; text-align: center; background: rgba(0,0,0,0.4);"></div>
             </div>
         </main>
 
@@ -1518,8 +1559,7 @@
         for (let key in DB) { DB[key].rating = calculateRating(DB[key]); }
 
         let compareQueue = [];
-
-        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+            function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
 
         function switchModalTab(tab) {
@@ -1714,22 +1754,6 @@
                 if (pageId === 'page-home') { mwlBg.className = 'right'; } 
                 else { mwlBg.className = 'center'; }
             }
-        }
-
-        function initApp() {
-            updateAuthStateUI();
-            renderCategoryBar();
-            renderDynamicFilters();
-            handleFilter();
-            addBuildSlot(1);
-            addBuildSlot(2);
-            switchMainPage('page-home', document.getElementById('nav-home'));
-            
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.custom-select-wrapper')) {
-                    closeAllBuildDropdowns();
-                }
-            });
         }
 
         function handleCatalogClick(itemId) {
@@ -2461,7 +2485,133 @@
             }, 500);
         }
 
+        // --- СИМУЛЯТОР ПВО И РАКЕТ ---
+
+        function initAASimulator() {
+            const aaSelect = document.getElementById('sim-aa-select');
+            const misSelect = document.getElementById('sim-missile-select');
+
+            let aaOptions = Object.keys(DB).filter(k => DB[k].category === "ПВО" || (DB[k].category === "Автопушки" && DB[k].air_target === 1));
+            let misOptions = Object.keys(DB).filter(k => DB[k].category === "Ракеты" || DB[k].category === "Гранатометы" || DB[k].category === "Ракеты А/А");
+
+            aaOptions.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
+            misOptions.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
+
+            aaOptions.forEach(k => {
+                let opt = document.createElement('option');
+                opt.value = k; opt.innerText = DB[k].name;
+                aaSelect.appendChild(opt);
+            });
+
+            misOptions.forEach(k => {
+                let opt = document.createElement('option');
+                opt.value = k; opt.innerText = DB[k].name;
+                misSelect.appendChild(opt);
+            });
+        }
+
+        function simulateAA() {
+            const aaKey = document.getElementById('sim-aa-select').value;
+            const misKey = document.getElementById('sim-missile-select').value;
+            const aaQty = parseInt(document.getElementById('sim-aa-qty').value);
+            const misQty = parseInt(document.getElementById('sim-missile-qty').value);
+            const distance = parseFloat(document.getElementById('sim-dist').value);
+
+            if (!aaKey || !misKey) return showToast("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО", true);
+
+            const aa = DB[aaKey];
+            const mis = DB[misKey];
+
+            // 1. Физика полета ракеты
+            const MW_COEF = 0.00278; 
+            let v0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
+            let vmax = (mis.max_speed || 0) * MW_COEF;
+            let accelTime = mis.accel_time || 0.1;
+
+            let accelDist = ((v0 + vmax) / 2) * accelTime;
+
+            let flyTime = 0;
+            if (distance <= accelDist) {
+                let currentSpeed = v0 + ((vmax - v0) * (distance / accelDist));
+                flyTime = distance / ((v0 + currentSpeed) / 2);
+            } else {
+                flyTime = accelTime + ((distance - accelDist) / vmax);
+            }
+
+            // 2. Расчет времени в зоне поражения ПВО
+            let aaRange = aa.range || 3.0;
+            let timeToEnterAARange = 0;
+            
+            if (distance > aaRange) {
+                let distToAa = distance - aaRange; 
+                if (distToAa <= accelDist) {
+                    let speedAtAa = v0 + ((vmax - v0) * (distToAa / accelDist));
+                    timeToEnterAARange = distToAa / ((v0 + speedAtAa) / 2);
+                } else {
+                    timeToEnterAARange = accelTime + ((distToAa - accelDist) / vmax);
+                }
+            }
+            
+            let engageTime = Math.max(0, flyTime - timeToEnterAARange);
+
+            // 3. Формирование ракетного роя
+            let projectilesPerLaunch = mis.projectiles || 1;
+            let totalMissiles = misQty * projectilesPerLaunch;
+            let singleMissileHP = mis.hp || 50;
+            let totalMissileHP = singleMissileHP * totalMissiles;
+
+            // 4. Урон ПВО
+            let dpm = aa.effectiveDpm || aa.dpm || 50000; 
+            let dps = dpm / 60;
+            let totalAADamage = dps * engageTime * aaQty;
+
+            // 5. Итоги перехвата
+            let destroyedMissiles = Math.floor(totalAADamage / singleMissileHP);
+            destroyedMissiles = Math.min(destroyedMissiles, totalMissiles);
+
+            let survivedMissiles = totalMissiles - destroyedMissiles;
+            let survivalProbability = (survivedMissiles / totalMissiles) * 100;
+            
+            let resColor = survivalProbability > 50 ? 'var(--secondary)' : 'var(--primary)';
+            let verdict = survivalProbability === 0 ? "ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА" : "ПРОРЫВ ПВО УСПЕШЕН!";
+
+            const resDiv = document.getElementById('sim-result');
+            resDiv.style.display = 'block';
+            resDiv.innerHTML = `
+                <div style="font-family:'Share Tech Mono'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
+                    Время реакции ПВО: <b style="color:#fff;">${engageTime.toFixed(2)} сек.</b><br>
+                    Математический урон ПВО: <b style="color:var(--primary);">${Math.round(totalAADamage).toLocaleString('ru')} HP</b><br>
+                    Прочность роя ракет (${totalMissiles} шт.): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString('ru')} HP</b><br>
+                    <div style="margin: 15px 0; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
+                        <span style="font-family:'Inter'; font-weight:900; font-size:1.4rem; color:${resColor};">${verdict}</span><br>
+                        Сбито ракет: <b style="color:#fff; font-size:1.2rem;">${destroyedMissiles}</b> из <b style="color:#fff; font-size:1.2rem;">${totalMissiles}</b><br>
+                        Проходимость урона: <b style="font-size:1.8rem; color:${resColor};">${survivalProbability.toFixed(1)}%</b>
+                    </div>
+                </div>
+            `;
+            
+            showToast("СИМУЛЯЦИЯ ЗАВЕРШЕНА");
+        }
+
+        function initApp() {
+            initAASimulator();
+            updateAuthStateUI();
+            renderCategoryBar();
+            renderDynamicFilters();
+            handleFilter();
+            addBuildSlot(1);
+            addBuildSlot(2);
+            switchMainPage('page-home', document.getElementById('nav-home'));
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.custom-select-wrapper')) {
+                    closeAllBuildDropdowns();
+                }
+            });
+        }
+
         window.onload = () => { initApp(); };
     </script>
 </body>
 </html>
+
