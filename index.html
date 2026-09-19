@@ -1424,71 +1424,68 @@
             "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Точность по вашему ТЗ
-                let aa_accuracy = 11; 
-                if (item.aa_type === "Пулеметное") aa_accuracy = 22;
-                else if (item.aa_type === "Гибрид") aa_accuracy = 16;
+                // 1. Установка базового разброса (Индекс точности)
+                let aa_accuracy = 11; // Ракеты и Лазеры (Точные всегда)
+                if (item.aa_type === "Пулеметное") aa_accuracy = 22; // Сильный разброс
+                else if (item.aa_type === "Гибрид") aa_accuracy = 16; // Средний разброс
                 item.aa_accuracy = aa_accuracy; 
 
-                // 2. Математика ловушек (Откат 5 сек)
-                // Рассчитываем эффективный DPM, опираясь на скорость перезарядки
-                let effectiveDpm = item.dpm || 0;
+                // 2. Расчет падения точности на дистанции (Механика Дробовика/Гранатомета)
+                // Если разброс 11 -> штраф = 0 (Точность 100%).
+                // Если разброс 22 -> чем больше дальность, тем жестче штраф.
+                let spreadPenalty = Math.max(0, (aa_accuracy - 11)) * (item.range / 3.5) * 4.5; 
+                
+                item.accuracyScore = Math.max(20, 100 - spreadPenalty); // Итоговая точность (не падает ниже 20%)
+                let hitRatio = item.accuracyScore / 100; // Процент попаданий
+
+                // 3. Математика ловушек (Откат 5 сек)
+                let flareHitRatio = 1.0;
                 let flareCycle = 5.0; 
                 
                 if (item.aa_type === "Ракетное") {
-                    // Если перезарядка дольше 5 сек — ракеты уходят "в молоко". 
-                    // Чем быстрее перезарядка, тем больше шансов пробить ловушки.
-                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
-                    effectiveDpm = item.dpm * Math.min(0.6, flarePenalty); 
-                } 
-                else if (item.aa_type === "Гибрид") {
-                    effectiveDpm = item.dpm * 0.75; // Частичный срез за ракетную составляющую
+                    flareHitRatio = Math.max(0.2, 1 - (item.reload / flareCycle)); 
+                    flareHitRatio = Math.min(0.6, flareHitRatio); // Максимум 60% ракет долетает
+                } else if (item.aa_type === "Гибрид") {
+                    flareHitRatio = 0.75; // Гибрид теряет лишь часть урона
                 }
-                item.effectiveDpm = effectiveDpm;
 
-                // 3. Фундаментальный урон
-                score += (effectiveDpm / 200000) * 280; 
+                // 4. ИТОГОВЫЙ ЭФФЕКТИВНЫЙ УРОН
+                // DPM режется и ловушками (для ракет), и разбросом на дистанции (для пулеметов)
+                item.effectiveDpm = (item.dpm || 0) * flareHitRatio * hitRatio;
+
+                // 5. Фундаментальный рейтинг
+                // Увеличил влияние DPM, так как теперь он сильно режется реалистичными штрафами
+                score += (item.effectiveDpm / 200000) * 300; 
                 score += ((item.damage_burst || 0) / 20000) * 80; 
 
-                // 4. Дальность и Точность
-                score += ((item.range || 3) / 6) * 100; 
-                score += (aa_accuracy / 22) * 60; 
+                // 6. Дальность
+                score += ((item.range || 3) / 6) * 90; 
 
-                // 5. Баллистика и скорость перехвата (Определяет эффективность ПРО)
-                // Чем выше стартовая скорость и меньше время разгона, тем быстрее перехват.
-                // Лазеры здесь получают максимум очков из-за статов: start_speed = max_speed = ~777
+                // 7. Баллистика и скорость перехвата (Важно для ПРО)
                 let startSpd = item.start_speed || item.max_speed || 0;
                 let maxSpd = item.max_speed || 0;
                 let avgSpeed = (startSpd + maxSpd) / 2;
                 
                 if (item.accel_time > 0) {
-                    // Штраф за время набора скорости (ракеты медленно стартуют)
-                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10));
+                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10)); // Штраф за долгий разгон
                 }
-                score += (avgSpeed / 800) * 130;
+                score += (avgSpeed / 800) * 120;
 
-               // 6. АОЕ и Сплэш (Эффективность против роев ракет)
-                // Сплэш — это огромный плюс, так как один взрыв сбивает соседние ракеты!
+                // 8. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || item.detonation_radius > 0) {
-                    // Увеличиваем множители радиуса, так как площадь поражения критически важна
                     let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
-                    
                     if (item.splash_damage > 0) {
-                        // Урон от сплэша тоже вносит весомый вклад
                         aoeValue += (item.splash_damage / 1000) * 15;
                     }
-                    
-                    // Расширяем лимит бонуса до 200 очков, чтобы АОЕ-системы сильно отрывались в рейтинге ПРО
-                    score += Math.min(200, aoeValue); 
+                    score += Math.min(200, aoeValue); // Лимит в 200 очков за сплэш
                 }
 
-                // 7. Плотность огня (Определяет стабильность по авиации)
-                // Системы с большими обоймами (CIWS/Пулеметы) получат очки за параметр ammo_clip
+                // 9. Плотность огня 
                 if (item.ammo_clip > 1) {
-                    score += Math.min(100, (item.ammo_clip / 150) * 80);
+                    score += Math.min(100, (item.ammo_clip / 150) * 70);
                 }
                 
-                // 8. Критический урон
+                // 10. Критический урон
                 if (item.crit_chance > 0) {
                     score += (item.crit_chance / 40) * 30;
                 }
