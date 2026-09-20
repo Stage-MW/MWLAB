@@ -2547,43 +2547,35 @@
             let singleMissileHP = mis.hp || 50;
             let totalMissileHP = singleMissileHP * totalMissiles;
 
-                        // 4. АЛГОРИТМ УРОНА С УЧЕТОМ ТИПА СТРЕЛЬБЫ (ПОТОК vs ЗАЛП)
-            let damageBurst = aa.effectiveBurst || aa.damage_burst || 0; 
-            let reloadTime = aa.reload || 3.0;
+            // 4. НОВЫЙ АЛГОРИТМ УРОНА (по правилу: 'damage' = DPS для лазеров/пулеметов)
+            let totalAADamage = 0;
+            let accuracy = aa.accuracyScore ? (aa.accuracyScore / 100) : 1;
 
-            // Определяем время, которое требуется на отстрел обоймы
-            let burstDuration = 0;
-
-            // Лазеры и многоствольные пулеметы разряжаются постепенно
-            if (aa.aa_type === "Лазерное" || (aa.aa_type === "Пулеметное" && aa.ammo_clip > 1)) {
-                let ammoClip = aa.ammo_clip || 1;
-                let fireDelay = aa.fire_delay || 0.12; 
-                burstDuration = ammoClip * fireDelay;
+            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
+                // Строго по правилу: характеристика "урон" = урон в секунду (DPS)
+                let dps = aa.damage || 0;
+                totalAADamage = dps * engageTime * aaQty * accuracy;
             } else {
-                // Ракетное ПВО и гибриды выстреливают боезапас мгновенно
-                burstDuration = 0;
+                // Для ракетного и гибридного ПВО считаем физические выстрелы/залпы по таймлайну
+                let shotsFired = 0;
+                let currentTime = 0;
+                let clipLeft = aa.ammo_clip || 1;
+                let fireDelay = aa.fire_delay || 0.2;
+                let reload = aa.reload || 3.0;
+                
+                while (currentTime <= engageTime) {
+                    if (clipLeft > 0) {
+                        shotsFired++;
+                        clipLeft--;
+                        currentTime += fireDelay;
+                    } else {
+                        currentTime += reload;
+                        clipLeft = aa.ammo_clip || 1;
+                    }
+                }
+                
+                totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
             }
-
-            // Время полного цикла (Стрельба + Перезарядка)
-            let cycleTime = burstDuration + reloadTime;
-
-            // Сколько полных циклов успеет сделать ПВО
-            let fullCycles = Math.floor(engageTime / cycleTime);
-            let remainderTime = engageTime - (fullCycles * cycleTime);
-
-            let remainderDamage = 0;
-            if (burstDuration > 0) {
-                // Постепенный урон: лазер/пулемет наносит урон пропорционально времени контакта
-                let burstDps = damageBurst / burstDuration;
-                remainderDamage = Math.min(damageBurst, burstDps * remainderTime);
-            } else {
-                // Мгновенный урон: если ракета в зоне видимости хотя бы 0.1 сек, ракетное ПВО выпускает весь залп
-                remainderDamage = remainderTime > 0.1 ? damageBurst : 0; 
-            }
-
-            let damagePerModule = (fullCycles * damageBurst) + remainderDamage;
-            let totalAADamage = damagePerModule * aaQty;
-
 
             // Штраф по РЭБ для отводимых ракет (ПВО отвлекается на ловушки)
             if (mis.anti_jamming === 0 && (aa.aa_type === "Ракетное" || aa.aa_type === "Гибрид")) {
