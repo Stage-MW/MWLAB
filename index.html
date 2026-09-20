@@ -1465,38 +1465,45 @@
             "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Установка индекса разброса (Чем меньше, тем лучше)
-                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
+                // 1. Установка индекса разброса
+                let aa_dispersion = 11; // Лазерное
                 if (item.aa_type === "Пулеметное") aa_dispersion = 22;
                 else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
+                else if (item.aa_type === "Ракетное") aa_dispersion = 22; // ИЗМЕНЕНО: теперь 22, чем дальше, тем больше промахов
                 
                 item.aa_dispersion = aa_dispersion; 
 
-                // 2. Математика точности (Зависимость от разброса и дальности)
-                // 11 (Лазер) — нет штрафа (точность 100%).
-                // 14 (Ракеты) — небольшой штраф на большой дистанции.
-                // 16 (Гибрид) — средний штраф.
-                // 22 (Пулемет) — максимальный штраф от отдачи.
+                // 2. Математика точности
                 let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
                 let accuracyScore = Math.max(10, 100 - spreadPenalty); 
                 item.accuracyScore = accuracyScore;
                 
-                // Коэффициент попаданий
                 let hitRatio = accuracyScore / 100;
 
-                // 3. Эффективный урон (Точность + Ловушки)
-                let effectiveDpm = (item.dpm || 0) * hitRatio;
-                let effectiveBurst = (item.damage_burst || 0) * hitRatio;
+                // 3. НОВЫЙ АЛГОРИТМ: Истинный урон с учетом времени отстрела обоймы
+                let clip = item.ammo_clip || 1;
+                let fDelay = item.fire_delay || 0.2;
+                let rld = item.reload || 3.0;
+                let proj = item.projectiles || 1;
                 
-                let flareCycle = 5.0; // Откат ловушек
+                // Считаем время полного цикла: (выстрелы * задержка) + перезарядка
+                let cycleTime = (clip * fDelay) + rld; 
+                // Высчитываем количество выстрелов в минуту
+                let shotsPerMinute = (60 / cycleTime) * clip * proj;
+                
+                let trueDpm = shotsPerMinute * (item.damage || 0);
+                
+                let effectiveDpm = trueDpm * hitRatio;
+                let effectiveBurst = (item.damage * clip * proj) * hitRatio;
+                
+                let flareCycle = 5.0; 
                 
                 if (item.aa_type === "Ракетное") {
-                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
+                    let flarePenalty = Math.max(0.2, 1 - (rld / flareCycle)); 
                     effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
                 } 
                 else if (item.aa_type === "Гибрид") {
-                    effectiveDpm = item.dpm * 0.75; 
+                    effectiveDpm = trueDpm * 0.75; 
                 }
                 
                 item.effectiveDpm = effectiveDpm;
@@ -1505,6 +1512,8 @@
                 // 4. Фундаментальный урон с учетом точности
                 score += (effectiveDpm / 200000) * 280; 
                 score += (effectiveBurst / 20000) * 80; 
+
+                // ... остальной код функции RATING_CALCULATORS["ПВО"] остается без изменений
 
                 // 5. Оценка дальности и чистоты попаданий
                 score += ((item.range || 3) / 6) * 80; 
@@ -2560,35 +2569,31 @@
             let singleMissileHP = mis.hp || 50;
             let totalMissileHP = singleMissileHP * totalMissiles;
 
-            // 4. НОВЫЙ АЛГОРИТМ УРОНА (по правилу: 'damage' = DPS для лазеров/пулеметов)
+            // 4. НОВЫЙ АЛГОРИТМ УРОНА (Единый таймлайн для всех типов ПВО)
             let totalAADamage = 0;
             let accuracy = aa.accuracyScore ? (aa.accuracyScore / 100) : 1;
 
-            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                // Строго по правилу: характеристика "урон" = урон в секунду (DPS)
-                let dps = aa.damage || 0;
-                totalAADamage = dps * engageTime * aaQty * accuracy;
-            } else {
-                // Для ракетного и гибридного ПВО считаем физические выстрелы/залпы по таймлайну
-                let shotsFired = 0;
-                let currentTime = 0;
-                let clipLeft = aa.ammo_clip || 1;
-                let fireDelay = aa.fire_delay || 0.2;
-                let reload = aa.reload || 3.0;
-                
-                while (currentTime <= engageTime) {
-                    if (clipLeft > 0) {
-                        shotsFired++;
-                        clipLeft--;
-                        currentTime += fireDelay;
-                    } else {
-                        currentTime += reload;
-                        clipLeft = aa.ammo_clip || 1;
-                    }
+            let shotsFired = 0;
+            let currentTime = 0;
+            let clipLeft = aa.ammo_clip || 1;
+            let fireDelay = aa.fire_delay || 0.2;
+            let reload = aa.reload || 3.0;
+            let proj = aa.projectiles || 1;
+            
+            // Симуляция стрельбы по миллисекундам
+            while (currentTime <= engageTime) {
+                if (clipLeft > 0) {
+                    shotsFired += proj; // Выстрел
+                    clipLeft--;
+                    currentTime += fireDelay; // Добавляем задержку (0.12 сек для ANSEQ-3)
+                } else {
+                    currentTime += reload; // Обойма пуста — уходим на перезарядку
+                    clipLeft = aa.ammo_clip || 1;
                 }
-                
-                totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
             }
+            
+            // Считаем нанесенный урон с учетом количества модулей ПВО и точности
+            totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
 
             // Штраф по РЭБ для отводимых ракет (ПВО отвлекается на ловушки)
             if (mis.anti_jamming === 0 && (aa.aa_type === "Ракетное" || aa.aa_type === "Гибрид")) {
