@@ -1465,45 +1465,38 @@
             "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Установка индекса разброса
-                let aa_dispersion = 11; // Лазерное
+                // 1. Установка индекса разброса (Чем меньше, тем лучше)
+                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
                 if (item.aa_type === "Пулеметное") aa_dispersion = 22;
                 else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 22; // ИЗМЕНЕНО: теперь 22, чем дальше, тем больше промахов
+                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
                 
                 item.aa_dispersion = aa_dispersion; 
 
-                // 2. Математика точности
+                // 2. Математика точности (Зависимость от разброса и дальности)
+                // 11 (Лазер) — нет штрафа (точность 100%).
+                // 14 (Ракеты) — небольшой штраф на большой дистанции.
+                // 16 (Гибрид) — средний штраф.
+                // 22 (Пулемет) — максимальный штраф от отдачи.
                 let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
                 let accuracyScore = Math.max(10, 100 - spreadPenalty); 
                 item.accuracyScore = accuracyScore;
                 
+                // Коэффициент попаданий
                 let hitRatio = accuracyScore / 100;
 
-                // 3. НОВЫЙ АЛГОРИТМ: Истинный урон с учетом времени отстрела обоймы
-                let clip = item.ammo_clip || 1;
-                let fDelay = item.fire_delay || 0.2;
-                let rld = item.reload || 3.0;
-                let proj = item.projectiles || 1;
+                // 3. Эффективный урон (Точность + Ловушки)
+                let effectiveDpm = (item.dpm || 0) * hitRatio;
+                let effectiveBurst = (item.damage_burst || 0) * hitRatio;
                 
-                // Считаем время полного цикла: (выстрелы * задержка) + перезарядка
-                let cycleTime = (clip * fDelay) + rld; 
-                // Высчитываем количество выстрелов в минуту
-                let shotsPerMinute = (60 / cycleTime) * clip * proj;
-                
-                let trueDpm = shotsPerMinute * (item.damage || 0);
-                
-                let effectiveDpm = trueDpm * hitRatio;
-                let effectiveBurst = (item.damage * clip * proj) * hitRatio;
-                
-                let flareCycle = 5.0; 
+                let flareCycle = 5.0; // Откат ловушек
                 
                 if (item.aa_type === "Ракетное") {
-                    let flarePenalty = Math.max(0.2, 1 - (rld / flareCycle)); 
+                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
                     effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
                 } 
                 else if (item.aa_type === "Гибрид") {
-                    effectiveDpm = trueDpm * 0.75; 
+                    effectiveDpm = item.dpm * 0.75; 
                 }
                 
                 item.effectiveDpm = effectiveDpm;
@@ -1512,8 +1505,6 @@
                 // 4. Фундаментальный урон с учетом точности
                 score += (effectiveDpm / 200000) * 280; 
                 score += (effectiveBurst / 20000) * 80; 
-
-                // ... остальной код функции RATING_CALCULATORS["ПВО"] остается без изменений
 
                 // 5. Оценка дальности и чистоты попаданий
                 score += ((item.range || 3) / 6) * 80; 
@@ -1896,7 +1887,7 @@
             document.getElementById(`stats-equip-${side}`).innerHTML = html;
         }
 
-        function drawRadarChart(e1, e2) {
+       function drawRadarChart(e1, e2) {
             let canvas = document.getElementById('radarChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
@@ -1905,102 +1896,69 @@
             let ctx = canvas.getContext('2d');
             if(window.radarChartInstance) window.radarChartInstance.destroy();
             
-            let labels, d1, d2;
+            let labels = [], d1 = [], d2 = [];
 
-            if (e1.category === "Ракеты" || e1.category === "Ракеты А/А") {
-                labels = ['Эффект. DPM', 'Эффект. Альфа', 'Живучесть', 'Скорость', 'Скорострельность', 'Дальность'];
-                let catMax = CATEGORY_MAX_STATS[e1.category]; 
-                let catMax2 = CATEGORY_MAX_STATS[e2.category];
-                d1 = [
-                    Math.min(100, (e1.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.effectiveBurst / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, (e1.hp / catMax.hp) * 100) || 0, Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0,
-                    Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0
-                ];
-                d2 = [
-                    Math.min(100, (e2.effectiveDpm / catMax2.dpm) * 100) || 0, Math.min(100, (e2.effectiveBurst / catMax2.damage_burst) * 100) || 0,
-                    Math.min(100, (e2.hp / catMax2.hp) * 100) || 0, Math.min(100, (e2.max_speed / catMax2.max_speed) * 100) || 0,
-                    Math.max(0, 100 - (e2.reload / catMax2.reload) * 100) || 0, Math.min(100, (e2.range / catMax2.range) * 100) || 0
-                ];
-            } else if (e1.category === "Торпеды") {
-                labels = ['Урон/мин', 'Альфа', 'Ускорение', 'Макс. Скорость', 'Скорострельность', 'Дальность'];
-                let catMax = CATEGORY_MAX_STATS["Торпеды"];
-                d1 = [
-                    Math.min(100, (e1.dpm / catMax.dpm) * 100) || 0, 
-                    Math.min(100, (e1.damage_burst / catMax.damage_burst) * 100) || 0,
-                    Math.max(0, 100 - (e1.accel_time / catMax.accel_time) * 100) || 0, 
-                    Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0,
-                    Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, 
-                    Math.min(100, (e1.range / catMax.range) * 100) || 0
-                ];
-                d2 = [
-                    Math.min(100, (e2.dpm / catMax.dpm) * 100) || 0, 
-                    Math.min(100, (e2.damage_burst / catMax.damage_burst) * 100) || 0,
-                    Math.max(0, 100 - (e2.accel_time / catMax.accel_time) * 100) || 0, 
-                    Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0,
-                    Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, 
-                    Math.min(100, (e2.range / catMax.range) * 100) || 0
-                ];
-            } else if (e1.category === "Гранатометы") {
-                labels = ['Эффект. DPM', 'Эффект. Альфа', 'ПТЗ (Радиус)', 'Скор. снаряда', 'Скорострельность', 'Дальность'];
-                let catMax = CATEGORY_MAX_STATS["Гранатометы"];
-                d1 = [
-                    Math.min(100, ((e1.effectiveDpm || e1.dpm) / catMax.dpm) * 100) || 0, 
-                    Math.min(100, ((e1.effectiveBurst || e1.damage_burst) / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, ((e1.splash_radius || 10) / catMax.splash_radius) * 100) || 0, 
-                    Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0,
-                    Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, 
-                    Math.min(100, (e1.range / catMax.range) * 100) || 0
-                ];
-                d2 = [
-                    Math.min(100, ((e2.effectiveDpm || e2.dpm) / catMax.dpm) * 100) || 0, 
-                    Math.min(100, ((e2.effectiveBurst || e2.damage_burst) / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, ((e2.splash_radius || 10) / catMax.splash_radius) * 100) || 0, 
-                    Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0,
-                    Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, 
-                    Math.min(100, (e2.range / catMax.range) * 100) || 0
-                ];
-            } else if (e1.category === "Автопушки") {
-                labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика', 'Дальность', 'Боекомплект', 'ПВО/ПЛО Утилити'];
-                let catMax = CATEGORY_MAX_STATS["Автопушки"];
+            // Вспомогательные функции для чистоты кода (считают проценты от максимума в категории)
+            const pct = (val, max) => Math.min(100, Math.max(0, ((val || 0) / (max || 1)) * 100));
+            const invPct = (val, max) => Math.max(0, 100 - pct(val, max));
+
+            let cMax1 = CATEGORY_MAX_STATS[e1.category] || CATEGORY_MAX_STATS["Пушки"];
+            let cMax2 = CATEGORY_MAX_STATS[e2.category] || CATEGORY_MAX_STATS["Пушки"];
+
+            // 1. ПУШКИ
+            if (e1.category === "Пушки") {
+                labels = ['Эффект. DPM', 'Эффект. Альфа', 'Баллистика (Скор.)', 'Точность', 'Скорострельность', 'Дальность'];
+                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), e1.accuracyScore || 100, invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), e2.accuracyScore || 100, invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
+            } 
+            // 2. РАКЕТЫ
+            else if (e1.category === "Ракеты") {
+                labels = ['Эффект. DPM', 'Альфа-страйк', 'Живучесть (HP)', 'Макс. Скорость', 'Стартовый рывок', 'Дальность'];
+                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.hp, cMax1.hp), pct(e1.max_speed, cMax1.max_speed), pct(e1.start_speed, cMax1.start_speed), pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.hp, cMax2.hp), pct(e2.max_speed, cMax2.max_speed), pct(e2.start_speed, cMax2.start_speed), pct(e2.range, cMax2.range) ];
+            }
+            // 3. ЗЕНИТНЫЕ РАКЕТЫ (А/А)
+            else if (e1.category === "Ракеты А/А") {
+                labels = ['Урон по авиации', 'Урон по кораблям', 'Скорость перехвата', 'Сплэш / АОЕ', 'Скорострельность', 'Дальность'];
+                let aoe1 = (e1.splash_radius || 0) + (e1.detonation_radius || 0);
+                let aoe2 = (e2.splash_radius || 0) + (e2.detonation_radius || 0);
+                d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.max_speed, cMax1.max_speed), pct(aoe1, 700), invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.max_speed, cMax2.max_speed), pct(aoe2, 700), invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
+            }
+            // 4. ТОРПЕДЫ
+            else if (e1.category === "Торпеды") {
+                labels = ['Эффект. DPM', 'Альфа-страйк', 'Скрытность (Разгон)', 'Макс. Скорость', 'Скорострельность', 'Дальность'];
+                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), invPct(e1.accel_time, cMax1.accel_time), pct(e1.max_speed, cMax1.max_speed), invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), invPct(e2.accel_time, cMax2.accel_time), pct(e2.max_speed, cMax2.max_speed), invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
+            }
+            // 5. ГРАНАТОМЕТЫ
+            else if (e1.category === "Гранатометы") {
+                labels = ['Эффект. DPM', 'Эффект. Альфа', 'ПТЗ (Радиус сплэша)', 'Скорость снаряда', 'Плотность огня', 'Дальность'];
+                let dens1 = (e1.projectiles || 1) * (e1.ammo_clip || 1);
+                let dens2 = (e2.projectiles || 1) * (e2.ammo_clip || 1);
+                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.splash_radius || e1.detonation_radius, Math.max(cMax1.splash_radius, cMax1.detonation_radius)), pct(e1.max_speed, cMax1.max_speed), pct(dens1, 20), pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.splash_radius || e2.detonation_radius, Math.max(cMax2.splash_radius, cMax2.detonation_radius)), pct(e2.max_speed, cMax2.max_speed), pct(dens2, 20), pct(e2.range, cMax2.range) ];
+            }
+            // 6. АВТОПУШКИ
+            else if (e1.category === "Автопушки") {
+                labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
                 let util1 = ((e1.air_target ? 50 : 0) + (e1.can_hit_subs ? 50 : 0));
                 let util2 = ((e2.air_target ? 50 : 0) + (e2.can_hit_subs ? 50 : 0));
+                d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), pct(e1.ammo_clip || 1, cMax1.ammo_clip), util1, pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
+            }
+            // 7. ПВО
+            else if (e1.category === "ПВО") {
+                labels = ['Эффект. DPM', 'Точность перехвата', 'Плотность огня', 'Скорость снаряда', 'Сплэш / АОЕ', 'Дальность'];
+                let dens1 = (e1.ammo_clip || 1) * (e1.projectiles || 1);
+                let dens2 = (e2.ammo_clip || 1) * (e2.projectiles || 1);
+                let aoe1 = (e1.splash_radius || 0) + (e1.detonation_radius || 0);
+                let aoe2 = (e2.splash_radius || 0) + (e2.detonation_radius || 0);
+                let spd1 = e1.start_speed || e1.max_speed || 0;
+                let spd2 = e2.start_speed || e2.max_speed || 0;
                 
-                d1 = [
-                    Math.min(100, (e1.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.damage_burst / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0,
-                    Math.min(100, ((e1.ammo_clip || 1) / catMax.ammo_clip) * 100) || 0, util1
-                ];
-                d2 = [
-                    Math.min(100, (e2.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.damage_burst / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0,
-                    Math.min(100, ((e2.ammo_clip || 1) / catMax.ammo_clip) * 100) || 0, util2
-                ];
-            } else if (e1.category === "ПВО") {
-                labels = ['Урон/мин (DPM)', 'Эффект. DPM', 'Альфа', 'Дальность', 'Точность', 'Скорость'];
-                let catMax = CATEGORY_MAX_STATS["ПВО"];
-                d1 = [
-                    Math.min(100, (e1.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.effectiveDpm / catMax.dpm) * 100) || 0,
-                    Math.min(100, (e1.damage_burst / catMax.damage_burst) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0,
-                    Math.min(100, (e1.aa_accuracy / catMax.aa_accuracy) * 100) || 0, Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0
-                ];
-                d2 = [
-                    Math.min(100, (e2.dpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.effectiveDpm / catMax.dpm) * 100) || 0,
-                    Math.min(100, (e2.damage_burst / catMax.damage_burst) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0,
-                    Math.min(100, (e2.aa_accuracy / catMax.aa_accuracy) * 100) || 0, Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0
-                ];
-            } else {
-                labels = ['Эффект. DPM', 'Эффект. Альфа', 'Скор. снаряда', 'Точность', 'Скорострельность', 'Дальность'];
-                let catMax = CATEGORY_MAX_STATS["Пушки"];
-                d1 = [
-                    Math.min(100, (e1.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e1.effectiveBurst / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, (e1.max_speed / catMax.max_speed) * 100) || 0, e1.accuracyScore || 100,
-                    Math.max(0, 100 - (e1.reload / catMax.reload) * 100) || 0, Math.min(100, (e1.range / catMax.range) * 100) || 0
-                ];
-                d2 = [
-                    Math.min(100, (e2.effectiveDpm / catMax.dpm) * 100) || 0, Math.min(100, (e2.effectiveBurst / catMax.damage_burst) * 100) || 0,
-                    Math.min(100, (e2.max_speed / catMax.max_speed) * 100) || 0, e2.accuracyScore || 100,
-                    Math.max(0, 100 - (e2.reload / catMax.reload) * 100) || 0, Math.min(100, (e2.range / catMax.range) * 100) || 0
-                ];
+                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), e1.accuracyScore || 100, pct(dens1, 175), pct(spd1, cMax1.max_speed), pct(aoe1, 333), pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), e2.accuracyScore || 100, pct(dens2, 175), pct(spd2, cMax2.max_speed), pct(aoe2, 333), pct(e2.range, cMax2.range) ];
             }
 
             Chart.defaults.color = '#7890a8';
@@ -2569,31 +2527,35 @@
             let singleMissileHP = mis.hp || 50;
             let totalMissileHP = singleMissileHP * totalMissiles;
 
-            // 4. НОВЫЙ АЛГОРИТМ УРОНА (Единый таймлайн для всех типов ПВО)
+            // 4. НОВЫЙ АЛГОРИТМ УРОНА (по правилу: 'damage' = DPS для лазеров/пулеметов)
             let totalAADamage = 0;
             let accuracy = aa.accuracyScore ? (aa.accuracyScore / 100) : 1;
 
-            let shotsFired = 0;
-            let currentTime = 0;
-            let clipLeft = aa.ammo_clip || 1;
-            let fireDelay = aa.fire_delay || 0.2;
-            let reload = aa.reload || 3.0;
-            let proj = aa.projectiles || 1;
-            
-            // Симуляция стрельбы по миллисекундам
-            while (currentTime <= engageTime) {
-                if (clipLeft > 0) {
-                    shotsFired += proj; // Выстрел
-                    clipLeft--;
-                    currentTime += fireDelay; // Добавляем задержку (0.12 сек для ANSEQ-3)
-                } else {
-                    currentTime += reload; // Обойма пуста — уходим на перезарядку
-                    clipLeft = aa.ammo_clip || 1;
+            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
+                // Строго по правилу: характеристика "урон" = урон в секунду (DPS)
+                let dps = aa.damage || 0;
+                totalAADamage = dps * engageTime * aaQty * accuracy;
+            } else {
+                // Для ракетного и гибридного ПВО считаем физические выстрелы/залпы по таймлайну
+                let shotsFired = 0;
+                let currentTime = 0;
+                let clipLeft = aa.ammo_clip || 1;
+                let fireDelay = aa.fire_delay || 0.2;
+                let reload = aa.reload || 3.0;
+                
+                while (currentTime <= engageTime) {
+                    if (clipLeft > 0) {
+                        shotsFired++;
+                        clipLeft--;
+                        currentTime += fireDelay;
+                    } else {
+                        currentTime += reload;
+                        clipLeft = aa.ammo_clip || 1;
+                    }
                 }
+                
+                totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
             }
-            
-            // Считаем нанесенный урон с учетом количества модулей ПВО и точности
-            totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
 
             // Штраф по РЭБ для отводимых ракет (ПВО отвлекается на ловушки)
             if (mis.anti_jamming === 0 && (aa.aa_type === "Ракетное" || aa.aa_type === "Гибрид")) {
