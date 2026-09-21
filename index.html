@@ -1206,18 +1206,12 @@
                     
                     item.effectiveBurst = item.damage_burst;
                     
+                    // Гладкая экспоненциальная функция вместо кусочной (была ступенька:
+                    // при reload=10.9 hitRatio~0.50, а при reload=11.0 — скачок до 0.30).
+                    // Даёт те же опорные значения (1.0 при reload=0, ~0.5 при reload=5.5,
+                    // асимптотически стремится к 0.3 при больших reload), но без разрыва.
                     let flareCycle = 11.0; 
-                    let hitRatio = 0;
-
-                    if (item.reload <= (flareCycle / 2)) {
-                        hitRatio = 1 - (item.reload / flareCycle);
-                    } 
-                    else if (item.reload < flareCycle) {
-                        hitRatio = 0.50; 
-                    } 
-                    else {
-                        hitRatio = 0.30; 
-                    }
+                    let hitRatio = 0.30 + 0.70 * Math.exp(-item.reload / (flareCycle / 2));
 
                     item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
                 }
@@ -1299,20 +1293,12 @@
                     item.effectiveDpm = item.dpm;
                     item.effectiveBurst = item.damage_burst;
                 } else {
+                    // Гладкая версия той же кривой (была ступенька 0.55 -> 0.35 при reload=29)
                     let trapCycle = 29.0; 
-                    let hitRatio = 0;
-
                     let speedCoeff = Math.min(1.2, item.max_speed / 120);
+                    let hitRatio = Math.min(1, (0.35 + 0.65 * Math.exp(-item.reload / (trapCycle / 2))) * speedCoeff);
 
-                    if (item.reload <= (trapCycle / 2)) {
-                        hitRatio = Math.min(1, (1 - (item.reload / trapCycle)) * speedCoeff);
-                    } else if (item.reload < trapCycle) {
-                        hitRatio = 0.55 * speedCoeff;
-                    } else {
-                        hitRatio = 0.35 * speedCoeff;
-                    }
-
-                    item.effectiveDpm = item.dpm * Math.min(1, hitRatio);
+                    item.effectiveDpm = item.dpm * hitRatio;
                     item.effectiveBurst = item.damage_burst; 
                 }
 
@@ -1397,15 +1383,9 @@
                     if (!isFlarable) {
                         score += 100; 
                     } else {
+                        // Гладкая версия той же кривой (была ступенька 0.70 -> 0.40 при reload=11)
                         let flareCycle = 11.0; 
-                        let hitRatio = 0;
-                        if (item.reload <= (flareCycle / 2)) {
-                            hitRatio = 1.2 - (item.reload / flareCycle); 
-                        } else if (item.reload < flareCycle) {
-                            hitRatio = 0.70; 
-                        } else {
-                            hitRatio = 0.40; 
-                        }
+                        let hitRatio = 0.40 + 0.80 * Math.exp(-item.reload / (flareCycle / 2));
                         score += 80 * hitRatio; 
                     }
 
@@ -1580,12 +1560,43 @@
 
         function calculateRating(item) {
             if (RATING_CALCULATORS[item.category]) {
-                return Math.min(1000, Math.max(50, Math.round(RATING_CALCULATORS[item.category](item))));
+                return RATING_CALCULATORS[item.category](item);
             }
             return 500;
         }
 
-        for (let key in DB) { DB[key].rating = calculateRating(DB[key]); }
+        // 1. Считаем "сырой" балл каждого предмета его собственной формулой категории.
+        for (let key in DB) { DB[key]._rawScore = calculateRating(DB[key]); }
+
+        // 2. Нормализуем баллы ВНУТРИ каждой категории через min-max в общую шкалу [50, 1000].
+        // Раньше разные категории использовали разные "потолки" прямо в формулах
+        // (250000 у автопушек, 300000 у ракет, 400000 у пушек и т.д.), а итоговый
+        // Math.min(1000, Math.max(50, ...)) просто обрезал результат сверху и снизу —
+        // из-за этого баллы разных категорий были несопоставимы: 900 у ракет и 900 у ПВО
+        // не обязательно означали одинаковый "запас прочности" над средним по категории.
+        // Min-max нормализация делает так, что 1000 баллов в ЛЮБОЙ категории — это
+        // "лучший предмет своей категории по текущей формуле", а 50 — худший, и разброс
+        // между категориями больше не зависит от случайного выбора констант в формуле.
+        let byCategory = {};
+        for (let key in DB) {
+            let cat = DB[key].category;
+            (byCategory[cat] = byCategory[cat] || []).push(DB[key]._rawScore);
+        }
+
+        for (let key in DB) {
+            let cat = DB[key].category;
+            let scores = byCategory[cat];
+            let min = Math.min(...scores);
+            let max = Math.max(...scores);
+            let raw = DB[key]._rawScore;
+
+            let normalized = (max - min < 1e-9)
+                ? 500 // все предметы категории набрали одинаковый балл
+                : 50 + ((raw - min) / (max - min)) * 950;
+
+            DB[key].rating = Math.round(normalized);
+            delete DB[key]._rawScore;
+        }
 
         let compareQueue = [];
         // Текущий активный DB-ключ, реально отображаемый в каждом слоте сравнения.
@@ -2718,6 +2729,20 @@
             const mis = DB[misKey];
 
             // 1. Физика полета ракеты
+            // Точное решение уравнения равноускоренного движения s = v0*t + 0.5*a*t^2
+            // вместо прежней линейной аппроксимации "скорость ~ доле пройденной дистанции"
+            // (физически неверной: при равноускоренном движении скорость растёт линейно
+            // от ВРЕМЕНИ, а от дистанции — по корню: v^2 = v0^2 + 2*a*s).
+            function timeForDistance(s, v0, vmax, ta, accelDist) {
+                if (s <= 0) return 0;
+                if (s <= accelDist) {
+                    let a = (vmax - v0) / ta;
+                    if (a <= 0) return s / (v0 || vmax || 1);
+                    return (-v0 + Math.sqrt(v0 * v0 + 2 * a * s)) / a;
+                }
+                return ta + ((s - accelDist) / vmax);
+            }
+
             const MW_COEF = 0.00278; 
             let v0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
             let vmax = (mis.max_speed || 0) * MW_COEF;
@@ -2725,13 +2750,7 @@
 
             let accelDist = ((v0 + vmax) / 2) * accelTime;
 
-            let flyTime = 0;
-            if (distance <= accelDist) {
-                let currentSpeed = v0 + ((vmax - v0) * (distance / accelDist));
-                flyTime = distance / ((v0 + currentSpeed) / 2);
-            } else {
-                flyTime = accelTime + ((distance - accelDist) / vmax);
-            }
+            let flyTime = timeForDistance(distance, v0, vmax, accelTime, accelDist);
 
             // 2. Расчет времени в зоне поражения ПВО
             let aaRange = aa.range || 3.0;
@@ -2739,12 +2758,7 @@
             
             if (distance > aaRange) {
                 let distToAa = distance - aaRange; 
-                if (distToAa <= accelDist) {
-                    let speedAtAa = v0 + ((vmax - v0) * (distToAa / accelDist));
-                    timeToEnterAARange = distToAa / ((v0 + speedAtAa) / 2);
-                } else {
-                    timeToEnterAARange = accelTime + ((distToAa - accelDist) / vmax);
-                }
+                timeToEnterAARange = timeForDistance(distToAa, v0, vmax, accelTime, accelDist);
             }
             
             let engageTime = Math.max(0, flyTime - timeToEnterAARange);
