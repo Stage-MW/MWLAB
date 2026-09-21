@@ -1157,13 +1157,15 @@
                 
                 let alphaMultiplier = 1;
                 if (hasClip) {
-                    if (item.ammo_clip >= 10) alphaMultiplier = 0.2;
-                    else if (item.ammo_clip > 3) alphaMultiplier = 0.5;
-                    else alphaMultiplier = 0.8;
-                } else {
-                    if (totalShots === 2) alphaMultiplier = 0.95;
-                    else if (totalShots === 3) alphaMultiplier = 0.85;
-                    else if (totalShots > 3) alphaMultiplier = Math.max(0.1, 1 - (totalShots * 0.04));
+                    // Гладкая убывающая функция вместо жёстких порогов
+                    // (было: clip=3 -> 0.8, clip=4 -> 0.5 — скачок на 0.3 за один патрон;
+                    // и такой же скачок 0.5 -> 0.2 между clip=9 и clip=10).
+                    alphaMultiplier = 0.2 + 0.6 * Math.exp(-(item.ammo_clip - 1) / 5);
+                } else if (totalShots > 1) {
+                    // Раньше totalShots===2/3 считались отдельными "особыми" значениями
+                    // (0.95 / 0.85), слегка выбивавшимися из общей кривой для totalShots>3.
+                    // Теперь везде одна и та же монотонная формула — без скачков на стыке.
+                    alphaMultiplier = Math.max(0.1, 1 - (totalShots * 0.04));
                 }
                 
                 item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
