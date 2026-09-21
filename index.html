@@ -1142,15 +1142,40 @@
         // Точность ПВО по типу оружия. В базе нет отдельного поля accuracy для ПВО,
         // поэтому точность выражается через "индекс разброса" по типу: это не баг,
         // а единственный доступный сигнал (нет данных, чтобы вывести его иначе).
-        function getAaAccuracy(aa) {
-            let aa_dispersion = 11; // Лазерное — эталон, без штрафа
-            if (aa.aa_type === "Пулеметное") aa_dispersion = 22;
-            else if (aa.aa_type === "Гибрид") aa_dispersion = 16;
-            else if (aa.aa_type === "Ракетное") aa_dispersion = 14;
+        // Точность/шанс попадания ПВО. В базе НЕТ отдельного поля accuracy для ПВО,
+        // зато есть detonation_radius (радиус подрыва взрывателя) — это РЕАЛЬНОЕ
+        // поле конкретного оружия (39 из 42 предметов категории «ПВО»), а не
+        // придуманная по типу константа: у разных юнитов ОДНОГО типа он разный
+        // (10-33), и наоборот встречается у всех 4 типов, так что это честный,
+        // не привязанный к типу сигнал "насколько взрыватель прощает промах".
+        //
+        // Дальше накладывается своя механика по типу — по вашему описанию:
+        // - Лазерное: непрерывное сопровождение цели лучом; скорость самой ракеты
+        //   почти не имеет значения (скорость наведения луча/снаряда 680-874 —
+        //   на порядок выше максимума любой ракеты-угрозы в базе, 641).
+        // - Пулеметное: неуправляемый скорострельный огонь "по площади" — здесь
+        //   решает именно скорость цели (труднее довести трассу на быстрый снаряд),
+        //   в отличие от управляемых типов.
+        // - Ракетное/Гибрид: управляемый перехватчик, но и у него шанс попадания
+        //   меньше 100% САМ ПО СЕБЕ — ЗУР промахивается не только из-за ловушек
+        //   РЭБ (тот штраф остаётся отдельным, независимым множителем ниже,
+        //   в computeInterception — конфляции больше нет).
+        function getAaAccuracy(aa, mis) {
+            let det = aa.detonation_radius || 10;
+            let baseHit = Math.min(0.95, 0.40 + det * 0.02); // радиус 10 -> ~60%, радиус 28+ -> потолок 95%
 
-            let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((aa.range || 3) * 0.7);
-            let accuracyScore = Math.max(10, 100 - spreadPenalty);
-            return { aa_dispersion, accuracyScore };
+            let accuracyScore;
+            if (aa.aa_type === "Лазерное") {
+                accuracyScore = Math.min(98, (baseHit + 0.15) * 100);
+            } else if (aa.aa_type === "Пулеметное") {
+                let targetSpeed = (mis && (mis.max_speed || mis.start_speed)) || 400;
+                let speedPenalty = Math.min(0.55, targetSpeed / 1300);
+                accuracyScore = Math.max(15, (baseHit - speedPenalty) * 100);
+            } else {
+                accuracyScore = Math.max(20, baseHit * 100);
+            }
+
+            return { detonation_radius: det, accuracyScore };
         }
 
         // Точное решение уравнения равноускоренного движения s = v0*t + 0.5*a*t^2
@@ -1185,14 +1210,24 @@
             }
             let engageTime = Math.max(0, flyTime - timeToEnterAARange);
 
-            let { accuracyScore } = getAaAccuracy(aa);
+            let { accuracyScore } = getAaAccuracy(aa, mis);
             let accuracy = accuracyScore / 100;
+
+            // Урон по рою за один выстрел = прямое попадание + сплеш по остальным
+            // ракетам в том же залпе, если у оружия есть splash_damage/splash_radius.
+            // Раньше это поле в расчёте перехвата вообще не участвовало, хотя есть
+            // в базе у части «Ракетное»/«Лазерное» (включая RIM-8 TALOS с ядерной БЧ,
+            // splash_damage=500) — именно то, что делает такое оружие сильным
+            // конкретно против МАССИРОВАННОГО залпа, а не одиночной ракеты.
+            let projectilesPerLaunch = mis.projectiles || 1;
+            let splashTargets = Math.max(0, projectilesPerLaunch - 1);
+            let damagePerHit = (aa.damage || 0) + (aa.splash_damage || 0) * splashTargets;
 
             let totalAADamage = 0;
             let speedInterceptChance = null;
 
             if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                let dps = aa.damage || 0;
+                let dps = damagePerHit || 0;
                 totalAADamage = dps * engageTime * aaQty * accuracy;
             } else {
                 let shotsFired = 0, currentTime = 0;
@@ -1210,9 +1245,9 @@
                     let aaSpeed = aa.max_speed || aa.start_speed || 0;
                     let targetSpeed = mis.max_speed || mis.start_speed || 0;
                     speedInterceptChance = targetSpeed > 0 ? Math.min(1, aaSpeed / targetSpeed) : 1;
-                    totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy * speedInterceptChance;
+                    totalAADamage = shotsFired * damagePerHit * aaQty * accuracy * speedInterceptChance;
                 } else {
-                    totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
+                    totalAADamage = shotsFired * damagePerHit * aaQty * accuracy;
                 }
             }
 
@@ -1220,7 +1255,6 @@
                 totalAADamage *= 0.6;
             }
 
-            let projectilesPerLaunch = mis.projectiles || 1;
             let singleMissileHP = mis.hp || 50;
             let totalMissileHP = singleMissileHP * projectilesPerLaunch;
 
@@ -1585,7 +1619,7 @@
             "ПВО": function(item) {
                 // 1. Точность по типу оружия (та же логика, что использует и симулятор)
                 let acc = getAaAccuracy(item);
-                item.aa_dispersion = acc.aa_dispersion;
+                item.detonation_radius = acc.detonation_radius;
                 item.accuracyScore = acc.accuracyScore;
 
                 // 2. Бенчмарк: прогоняем юнит против ВСЕХ реальных ракет-угроз
