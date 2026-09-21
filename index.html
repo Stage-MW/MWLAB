@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#071017">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>MWLAB v1 | TACTICAL TERMINAL</title>
+    <title>MWLAB | TACTICAL TERMINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -57,7 +57,7 @@
         }
 
         /* --- ГЛОБАЛЬНЫЙ ФОН MWL --- */
-        #global-mwl v1-wrapper {
+        #global-mwl-wrapper {
             position: fixed; top: 50%; 
             z-index: 0; pointer-events: none;
             transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2031,7 +2031,7 @@
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.splash_radius || e2.detonation_radius, Math.max(cMax2.splash_radius, cMax2.detonation_radius)), pct(e2.max_speed, cMax2.max_speed), pct(dens2, 20), pct(e2.range, cMax2.range) ];
             }
             // 6. АВТОПУШКИ
-            else if (e1.category === "Автопушки (BETA)") {
+            else if (e1.category === "Автопушки") {
                 labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
                 let util1 = ((e1.air_target ? 50 : 0) + (e1.can_hit_subs ? 50 : 0));
                 let util2 = ((e2.air_target ? 50 : 0) + (e2.can_hit_subs ? 50 : 0));
@@ -2039,7 +2039,7 @@
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
             }
             // 7. ПВО
-            else if (e1.category === "ПВО (BETA)") {
+            else if (e1.category === "ПВО") {
                 labels = ['Эффект. DPM', 'Точность перехвата', 'Плотность огня', 'Скорость снаряда', 'Сплэш / АОЕ', 'Дальность'];
                 let dens1 = (e1.ammo_clip || 1) * (e1.projectiles || 1);
                 let dens2 = (e2.ammo_clip || 1) * (e2.projectiles || 1);
