@@ -45,9 +45,12 @@
             font-family: 'Jura', sans-serif;
             text-transform: uppercase;
             overflow-x: hidden;
+            overscroll-behavior-y: none;
             width: 100%;
             position: relative;
             min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         body::before {
@@ -60,7 +63,7 @@
         #global-mwl-wrapper {
             position: fixed; top: 50%; 
             z-index: 0; pointer-events: none;
-            transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1), top 0.8s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #global-mwl-wrapper.center { left: 50%; transform: translate(-50%, -50%); }
         #global-mwl-wrapper.right { left: 75%; transform: translate(-50%, -50%); }
@@ -355,6 +358,11 @@
             
             #global-mwl-wrapper.right { left: 50%; }
             #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 35vw; }
+
+            /* На планшетах водяной знак MWL уходит вниз экрана */
+            #global-mwl-wrapper { top: auto; bottom: -4vw; }
+            #global-mwl-wrapper.center, #global-mwl-wrapper.right { transform: translate(-50%, 0); }
+            #global-mwl-wrapper { -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%); mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%); }
         }
 
         @media (max-width: 768px) {
@@ -401,16 +409,28 @@
             
             .export-wrapper { padding: 20px 15px; }
             
-            #page-home { padding: 0 15px 40px 15px; height: auto; min-height: calc(100vh - 120px); overflow-y: auto;}
+            #page-home { padding: 0 15px calc(40px + env(safe-area-inset-bottom, 0px)) 15px; height: auto; min-height: calc(100vh - 120px); min-height: calc(100dvh - 120px); overflow-y: auto;}
             .home-title { font-size: 3.5rem; margin-top: 20px; }
             .home-subtitle { font-size: 1rem; letter-spacing: 3px; }
             .home-desc { font-size: 0.95rem; }
             .home-image-side img { max-height: 45vh; }
             
             #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 50vw; }
+            #global-mwl-wrapper { bottom: -7vw; }
             
             .modal-content { padding: 25px 15px; }
             .modal-close { top: 5px; right: 15px; font-size: 2.5rem; }
+        }
+
+        /* --- МАЛЕНЬКИЕ ТЕЛЕФОНЫ (iPhone SE и т.п.) --- */
+        @media (max-width: 400px) {
+            .home-title { font-size: 2.8rem; }
+            .home-subtitle { font-size: 0.85rem; letter-spacing: 2px; }
+            .home-desc { font-size: 0.85rem; }
+            .cat-btn-main { font-size: 0.85rem; padding: 12px 20px; }
+
+            #global-mwl-wrapper { bottom: -9vw; }
+            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 55vw; }
         }
     </style>
 </head>
@@ -1027,28 +1047,28 @@
             "mar290": { name: "MAR-290 (290 MM)", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 15, dpm: 253231, damage_burst: 33300, damage: 8124, reload: 7.35, detonation_radius: 26, splash_damage: 200, splash_radius: 166, projectiles: 4, range: 11.27, max_speed: 515, start_speed: 515, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/MAR290.png" },
             
             // ----- АВТОПУШКИ -----
-            "skyranger_buckshot": { name: "OERLIKON SKYRANGER BUCKSHOT", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 1, dpm: 156773, damage_burst: 24375, damage: 97, reload: 4.90, detonation_radius: 15, projectiles: 10, ammo_clip: 25, fire_delay: 0.12, range: 3.25, max_speed: 728, fire_penalty: 9, img: "img/OerlikonSkyrangerBuckshot.png" },
-            "rapidfire_40": { name: "RAPIDFIRE (40 MM)", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 40210, damage_burst: 3753, damage: 227, reload: 2.80, crit_chance: 20, detonation_radius: 33, projectiles: 1, ammo_clip: 15, fire_delay: 0.15, range: 3.03, max_speed: 680, fire_penalty: 9, img: "img/RapidFire.png" },
-            "rapidfire_lmm": { name: "RAPIDFIRE LMM", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 25982, damage_burst: 2490, damage: 780, reload: 5.25, detonation_radius: 26, splash_damage: 50, splash_radius: 66, projectiles: 1, ammo_clip: 3, fire_delay: 0.20, range: 4.77, start_speed: 174, max_speed: 349, accel_time: 1.80, fire_penalty: 12, img: "img/RapidFireLMM.png" },
-            "type30_jeag": { name: "TYPE-30 JEAG (40 MM)", category: "Автопушки", country: "Япония", rarity: "Легендарный", air_target: 1, dpm: 45348, damage_burst: 3250, damage: 650, reload: 3.50, detonation_radius: 20, projectiles: 1, ammo_clip: 5, fire_delay: 0.15, range: 3.47, max_speed: 933, fire_penalty: 12, img: "img/40mmJPRailgun.png" },
-            "oto_marlin": { name: "OTO MARLIN 40 (40 MM)", category: "Автопушки", country: "Италия", rarity: "Эпический", air_target: 0, dpm: 53931, damage_burst: 3146, damage: 2860, reload: 3.50, crit_chance: 20, projectiles: 1, ammo_clip: 1, fire_delay: 0.15, range: 9.10, max_speed: 933, fire_penalty: 15, img: "img/OTOMarlin.png" },
-            "bofors_40_mk3": { name: "BOFORS 40/L70 MK 3 (40 MM)", category: "Автопушки", country: "Швеция", rarity: "Эпический", air_target: 1, dpm: 29031, damage_burst: 1858, damage: 422, reload: 2.94, crit_chance: 20, detonation_radius: 26, projectiles: 1, ammo_clip: 4, fire_delay: 0.15, range: 4.33, max_speed: 777, fire_penalty: 9, img: "img/BoforsL70MK3.png" },
-            "mk46_30mm": { name: "MK-46 (30 MM)", category: "Автопушки", country: "США", rarity: "Редкий", air_target: 0, dpm: 57842, damage_burst: 4290, damage: 1300, reload: 3.85, crit_chance: 20, projectiles: 1, ammo_clip: 3, fire_delay: 0.15, range: 6.93, max_speed: 485, fire_penalty: 15, img: "img/MK46.png" },
-            "millennium_35mm": { name: "OERLIKON MILLENNIUM (35 MM)", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 0, dpm: 51480, damage_burst: 3861, damage: 351, reload: 3.15, crit_chance: 20, projectiles: 1, ammo_clip: 10, fire_delay: 0.12, range: 6.07, max_speed: 777, fire_penalty: 11, img: "img/OerlikonMillenium.png" },
-            "seahawk_sigma": { name: "SEAHAWK SIGMA (30 MM)", category: "Автопушки", country: "Великобритания", rarity: "Легендарный", air_target: 1, dpm: 21631, damage_burst: 1370, damage: 585, reload: 3.50, detonation_radius: 26, splash_damage: 100, splash_radius: 66, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 4.77, start_speed: 194, max_speed: 311, accel_time: 1.33, fire_penalty: 12, img: "img/SeahawkSigma.png" },
-            "komar_3m47": { name: "3M47-03E KOMAR", category: "Автопушки", country: "Россия", rarity: "Редкий", air_target: 1, dpm: 38507, damage_burst: 2150, damage: 974, reload: 3.15, detonation_radius: 33, splash_damage: 100, splash_radius: 100, projectiles: 1, ammo_clip: 2, fire_delay: 0.20, range: 5.20, start_speed: 194, max_speed: 349, accel_time: 2.00, fire_penalty: 15, img: "img/3M4703EKomar.png" },
-            "gibka_3m47": { name: "3M-47 GIBKA", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, dpm: 59428, damage_burst: 5200, damage: 5200, reload: 5.25, detonation_radius: 66, projectiles: 1, ammo_clip: 1, fire_delay: 0.20, range: 7.80, start_speed: 291, max_speed: 583, accel_time: 3.33, fire_penalty: 15, img: "img/GibkaNPK.png" },
-            "paket_nk": { name: "PAKET-NK", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 190434, damage_burst: 18250, damage: 8124, reload: 5.25, detonation_radius: 33, splash_damage: 1000, splash_radius: 233, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 4.77, start_speed: 23, max_speed: 73, accel_time: 1.63, fire_penalty: 10, img: "img/PaketNK.png" },
-            "afg5": { name: "AFG5", category: "Автопушки", country: "Германия", rarity: "Легендарный", air_target: 0, can_hit_subs: 1, dpm: 248000, damage_burst: 18600, damage: 2600, reload: 3.50, detonation_radius: 53, splash_damage: 500, splash_radius: 233, projectiles: 1, ammo_clip: 6, fire_delay: 0.15, range: 5.63, max_speed: 272, fire_penalty: 30, img: "img/AFGS.png" },
-            "aft_10": { name: "AFT-10", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 0, dpm: 115015, damage_burst: 12460, damage: 5980, reload: 6.30, detonation_radius: 20, splash_damage: 250, splash_radius: 200, hp: 350, projectiles: 1, ammo_clip: 2, fire_delay: 0.20, range: 7.37, start_speed: 77, max_speed: 427, accel_time: 2.40, fire_penalty: 15, img: "img/AFT10.png" },
-            "cs_an3": { name: "CS/AN-3 (30 MM)", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 0, dpm: 78862, damage_burst: 8872, damage: 844, reload: 3.15, crit_chance: 10, detonation_radius: 6, projectiles: 1, ammo_clip: 10, fire_delay: 0.12, range: 7.80, max_speed: 631, fire_penalty: 10, img: "img/CSAN3.png" },
-            "hpj_17": { name: "H/PJ-17 (30 MM)", category: "Автопушки", country: "Китай", rarity: "Редкий", air_target: 0, dpm: 54996, damage_burst: 4858, damage: 844, reload: 3.50, crit_chance: 30, detonation_radius: 6, projectiles: 1, ammo_clip: 5, fire_delay: 0.15, range: 7.37, max_speed: 680, fire_penalty: 11, img: "img/HPJ17.png" },
-            "skyranger_hybrid": { name: "OERLIKON SKYRANGER 30 HYBRID", category: "Автопушки", country: "Европейский Союз", rarity: "Легендарный", air_target: 1, dpm: 29634, damage_burst: 2025, damage: 650, reload: 3.50, detonation_radius: 20, splash_damage: 25, splash_radius: 46, projectiles: 1, ammo_clip: 3, fire_delay: 0.15, range: 3.90, start_speed: 155, max_speed: 349, accel_time: 2.50, fire_penalty: 11, img: "img/Skyranger30.png" },
-            "typhoon_nlos": { name: "TYPHOON MLS-NLOS", category: "Автопушки", country: "Израиль", rarity: "Эпический", air_target: 1, dpm: 59984, damage_burst: 3899, damage: 1949, reload: 3.50, detonation_radius: 20, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 3.90, start_speed: 213, max_speed: 291, accel_time: 1.60, fire_penalty: 12, img: "img/TyphoonMLS.png" },
-            "denel_35dpg": { name: "DENEL 35DPG (35 MM)", category: "Автопушки", country: "ЮАР", rarity: "Эпический", air_target: 1, dpm: 29283, damage_burst: 2860, damage: 130, reload: 3.01, crit_chance: 20, detonation_radius: 26, projectiles: 1, ammo_clip: 20, fire_delay: 0.12, range: 3.90, max_speed: 777, fire_penalty: 9, img: "img/Denel.png" },
-            "mk47_sea_striker": { name: "MK 47 SEA STRIKER", category: "Автопушки", country: "США", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 248243, damage_burst: 31320, damage: 2730, reload: 5.25, detonation_radius: 53, splash_damage: 750, splash_radius: 266, projectiles: 1, ammo_clip: 9, fire_delay: 0.15, range: 6.07, max_speed: 340, fire_penalty: 30, img: "img/MK47SeaStriker.png" },
-            "paket_nkm": { name: "PAKET-NKM", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 211200, damage_burst: 26400, damage: 7799, reload: 7.00, detonation_radius: 33, splash_damage: 1000, splash_radius: 233, projectiles: 1, ammo_clip: 3, fire_delay: 0.20, range: 5.20, start_speed: 19, max_speed: 77, accel_time: 2.00, fire_penalty: 10, img: "img/PaketNKM.png" },
-            "urws_30mm": { name: "URWS (30 MM)", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 1, dpm: 28862, damage_burst: 4642, damage: 130, reload: 3.85, crit_chance: 15, detonation_radius: 33, splash_damage: 15, splash_radius: 66, projectiles: 1, ammo_clip: 30, fire_delay: 0.12, range: 3.47, max_speed: 777, fire_penalty: 9, img: "img/URWS.png" },
+            "skyranger_buckshot": { accuracy: 33, name: "OERLIKON SKYRANGER BUCKSHOT", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 1, dpm: 156773, damage_burst: 24375, damage: 97, reload: 4.90, detonation_radius: 15, projectiles: 10, ammo_clip: 25, fire_delay: 0.12, range: 3.25, max_speed: 728, fire_penalty: 9, img: "img/OerlikonSkyrangerBuckshot.png" },
+            "rapidfire_40": { accuracy: 100, name: "RAPIDFIRE (40 MM)", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 40210, damage_burst: 3753, damage: 227, reload: 2.80, crit_chance: 20, detonation_radius: 33, projectiles: 1, ammo_clip: 15, fire_delay: 0.15, range: 3.03, max_speed: 680, fire_penalty: 9, img: "img/RapidFire.png" },
+            "rapidfire_lmm": { accuracy: 100, name: "RAPIDFIRE LMM", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 25982, damage_burst: 2490, damage: 780, reload: 5.25, detonation_radius: 26, splash_damage: 50, splash_radius: 66, projectiles: 1, ammo_clip: 3, fire_delay: 0.20, range: 4.77, start_speed: 174, max_speed: 349, accel_time: 1.80, fire_penalty: 12, img: "img/RapidFireLMM.png" },
+            "type30_jeag": { accuracy: 100, name: "TYPE-30 JEAG (40 MM)", category: "Автопушки", country: "Япония", rarity: "Легендарный", air_target: 1, dpm: 45348, damage_burst: 3250, damage: 650, reload: 3.50, detonation_radius: 20, projectiles: 1, ammo_clip: 5, fire_delay: 0.15, range: 3.47, max_speed: 933, fire_penalty: 12, img: "img/40mmJPRailgun.png" },
+            "oto_marlin": { accuracy: 100, name: "OTO MARLIN 40 (40 MM)", category: "Автопушки", country: "Италия", rarity: "Эпический", air_target: 0, dpm: 53931, damage_burst: 3146, damage: 2860, reload: 3.50, crit_chance: 20, projectiles: 1, ammo_clip: 1, fire_delay: 0.15, range: 9.10, max_speed: 933, fire_penalty: 15, img: "img/OTOMarlin.png" },
+            "bofors_40_mk3": { accuracy: 100, name: "BOFORS 40/L70 MK 3 (40 MM)", category: "Автопушки", country: "Швеция", rarity: "Эпический", air_target: 1, dpm: 29031, damage_burst: 1858, damage: 422, reload: 2.94, crit_chance: 20, detonation_radius: 26, projectiles: 1, ammo_clip: 4, fire_delay: 0.15, range: 4.33, max_speed: 777, fire_penalty: 9, img: "img/BoforsL70MK3.png" },
+            "mk46_30mm": { accuracy: 100, name: "MK-46 (30 MM)", category: "Автопушки", country: "США", rarity: "Редкий", air_target: 0, dpm: 57842, damage_burst: 4290, damage: 1300, reload: 3.85, crit_chance: 20, projectiles: 1, ammo_clip: 3, fire_delay: 0.15, range: 6.93, max_speed: 485, fire_penalty: 15, img: "img/MK46.png" },
+            "millennium_35mm": { accuracy: 100, name: "OERLIKON MILLENNIUM (35 MM)", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 0, dpm: 51480, damage_burst: 3861, damage: 351, reload: 3.15, crit_chance: 20, projectiles: 1, ammo_clip: 10, fire_delay: 0.12, range: 6.07, max_speed: 777, fire_penalty: 11, img: "img/OerlikonMillenium.png" },
+            "seahawk_sigma": { accuracy: 100, name: "SEAHAWK SIGMA (30 MM)", category: "Автопушки", country: "Великобритания", rarity: "Легендарный", air_target: 1, dpm: 21631, damage_burst: 1370, damage: 585, reload: 3.50, detonation_radius: 26, splash_damage: 100, splash_radius: 66, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 4.77, start_speed: 194, max_speed: 311, accel_time: 1.33, fire_penalty: 12, img: "img/SeahawkSigma.png" },
+            "komar_3m47": { accuracy: 100, name: "3M47-03E KOMAR", category: "Автопушки", country: "Россия", rarity: "Редкий", air_target: 1, dpm: 38507, damage_burst: 2150, damage: 974, reload: 3.15, detonation_radius: 33, splash_damage: 100, splash_radius: 100, projectiles: 1, ammo_clip: 2, fire_delay: 0.20, range: 5.20, start_speed: 194, max_speed: 349, accel_time: 2.00, fire_penalty: 15, img: "img/3M4703EKomar.png" },
+            "gibka_3m47": { accuracy: 100, name: "3M-47 GIBKA", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, dpm: 59428, damage_burst: 5200, damage: 5200, reload: 5.25, detonation_radius: 66, projectiles: 1, ammo_clip: 1, fire_delay: 0.20, range: 7.80, start_speed: 291, max_speed: 583, accel_time: 3.33, fire_penalty: 15, img: "img/GibkaNPK.png" },
+            "paket_nk": { accuracy: 100, name: "PAKET-NK", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 190434, damage_burst: 18250, damage: 8124, reload: 5.25, detonation_radius: 33, splash_damage: 1000, splash_radius: 233, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 4.77, start_speed: 23, max_speed: 73, accel_time: 1.63, fire_penalty: 10, img: "img/PaketNK.png" },
+            "afg5": { accuracy: 100, name: "AFG5", category: "Автопушки", country: "Германия", rarity: "Легендарный", air_target: 0, can_hit_subs: 1, dpm: 248000, damage_burst: 18600, damage: 2600, reload: 3.50, detonation_radius: 53, splash_damage: 500, splash_radius: 233, projectiles: 1, ammo_clip: 6, fire_delay: 0.15, range: 5.63, max_speed: 272, fire_penalty: 30, img: "img/AFGS.png" },
+            "aft_10": { accuracy: 100, name: "AFT-10", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 0, dpm: 115015, damage_burst: 12460, damage: 5980, reload: 6.30, detonation_radius: 20, splash_damage: 250, splash_radius: 200, hp: 350, projectiles: 1, ammo_clip: 2, fire_delay: 0.20, range: 7.37, start_speed: 77, max_speed: 427, accel_time: 2.40, fire_penalty: 15, img: "img/AFT10.png" },
+            "cs_an3": { accuracy: 100, name: "CS/AN-3 (30 MM)", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 0, dpm: 78862, damage_burst: 8872, damage: 844, reload: 3.15, crit_chance: 10, detonation_radius: 6, projectiles: 1, ammo_clip: 10, fire_delay: 0.12, range: 7.80, max_speed: 631, fire_penalty: 10, img: "img/CSAN3.png" },
+            "hpj_17": { accuracy: 100, name: "H/PJ-17 (30 MM)", category: "Автопушки", country: "Китай", rarity: "Редкий", air_target: 0, dpm: 54996, damage_burst: 4858, damage: 844, reload: 3.50, crit_chance: 30, detonation_radius: 6, projectiles: 1, ammo_clip: 5, fire_delay: 0.15, range: 7.37, max_speed: 680, fire_penalty: 11, img: "img/HPJ17.png" },
+            "skyranger_hybrid": { accuracy: 100, name: "OERLIKON SKYRANGER 30 HYBRID", category: "Автопушки", country: "Европейский Союз", rarity: "Легендарный", air_target: 1, dpm: 29634, damage_burst: 2025, damage: 650, reload: 3.50, detonation_radius: 20, splash_damage: 25, splash_radius: 46, projectiles: 1, ammo_clip: 3, fire_delay: 0.15, range: 3.90, start_speed: 155, max_speed: 349, accel_time: 2.50, fire_penalty: 11, img: "img/Skyranger30.png" },
+            "typhoon_nlos": { accuracy: 100, name: "TYPHOON MLS-NLOS", category: "Автопушки", country: "Израиль", rarity: "Эпический", air_target: 1, dpm: 59984, damage_burst: 3899, damage: 1949, reload: 3.50, detonation_radius: 20, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 3.90, start_speed: 213, max_speed: 291, accel_time: 1.60, fire_penalty: 12, img: "img/TyphoonMLS.png" },
+            "denel_35dpg": { accuracy: 100, name: "DENEL 35DPG (35 MM)", category: "Автопушки", country: "ЮАР", rarity: "Эпический", air_target: 1, dpm: 29283, damage_burst: 2860, damage: 130, reload: 3.01, crit_chance: 20, detonation_radius: 26, projectiles: 1, ammo_clip: 20, fire_delay: 0.12, range: 3.90, max_speed: 777, fire_penalty: 9, img: "img/Denel.png" },
+            "mk47_sea_striker": { accuracy: 100, name: "MK 47 SEA STRIKER", category: "Автопушки", country: "США", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 248243, damage_burst: 31320, damage: 2730, reload: 5.25, detonation_radius: 53, splash_damage: 750, splash_radius: 266, projectiles: 1, ammo_clip: 9, fire_delay: 0.15, range: 6.07, max_speed: 340, fire_penalty: 30, img: "img/MK47SeaStriker.png" },
+            "paket_nkm": { accuracy: 100, name: "PAKET-NKM", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 211200, damage_burst: 26400, damage: 7799, reload: 7.00, detonation_radius: 33, splash_damage: 1000, splash_radius: 233, projectiles: 1, ammo_clip: 3, fire_delay: 0.20, range: 5.20, start_speed: 19, max_speed: 77, accel_time: 2.00, fire_penalty: 10, img: "img/PaketNKM.png" },
+            "urws_30mm": { accuracy: 100, name: "URWS (30 MM)", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 1, dpm: 28862, damage_burst: 4642, damage: 130, reload: 3.85, crit_chance: 15, detonation_radius: 33, splash_damage: 15, splash_radius: 66, projectiles: 1, ammo_clip: 30, fire_delay: 0.12, range: 3.47, max_speed: 777, fire_penalty: 9, img: "img/URWS.png" },
             
             // ----- ПВО -----
             // Скриншот 1
@@ -1444,9 +1464,18 @@
             },
             "Автопушки": function(item) {
                 let score = 100;
-                
-                score += (item.dpm / 250000) * 300;
-                score += (item.damage_burst / 30000) * 150;
+
+                // Точность: у всех 100%, кроме исключений (напр. Buckshot — крупная дробь, мажет по цели)
+                let accuracyScore = item.accuracy !== undefined ? item.accuracy : 100;
+                item.accuracyScore = accuracyScore;
+                let hitRatio = accuracyScore / 100;
+
+                // Эффективный урон с учетом точности
+                item.effectiveDpm = item.dpm * hitRatio;
+                item.effectiveBurst = item.damage_burst * hitRatio;
+
+                score += (item.effectiveDpm / 250000) * 300;
+                score += (item.effectiveBurst / 30000) * 150;
                 
                 if (item.air_target === 1) score += 150; 
                 if (item.can_hit_subs === 1) score += 250; 
@@ -1947,11 +1976,11 @@
             }
             // 6. АВТОПУШКИ
             else if (e1.category === "Автопушки") {
-                labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
+                labels = ['Эффект. DPM', 'Эффект. разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
                 let util1 = ((e1.air_target ? 50 : 0) + (e1.can_hit_subs ? 50 : 0));
                 let util2 = ((e2.air_target ? 50 : 0) + (e2.can_hit_subs ? 50 : 0));
-                d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), pct(e1.ammo_clip || 1, cMax1.ammo_clip), util1, pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
+                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), pct(e1.ammo_clip || 1, cMax1.ammo_clip), util1, pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
             }
             // 7. ПВО
             else if (e1.category === "ПВО") {
@@ -2078,8 +2107,9 @@
                 } else if (e1.category === "Автопушки") {
                     if (winner.can_hit_subs === 1 && loser.can_hit_subs === 0) reason = "возможности перехватывать и уничтожать подлодки (ПЛО)";
                     else if (winner.air_target === 1 && loser.air_target === 0) reason = "универсальности и возможности защищать корабль от авиации (ПВО-режим)";
-                    else if (winner.dpm > loser.dpm + 30000) reason = "колоссальному математическому урону в минуту";
-                    else if (winner.damage_burst > loser.damage_burst + 5000) reason = "разрушительному разовому урону (Альфа-страйку)";
+                    else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "значительно более высокой точности стрельбы (снаряды реже уходят в молоко)";
+                    else if (winner.effectiveDpm > loser.effectiveDpm + 30000) reason = "колоссальному эффективному урону в минуту с учетом точности";
+                    else if (winner.effectiveBurst > loser.effectiveBurst + 5000) reason = "разрушительному разовому урону (Альфа-страйку)";
                     else reason = "лучшему балансу скорострельности, дальности и плотности огня";
                 } else if (e1.category === "ПВО") {
                     if (winner.aa_type === "Лазерное" && loser.aa_type !== "Лазерное") reason = "лазерному типу наведения (мгновенный урон без времени полета снаряда)";
