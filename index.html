@@ -1137,6 +1137,115 @@
             }
         }
 
+        // ===== ОБЩАЯ ФИЗИКА ПВО (используется и рейтингом, и ручным симулятором) =====
+
+        // Точность ПВО по типу оружия. В базе нет отдельного поля accuracy для ПВО,
+        // поэтому точность выражается через "индекс разброса" по типу: это не баг,
+        // а единственный доступный сигнал (нет данных, чтобы вывести его иначе).
+        function getAaAccuracy(aa) {
+            let aa_dispersion = 11; // Лазерное — эталон, без штрафа
+            if (aa.aa_type === "Пулеметное") aa_dispersion = 22;
+            else if (aa.aa_type === "Гибрид") aa_dispersion = 16;
+            else if (aa.aa_type === "Ракетное") aa_dispersion = 14;
+
+            let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((aa.range || 3) * 0.7);
+            let accuracyScore = Math.max(10, 100 - spreadPenalty);
+            return { aa_dispersion, accuracyScore };
+        }
+
+        // Точное решение уравнения равноускоренного движения s = v0*t + 0.5*a*t^2
+        function timeForDistance(s, v0, vmax, ta, accelDist) {
+            if (s <= 0) return 0;
+            if (s <= accelDist) {
+                let a = (vmax - v0) / ta;
+                if (a <= 0) return s / (v0 || vmax || 1);
+                return (-v0 + Math.sqrt(v0 * v0 + 2 * a * s)) / a;
+            }
+            return ta + ((s - accelDist) / vmax);
+        }
+
+        // Полный расчёт перехвата одной ЗРК/ПВО-юнита против одной атакующей ракеты
+        // на заданной дистанции старта. Возвращает непрерывную (не floor'нутую) долю
+        // уничтоженной цели — нужна и для UI-симулятора (там её округлят), и для
+        // усреднения по пулу угроз в рейтинге (там важна именно непрерывность).
+        function computeInterception(aa, mis, distance, aaQty) {
+            aaQty = aaQty || 1;
+            const MW_COEF = 0.00278;
+            let v0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
+            let vmax = (mis.max_speed || 0) * MW_COEF;
+            let accelTime = mis.accel_time || 0.1;
+            let accelDist = ((v0 + vmax) / 2) * accelTime;
+
+            let flyTime = timeForDistance(distance, v0, vmax, accelTime, accelDist);
+
+            let aaRange = aa.range || 3.0;
+            let timeToEnterAARange = 0;
+            if (distance > aaRange) {
+                timeToEnterAARange = timeForDistance(distance - aaRange, v0, vmax, accelTime, accelDist);
+            }
+            let engageTime = Math.max(0, flyTime - timeToEnterAARange);
+
+            let { accuracyScore } = getAaAccuracy(aa);
+            let accuracy = accuracyScore / 100;
+
+            let totalAADamage = 0;
+            let speedInterceptChance = null;
+
+            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
+                let dps = aa.damage || 0;
+                totalAADamage = dps * engageTime * aaQty * accuracy;
+            } else {
+                let shotsFired = 0, currentTime = 0;
+                let clipLeft = aa.ammo_clip || 1;
+                let fireDelay = aa.fire_delay || 0.2;
+                let reload = aa.reload || 3.0;
+                while (currentTime <= engageTime) {
+                    if (clipLeft > 0) {
+                        shotsFired++; clipLeft--; currentTime += fireDelay;
+                    } else {
+                        currentTime += reload; clipLeft = aa.ammo_clip || 1;
+                    }
+                }
+                if (aa.aa_type === "Ракетное") {
+                    let aaSpeed = aa.max_speed || aa.start_speed || 0;
+                    let targetSpeed = mis.max_speed || mis.start_speed || 0;
+                    speedInterceptChance = targetSpeed > 0 ? Math.min(1, aaSpeed / targetSpeed) : 1;
+                    totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy * speedInterceptChance;
+                } else {
+                    totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
+                }
+            }
+
+            if (mis.anti_jamming === 0 && (aa.aa_type === "Ракетное" || aa.aa_type === "Гибрид")) {
+                totalAADamage *= 0.6;
+            }
+
+            let projectilesPerLaunch = mis.projectiles || 1;
+            let singleMissileHP = mis.hp || 50;
+            let totalMissileHP = singleMissileHP * projectilesPerLaunch;
+
+            let destroyedFraction = totalMissileHP > 0 ? Math.min(1, totalAADamage / totalMissileHP) : 0;
+            // Несрезанное отношение урона к HP цели — в отличие от destroyedFraction (0..1,
+            // "убил / не убил", нужен для UI-симулятора) это позволяет различать юнит,
+            // который убивает угрозу впритык (ratio ~1.0), и тот, что убивает её с
+            // многократным запасом (ratio ~3-5): оба дают destroyedFraction=1, но это
+            // совсем не одно и то же с точки зрения реальной боевой эффективности.
+            let overkillRatio = totalMissileHP > 0 ? (totalAADamage / totalMissileHP) : 0;
+
+            return { engageTime, totalAADamage, totalMissileHP, singleMissileHP, projectilesPerLaunch, destroyedFraction, overkillRatio, speedInterceptChance };
+        }
+
+        // Пул реальных угроз для оценки эффективности ПВО: все ракеты категории
+        // "Ракеты" (а не "Ракеты А/А" — те имеют dedicated_aa:1, это собственные ЗУР
+        // корабля, а не угроза). Строится один раз при первом обращении.
+        let _missileThreatPool = null;
+        function getMissileThreatPool() {
+            if (_missileThreatPool === null) {
+                _missileThreatPool = Object.values(DB).filter(x => x.category === "Ракеты");
+            }
+            return _missileThreatPool;
+        }
+
         const RATING_CALCULATORS = {
             "Пушки": function(item) {
                 let score = 100;
@@ -1474,87 +1583,40 @@
                 return score;
             },
             "ПВО": function(item) {
-                let score = 100;
-                
-                // 1. Установка индекса разброса (Чем меньше, тем лучше)
-                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
-                if (item.aa_type === "Пулеметное") aa_dispersion = 22;
-                else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
-                
-                item.aa_dispersion = aa_dispersion; 
+                // 1. Точность по типу оружия (та же логика, что использует и симулятор)
+                let acc = getAaAccuracy(item);
+                item.aa_dispersion = acc.aa_dispersion;
+                item.accuracyScore = acc.accuracyScore;
 
-                // 2. Математика точности (Зависимость от разброса и дальности)
-                // 11 (Лазер) — нет штрафа (точность 100%).
-                // 14 (Ракеты) — небольшой штраф на большой дистанции.
-                // 16 (Гибрид) — средний штраф.
-                // 22 (Пулемет) — максимальный штраф от отдачи.
-                let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
-                let accuracyScore = Math.max(10, 100 - spreadPenalty); 
-                item.accuracyScore = accuracyScore;
-                
-                // Коэффициент попаданий
-                let hitRatio = accuracyScore / 100;
+                // 2. Бенчмарк: прогоняем юнит против ВСЕХ реальных ракет-угроз
+                // (актуальный ростер, а не рукописный список из нескольких образцов)
+                // на дистанции = собственная дальность ПВО — то есть в условиях,
+                // где у юнита есть максимум времени на реакцию по своей же дальности.
+                // Раньше рейтинг был суммой сырых характеристик (dpm/burst/range/
+                // скорость/АОЕ/крит) с подобранными на глаз весами — то есть измерял
+                // "насколько хорошие цифры", а не "насколько реально юнит останавливает
+                // ракеты". Теперь рейтинг = фактический результат физической симуляции.
+                let threats = getMissileThreatPool();
+                let totalRatio = 0;
+                threats.forEach(mis => {
+                    let sim = computeInterception(item, mis, item.range || 3, 1);
+                    // Мягкий потолок в 3x (300% превосходства): различает "убил впритык"
+                    // и "убил с огромным запасом", но не даёт редкому выбросу против
+                    // одной слабой ракеты задрать среднее до небес.
+                    totalRatio += Math.min(3, sim.overkillRatio);
+                });
+                let avgIntercept = threats.length ? (totalRatio / threats.length) : 0;
+                item.aaEffectiveness = avgIntercept; // 0..3, средний запас превосходства по угрозам
 
-                // 3. Эффективный урон (Точность + Ловушки)
-                let effectiveDpm = (item.dpm || 0) * hitRatio;
-                let effectiveBurst = (item.damage_burst || 0) * hitRatio;
-                
-                let flareCycle = 5.0; // Откат ловушек
-                
-                if (item.aa_type === "Ракетное") {
-                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
-                    effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
-                } 
-                else if (item.aa_type === "Гибрид") {
-                    effectiveDpm = item.dpm * 0.75; 
-                }
-                
-                item.effectiveDpm = effectiveDpm;
-                item.effectiveBurst = effectiveBurst;
+                // 3. Второстепенные бонусы, которые физика перехвата не отражает напрямую
+                // (устойчивость к множественным залпам подряд и т.п.) — небольшой вес,
+                // чтобы не перебивать основной, основанный на симуляции результат.
+                let utilityBonus = 0;
+                if (item.ammo_clip > 1) utilityBonus += Math.min(50, (item.ammo_clip / 150) * 40);
+                if (item.crit_chance > 0) utilityBonus += (item.crit_chance / 40) * 15;
+                if (item.fire_penalty) utilityBonus -= (item.fire_penalty * 0.3);
 
-                // 4. Фундаментальный урон с учетом точности
-                score += (effectiveDpm / 200000) * 280; 
-                score += (effectiveBurst / 20000) * 80; 
-
-                // 5. Оценка дальности и чистоты попаданий
-                score += ((item.range || 3) / 6) * 80; 
-                // Чем МЕНЬШЕ разброс (ближе к 11), тем БОЛЬШЕ бонус к очкам рейтинга
-                let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
-                score += dispersionBonus; 
-
-                // 6. Баллистика и скорость перехвата
-                let startSpd = item.start_speed || item.max_speed || 0;
-                let maxSpd = item.max_speed || 0;
-                let avgSpeed = (startSpd + maxSpd) / 2;
-                
-                if (item.accel_time > 0) {
-                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10));
-                }
-                score += (avgSpeed / 800) * 130;
-
-                // 7. АОЕ и Сплэш (Эффективность против роев ракет)
-                if (item.splash_radius > 0 || item.detonation_radius > 0) {
-                    let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
-                    if (item.splash_damage > 0) {
-                        aoeValue += (item.splash_damage / 1000) * 15;
-                    }
-                    score += Math.min(200, aoeValue); 
-                }
-
-                // 8. Плотность огня (Боезапас)
-                if (item.ammo_clip > 1) {
-                    score += Math.min(100, (item.ammo_clip / 150) * 80);
-                }
-                
-                // 9. Критический урон
-                if (item.crit_chance > 0) {
-                    score += (item.crit_chance / 40) * 30;
-                }
-
-                if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
-
-                return Math.round(score);
+                return (avgIntercept * 1000) + utilityBonus;
             }
         };
 
@@ -2730,109 +2792,21 @@
             const aa = DB[aaKey];
             const mis = DB[misKey];
 
-            // 1. Физика полета ракеты
-            // Точное решение уравнения равноускоренного движения s = v0*t + 0.5*a*t^2
-            // вместо прежней линейной аппроксимации "скорость ~ доле пройденной дистанции"
-            // (физически неверной: при равноускоренном движении скорость растёт линейно
-            // от ВРЕМЕНИ, а от дистанции — по корню: v^2 = v0^2 + 2*a*s).
-            function timeForDistance(s, v0, vmax, ta, accelDist) {
-                if (s <= 0) return 0;
-                if (s <= accelDist) {
-                    let a = (vmax - v0) / ta;
-                    if (a <= 0) return s / (v0 || vmax || 1);
-                    return (-v0 + Math.sqrt(v0 * v0 + 2 * a * s)) / a;
-                }
-                return ta + ((s - accelDist) / vmax);
-            }
+            // Вся физика (полёт ракеты, время в зоне поражения, урон ПВО за это время)
+            // считается общей функцией computeInterception() — той же самой, что
+            // использует и рейтинг ПВО в RATING_CALCULATORS. Здесь остаётся только
+            // масштабирование на размер входящего роя (misQty), которое специфично
+            // для ручного симулятора и не участвует в расчёте рейтинга.
+            let sim = computeInterception(aa, mis, distance, aaQty);
 
-            const MW_COEF = 0.00278; 
-            let v0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
-            let vmax = (mis.max_speed || 0) * MW_COEF;
-            let accelTime = mis.accel_time || 0.1;
-
-            let accelDist = ((v0 + vmax) / 2) * accelTime;
-
-            let flyTime = timeForDistance(distance, v0, vmax, accelTime, accelDist);
-
-            // 2. Расчет времени в зоне поражения ПВО
-            let aaRange = aa.range || 3.0;
-            let timeToEnterAARange = 0;
-            
-            if (distance > aaRange) {
-                let distToAa = distance - aaRange; 
-                timeToEnterAARange = timeForDistance(distToAa, v0, vmax, accelTime, accelDist);
-            }
-            
-            let engageTime = Math.max(0, flyTime - timeToEnterAARange);
+            let engageTime = sim.engageTime;
+            let totalAADamage = sim.totalAADamage;
+            let singleMissileHP = sim.singleMissileHP;
+            let speedInterceptChance = sim.speedInterceptChance;
 
             // 3. Формирование ракетного роя
-            let projectilesPerLaunch = mis.projectiles || 1;
-            let totalMissiles = misQty * projectilesPerLaunch;
-            let singleMissileHP = mis.hp || 50;
+            let totalMissiles = misQty * sim.projectilesPerLaunch;
             let totalMissileHP = singleMissileHP * totalMissiles;
-
-            // 4. НОВЫЙ АЛГОРИТМ УРОНА (по правилу: 'damage' = DPS для лазеров/пулеметов)
-            let totalAADamage = 0;
-            let accuracy = aa.accuracyScore ? (aa.accuracyScore / 100) : 1;
-
-            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                // Строго по правилу: характеристика "урон" = урон в секунду (DPS)
-                let dps = aa.damage || 0;
-                totalAADamage = dps * engageTime * aaQty * accuracy;
-            } else if (aa.aa_type === "Ракетное") {
-                // Ракетное ПВО считаем по таймлайну выстрелов (обойма/перезарядка),
-                // но добавляем штраф по СКОРОСТИ: если ЗУР медленнее атакующей
-                // ракеты — часть перехватчиков физически не успевает её догнать.
-                // Правило: скорость ЗУР в 2 раза ниже скорости цели => шанс
-                // перехвата 50%. Т.е. шанс = min(1, скорость_ЗУР / скорость_цели).
-                let shotsFired = 0;
-                let currentTime = 0;
-                let clipLeft = aa.ammo_clip || 1;
-                let fireDelay = aa.fire_delay || 0.2;
-                let reload = aa.reload || 3.0;
-
-                while (currentTime <= engageTime) {
-                    if (clipLeft > 0) {
-                        shotsFired++;
-                        clipLeft--;
-                        currentTime += fireDelay;
-                    } else {
-                        currentTime += reload;
-                        clipLeft = aa.ammo_clip || 1;
-                    }
-                }
-
-                let aaSpeed = aa.max_speed || aa.start_speed || 0;
-                let targetSpeed = mis.max_speed || mis.start_speed || 0;
-                var speedInterceptChance = targetSpeed > 0 ? Math.min(1, aaSpeed / targetSpeed) : 1;
-
-                totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy * speedInterceptChance;
-            } else {
-                // Гибридное ПВО — считаем физические выстрелы/залпы по таймлайну (без штрафа по скорости)
-                let shotsFired = 0;
-                let currentTime = 0;
-                let clipLeft = aa.ammo_clip || 1;
-                let fireDelay = aa.fire_delay || 0.2;
-                let reload = aa.reload || 3.0;
-                
-                while (currentTime <= engageTime) {
-                    if (clipLeft > 0) {
-                        shotsFired++;
-                        clipLeft--;
-                        currentTime += fireDelay;
-                    } else {
-                        currentTime += reload;
-                        clipLeft = aa.ammo_clip || 1;
-                    }
-                }
-                
-                totalAADamage = shotsFired * (aa.damage || 0) * aaQty * accuracy;
-            }
-
-            // Штраф по РЭБ для отводимых ракет (ПВО отвлекается на ловушки)
-            if (mis.anti_jamming === 0 && (aa.aa_type === "Ракетное" || aa.aa_type === "Гибрид")) {
-                totalAADamage *= 0.6; // 40% урона от ракет ПВО уходит "в молоко"
-            }
 
             // 5. Итоги перехвата
             let destroyedMissiles = Math.floor(totalAADamage / singleMissileHP);
