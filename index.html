@@ -1566,10 +1566,9 @@
                     score += Math.min(200, aoeValue); 
                 }
 
-                // 8. Плотность огня (Боезапас)
-                if (item.ammo_clip > 1) {
-                    score += Math.min(100, (item.ammo_clip / 150) * 80);
-                }
+                // 8. Плотность огня (Боезапас) — чем больше обойма, тем выше эффективность ПВО
+                let clipSize = item.ammo_clip || 1;
+                score += Math.min(140, (clipSize / 175) * 140);
                 
                 // 9. Критический урон
                 if (item.crit_chance > 0) {
@@ -2114,7 +2113,8 @@
                 } else if (e1.category === "ПВО") {
                     if (winner.aa_type === "Лазерное" && loser.aa_type !== "Лазерное") reason = "лазерному типу наведения (мгновенный урон без времени полета снаряда)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 30000) reason = "огромному эффективному урону в минуту с учетом работы ловушек";
-                    else if (winner.aa_accuracy > loser.aa_accuracy) reason = "повышенному индексу точности";
+                    else if (winner.accuracyScore > loser.accuracyScore + 15) reason = "повышенному индексу точности";
+                    else if ((winner.ammo_clip || 1) > (loser.ammo_clip || 1) + 30) reason = "значительно большей ёмкости магазина (выше плотность огня по рою целей)";
                     else if (winner.range > loser.range + 0.5) reason = "повышенному радиусу перехвата целей";
                     else reason = "оптимальному сочетанию урона, дальности и сопротивления ловушкам";
                 } else if (e1.category === "Пушки") {
