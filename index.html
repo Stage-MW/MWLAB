@@ -2031,7 +2031,7 @@
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.splash_radius || e2.detonation_radius, Math.max(cMax2.splash_radius, cMax2.detonation_radius)), pct(e2.max_speed, cMax2.max_speed), pct(dens2, 20), pct(e2.range, cMax2.range) ];
             }
             // 6. АВТОПУШКИ
-            else if (e1.category === "Автопушки") {
+            else if (e1.category === "Автопушки (BETA)") {
                 labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
                 let util1 = ((e1.air_target ? 50 : 0) + (e1.can_hit_subs ? 50 : 0));
                 let util2 = ((e2.air_target ? 50 : 0) + (e2.can_hit_subs ? 50 : 0));
@@ -2039,7 +2039,7 @@
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
             }
             // 7. ПВО
-            else if (e1.category === "ПВО") {
+            else if (e1.category === "ПВО (BETA)") {
                 labels = ['Эффект. DPM', 'Точность перехвата', 'Плотность огня', 'Скорость снаряда', 'Сплэш / АОЕ', 'Дальность'];
                 let dens1 = (e1.ammo_clip || 1) * (e1.projectiles || 1);
                 let dens2 = (e2.ammo_clip || 1) * (e2.projectiles || 1);
