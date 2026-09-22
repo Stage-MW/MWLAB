@@ -1851,24 +1851,20 @@
             updateSortLock();
         }
 
-        // Сортировка "ТОП" имеет смысл только внутри однородной подкатегории
-        // (например ПВО -> РАКЕТНОЕ), иначе сравниваются несравнимые типы оружия.
         function updateSortLock() {
             const sortSelect = document.getElementById('sort-catalog');
-            if (!sortSelect) return false;
-            const hasSubFilter = Array.from(document.querySelectorAll('#dynamic-mechanics-filters .mech-checkbox')).some(cb => cb.checked);
-            sortSelect.querySelectorAll('option:not([value="none"])').forEach(opt => { opt.disabled = !isAuth || !hasSubFilter; });
-            sortSelect.title = !isAuth ? 'Сортировка доступна в PRO' : (!hasSubFilter ? 'Сначала выберите подкатегорию (например, ПВО → РАКЕТНОЕ)' : '');
-            return hasSubFilter;
+            if (!sortSelect) return;
+            sortSelect.querySelectorAll('option:not([value="none"])').forEach(opt => { opt.disabled = !isAuth; });
+            sortSelect.title = !isAuth ? 'Сортировка доступна в PRO' : '';
         }
 
         function handleFilter() {
             let selectedCountry = document.getElementById('filter-country-catalog').value;
             let sortType = document.getElementById('sort-catalog').value;
-            const hasSubFilter = updateSortLock();
+            updateSortLock();
             
-            if (sortType !== 'none' && (!isAuth || !hasSubFilter)) {
-                showToast(!isAuth ? "СОРТИРОВКА ДОСТУПНА ТОЛЬКО В PRO" : "ВЫБЕРИТЕ ПОДКАТЕГОРИЮ ДЛЯ СОРТИРОВКИ (НАПР. ПВО → РАКЕТНОЕ)", true);
+            if (!isAuth && sortType !== 'none') {
+                showToast("СОРТИРОВКА ДОСТУПНА ТОЛЬКО В PRO", true);
                 document.getElementById('sort-catalog').value = 'none';
                 sortType = 'none';
             }
@@ -2289,59 +2285,65 @@
                 // а не от его абсолютного рейтинга — иначе фиксированная база формулы "сжимает" разницу.
                 let percentDiff = (((winner.rating - loser.rating) / Math.max(1, (loser.rating - 50))) * 100).toFixed(1);
                 
-                let reason = "отличному балансу характеристик";
+                // Собираем ВСЕ значимые факторы победы (а не только первый по порядку),
+                // чтобы объяснение было содержательным, а не одной обрывочной фразой.
+                let reasons = [];
                 if (e1.category === "Ракеты" || e1.category === "Ракеты А/А") {
-                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "абсолютной защите от РЭБ (не сбрасывается ловушками)";
-                    else if (loser.min_range > 0 && winner.min_range === 0) reason = "отсутствию мертвой зоны пуска (можно бить в упор)";
-                    else if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reason = "кластерной БЧ, наносящей урон даже сквозь системы ПВО";
-                    else if (winner.damage_burst > loser.damage_burst + 10000) reason = "сокрушительному разовому урону, идеальному для игры от укрытий";
-                    else if (winner.start_speed > loser.start_speed + 150) reason = "очень резкому старту — вражеское ПВО просто не успевает среагировать";
-                    else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "колоссальному математическому урону в минуту (DPM)";
-                    else reason = "превосходной баллистике и плотности огня";
+                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reasons.push("Ракета не сбрасывается ловушками РЭБ — цель получает гарантированный урон, даже если корабль ставит помехи");
+                    if (loser.min_range > 0 && winner.min_range === 0) reasons.push("Нет мёртвой зоны пуска: можно стрелять практически в упор, не давая противнику времени среагировать");
+                    if ((winner.cluster === 1 || winner.fragmentation_damage > 0) && loser.cluster === 0) reasons.push("Кластерная боевая часть наносит урон даже сквозь работающее ПВО противника");
+                    if (winner.damage_burst > loser.damage_burst + 10000) reasons.push("Огромный разовый урон позволяет решить бой одним точным попаданием из-за укрытия");
+                    if (winner.start_speed > loser.start_speed + 150) reasons.push("Резкий стартовый разгон не оставляет вражескому ПВО времени на перехват");
+                    if (winner.effectiveDpm > loser.effectiveDpm + 20000) reasons.push("Значительно выше урон в минуту с учётом реального сопротивления ловушкам");
+                    if (reasons.length === 0) reasons.push("Превосходит по совокупности баллистики, скорости полёта и плотности огня");
                 } else if (e1.category === "Торпеды") {
-                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "независимости от ловушек (гарантированное попадание)";
-                    else if (winner.max_speed > loser.max_speed + 15) reason = "высокой скорости хода (цели гораздо сложнее уклониться)";
-                    else if (winner.damage_burst > loser.damage_burst + 10000) reason = "тяжелому разовому урону";
-                    else if (winner.dpm > loser.dpm + 20000) reason = "высокому стабильному урону в минуту";
-                    else reason = "лучшим общим характеристикам";
+                    if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reasons.push("Не зависит от ловушек — попадание практически гарантировано");
+                    if (winner.max_speed > loser.max_speed + 15) reasons.push("Высокая скорость хода не оставляет цели шанса увернуться манёвром");
+                    if (winner.damage_burst > loser.damage_burst + 10000) reasons.push("Наносит заметно больший урон за одно попадание");
+                    if (winner.dpm > loser.dpm + 20000) reasons.push("Выше стабильный урон в минуту при серийном использовании");
+                    if (reasons.length === 0) reasons.push("Превосходит по совокупности скорости, урона и надёжности наведения");
                 } else if (e1.category === "Гранатометы") {
-                    if (winner.can_hit_torpedoes === 1 && loser.can_hit_torpedoes === 0) reason = "способности перехватывать вражеские торпеды (отличная защита)";
-                    else if (winner.fire_mode === "burst" && loser.fire_mode === "manual") reason = "моментальной разрядке, позволяющей агрессивно играть от скал";
-                    else if (winner.splash_radius > loser.splash_radius + 50) reason = "огромному радиусу сплэша (лучшая ПТЗ в игре)";
-                    else if (winner.gl_type === "gun" && loser.gl_type === "missile") reason = "навесной пушечной баллистике (снаряды не сбиваются ПВО)";
-                    else if (winner.dpm > loser.dpm + 20000) reason = "мощнейшему урону в минуту";
+                    if (winner.can_hit_torpedoes === 1 && loser.can_hit_torpedoes === 0) reasons.push("Умеет перехватывать вражеские торпеды — даёт кораблю дополнительную защиту");
+                    if (winner.fire_mode === "burst" && loser.fire_mode === "manual") reasons.push("Мгновенная разрядка всего боекомплекта позволяет агрессивно играть из-за скал");
+                    if (winner.splash_radius > loser.splash_radius + 50) reasons.push("Огромный радиус сплэша делает его лучшим средством противоторпедной защиты");
+                    if (winner.gl_type === "gun" && loser.gl_type === "missile") reasons.push("Навесная пушечная траектория — снаряды не перехватываются вражеским ПВО");
+                    if (winner.dpm > loser.dpm + 20000) reasons.push("Ощутимо выше урон в минуту");
+                    if (reasons.length === 0) reasons.push("Превосходит по совокупности скорострельности и урона");
                 } else if (e1.category === "Автопушки") {
-                    if (winner.can_hit_subs === 1 && loser.can_hit_subs === 0) reason = "возможности перехватывать и уничтожать подлодки (ПЛО)";
-                    else if (winner.air_target === 1 && loser.air_target === 0) reason = "универсальности и возможности защищать корабль от авиации (ПВО-режим)";
-                    else if (winner.dpm > loser.dpm + 30000) reason = "колоссальному математическому урону в минуту";
-                    else if (winner.damage_burst > loser.damage_burst + 5000) reason = "разрушительному разовому урону (Альфа-страйку)";
-                    else reason = "лучшему балансу скорострельности, дальности и плотности огня";
+                    if (winner.can_hit_subs === 1 && loser.can_hit_subs === 0) reasons.push("Может перехватывать и уничтожать подлодки (ПЛО) — расширяет роль оружия");
+                    if (winner.air_target === 1 && loser.air_target === 0) reasons.push("Универсальна: дополнительно прикрывает корабль от авиации в режиме ПВО");
+                    if (winner.dpm > loser.dpm + 30000) reasons.push("Колоссальный математический урон в минуту")
+                    if (winner.damage_burst > loser.damage_burst + 5000) reasons.push("Разрушительный разовый урон (альфа-страйк) при попадании залпом");
+                    if (reasons.length === 0) reasons.push("Лучше сбалансирована по скорострельности, дальности и плотности огня");
                 } else if (e1.category === "ПВО") {
-                    if (winner.aa_type === "Лазерное" && loser.aa_type !== "Лазерное") reason = "лазерному типу наведения (мгновенный урон без времени полета снаряда)";
-                    else if (winner.effectiveDpm > loser.effectiveDpm + 30000) reason = "огромному эффективному урону в минуту с учетом работы ловушек";
-                    else if (winner.accuracyScore > loser.accuracyScore) reason = "повышенному индексу точности";
-                    else if (winner.range > loser.range + 0.5) reason = "повышенному радиусу перехвата целей";
-                    else reason = "оптимальному сочетанию урона, дальности и сопротивления ловушкам";
+                    if (winner.aa_type === "Лазерное" && loser.aa_type !== "Лазерное") reasons.push("Лазерное наведение даёт мгновенный урон без времени полёта снаряда — цель не успевает выйти из зоны поражения");
+                    if (winner.effectiveDpm > loser.effectiveDpm + 30000) reasons.push("Гораздо выше эффективный урон в минуту с учётом реальной работы по ловушкам");
+                    if (winner.accuracyScore > loser.accuracyScore) reasons.push("Выше индекс точности — меньше промахов по маневрирующим целям");
+                    if (winner.range > loser.range + 0.5) reasons.push("Больше радиус перехвата — успевает открыть огонь по цели раньше");
+                    if (reasons.length === 0) reasons.push("Оптимальное сочетание урона, дальности и сопротивления ловушкам");
                 } else if (e1.category === "Пушки") {
                     let wHasClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
                     let lHasClip = loser.ammo_clip !== undefined && loser.ammo_clip > 1;
                     let wTotalShots = (winner.projectiles || 1) * (winner.ammo_clip || 1);
 
-                    if (loser.range < 6.5 && winner.range >= 10) reason = `превосходству в дальности стрельбы`;
-                    else if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reason = `невероятной мощи в ближнем бою`;
-                    else if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reason = "снайперскому потенциалу (наносит огромный урон за секунду)";
-                    else if (!wHasClip && lHasClip) reason = "отсутствию привязки к центру (снаряды не летят в скалу из-за укрытий)";
-                    else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "превосходной точности (снаряды не мажут по маневрирующей цели)";
-                    else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "высокому эффективному DPM с учетом попаданий";
-                    else if (wTotalShots > 2 && winner.damage_burst > loser.damage_burst + 15000) reason = "огромной плотности огня";
-                    else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости полета снаряда";
+                    if (loser.range < 6.5 && winner.range >= 10) reasons.push("Значительно превосходит в дальности стрельбы — может вести бой первым");
+                    if (winner.dpm > loser.dpm * 1.3 && winner.range < 9) reasons.push("Обладает невероятной мощью в ближнем бою");
+                    if (wTotalShots <= 2 && winner.effectiveBurst > loser.effectiveBurst + 10000) reasons.push("Снайперский потенциал: наносит огромный урон за секунду одним-двумя точными выстрелами");
+                    if (!wHasClip && lHasClip) reasons.push("Не привязана к автонаведению в центр — снаряды не летят в скалу из-за укрытий");
+                    if (winner.accuracyScore > loser.accuracyScore + 20) reasons.push("Заметно точнее — снаряды реже промахиваются по маневрирующей цели");
+                    if (winner.effectiveDpm > loser.effectiveDpm + 20000) reasons.push("Выше эффективный DPM с учётом реального процента попаданий");
+                    if (wTotalShots > 2 && winner.damage_burst > loser.damage_burst + 15000) reasons.push("Огромная плотность огня за счёт количества снарядов в залпе");
+                    if (winner.max_speed > loser.max_speed + 150) reasons.push("Выше скорость полёта снаряда — сложнее увернуться и легче попасть по манёвру");
+                    if (reasons.length === 0) reasons.push("Превосходит по совокупности характеристик орудия");
                 }
+                reasons = reasons.slice(0, 3);
+                let reasonsHTML = reasons.map(r => `<li style="margin-bottom:8px; padding-left:2px;">${r}</li>`).join('');
 
                 summaryText = `<span style="color:var(--primary); font-size: 1.4rem; display:block; margin-bottom: 15px; font-family:'Orbitron'; letter-spacing:1px; text-transform: uppercase;">ПОБЕДИТЕЛЬ: ${winner.name}</span>
                 <span style="color:var(--text-main); font-size: 1rem; line-height: 1.6;">
                     В актуальной мете ближнего боя (5-10 км) это оружие эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b>.<br><br>
-                    <span style="color:var(--text-muted); font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;">Ключевой фактор:</span><br>
-                    <b style="color:#fff; font-size: 1.05rem;">Победа достигается благодаря ${reason}.</b>
+                    <span style="color:var(--text-muted); font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;">Ключевые факторы победы:</span>
+                    <ul style="text-align:left; margin: 10px 0 0 20px; color:#fff; font-size:1rem; font-weight:600;">${reasonsHTML}</ul>
                 </span>`;
             }
 
