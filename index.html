@@ -1462,23 +1462,25 @@
                 
                 return score;
             },
-            "ПВО": function(item) {
+                        "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Новая логика точности: Радиус детонации вместо статического индекса
-                let detRadius = item.detonation_radius || 0;
-                // Базовая точность масштабируется от радиуса детонации (например, радиус 33 дает ~99.5% точности)
-                let accuracyScore = Math.min(100, 50 + (detRadius * 1.5));
-                
-                // Если радиус детонации отсутствует (например, у некоторых чистых лазеров), даем базовую высокую точность
-                if (detRadius === 0 && item.aa_type === "Лазерное") {
-                    accuracyScore = 95; 
-                }
-                
+                // 1. Математика точности (Радиус детонации: чем меньше, тем лучше)
+                // В базе значения варьируются от 10 до 33. Возьмем 10 как эталон 100% точности.
+                let detRadius = item.detonation_radius || 20;
+                // За каждую единицу радиуса выше 10, точность падает на 2.5%
+                let accuracyScore = Math.max(10, Math.min(100, 100 - ((detRadius - 10) * 2.5))); 
                 item.accuracyScore = accuracyScore;
+                
                 let hitRatio = accuracyScore / 100;
 
-                // 2. Эффективный урон (Точность + Ловушки)
+                // 2. Задержка между выстрелами (fire_delay)
+                // Чем меньше задержка (0.05 лучше, чем 0.5), тем выше бонус к рейтингу.
+                let fireDelay = item.fire_delay || 0.2;
+                let delayBonus = Math.max(0, (0.5 - fireDelay) * 300);
+                score += delayBonus;
+
+                // 3. Эффективный урон (Точность + Ловушки)
                 let effectiveDpm = (item.dpm || 0) * hitRatio;
                 let effectiveBurst = (item.damage_burst || 0) * hitRatio;
                 
@@ -1495,54 +1497,35 @@
                 item.effectiveDpm = effectiveDpm;
                 item.effectiveBurst = effectiveBurst;
 
-                // 3. Фундаментальный урон с учетом новой точности
+                // 4. Фундаментальный урон и дальность
                 score += (effectiveDpm / 200000) * 280; 
                 score += (effectiveBurst / 20000) * 80; 
-
-                // 4. Дальность и чистый бонус за площадь подрыва
                 score += ((item.range || 3) / 6) * 80; 
-                score += (detRadius / 33) * 60; 
 
-                // 5. Задержка между выстрелами и перезарядка (Скорострельность)
-                let fireDelay = item.fire_delay || 0.5;
-                let reloadTime = item.reload || 5.0;
-                
-                // Чем меньше задержка и перезарядка, тем больше очков
-                score += (0.1 / fireDelay) * 30;  // Бонус за спам (низкий fire_delay)
-                score += (3.0 / reloadTime) * 40; // Бонус за быструю перезарядку обоймы
-
-                // 6. Баллистика и учет скорости для Ракетного ПВО
-                let startSpd = item.start_speed || item.max_speed || 0;
+                // 5. Скорость полета (Особый фокус на ракетное ПВО)
                 let maxSpd = item.max_speed || 0;
-                let avgSpeed = (startSpd + maxSpd) / 2;
-                
-                if (item.accel_time > 0) {
-                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10));
-                }
-
                 if (item.aa_type === "Ракетное" || item.aa_type === "Гибрид") {
-                    // Усиленный бонус за скорость для ракет-перехватчиков
-                    score += (avgSpeed / 600) * 160;
+                    // Ракетному ПВО скорость критически важна для успешного перехвата
+                    score += (maxSpd / 400) * 150;
                 } else {
-                    // Стандартный бонус для пулеметов и лазеров
-                    score += (avgSpeed / 800) * 90;
+                    // Для лазеров и пулеметов скорость (обычно 700+) дает стандартный бонус
+                    score += (maxSpd / 800) * 80;
                 }
 
-                // 7. АОЕ и Сплэш (Эффективность против роев ракет)
+                // 6. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || detRadius > 0) {
-                    let aoeValue = ((item.splash_radius || 0) * 2.0) + (detRadius * 4.0);
+                    // Радиус детонации теперь дает бонус к АОЕ, но режет точность (баланс)
+                    let aoeValue = ((item.splash_radius || 0) * 2.0) + (detRadius * 2.0);
                     if (item.splash_damage > 0) {
                         aoeValue += (item.splash_damage / 1000) * 15;
                     }
                     score += Math.min(200, aoeValue); 
                 }
 
-                // 8. Плотность огня (Боезапас)
+                // 7. Плотность огня (Боезапас) и Криты
                 if (item.ammo_clip > 1) {
                     score += Math.min(100, (item.ammo_clip / 150) * 80);
                 }
-                
-                // 9. Критический урон
                 if (item.crit_chance > 0) {
                     score += (item.crit_chance / 40) * 30;
                 }
@@ -1551,6 +1534,7 @@
 
                 return Math.round(score);
             }
+
         };
 
         RATING_CALCULATORS["Ракеты А/А"] = RATING_CALCULATORS["Ракеты"];
