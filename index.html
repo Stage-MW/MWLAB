@@ -149,7 +149,7 @@
         }
 
         /* --- HOME PAGE --- */
-        #page-home { height: calc(100vh - 80px); padding: 0 5%; overflow: hidden; display: none; }
+        #page-home { padding: 0 15px; height: auto; min-height: calc(100vh - 120px); overflow-y: auto;}
         #page-home.active { display: flex; align-items: center; justify-content: space-between; }
         .home-container { display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; position: relative; z-index: 5;}
         .home-text-side { flex: 1; max-width: 50%; padding-right: 20px; z-index: 10; }
@@ -358,7 +358,7 @@
         }
 
         @media (max-width: 768px) {
-            .page { padding: 0px 10px; }
+            .page { padding: 15px 10px; }
             nav { padding: 15px 10px; justify-content: center; gap: 8px; border-radius: 0; }
             .nav-logo-small { width: 100%; text-align: center; margin: 0 0 10px 0; font-size: 1.8rem;}
             .nav-btn { flex: 1 1 30%; font-size: 0.75rem; padding: 10px 5px; text-align: center; }
@@ -401,8 +401,8 @@
             
             .export-wrapper { padding: 20px 15px; }
             
-            #page-home { padding: 0 15px 40px 15px; height: auto; min-height: calc(100vh - 120px); overflow-y: auto;}
-            .home-title { font-size: 3.5rem; margin-top: 20px; }
+            #page-home { padding: 0 15px; height: auto; min-height: calc(100vh - 120px); overflow-y: auto;}
+            .home-title { font-size: 3.5rem; margin-top: 0px; }
             .home-subtitle { font-size: 1rem; letter-spacing: 3px; }
             .home-desc { font-size: 0.95rem; }
             .home-image-side img { max-height: 45vh; }
