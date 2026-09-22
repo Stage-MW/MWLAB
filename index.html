@@ -1446,9 +1446,25 @@
             },
             "Автопушки": function(item) {
                 let score = 100;
-                
-                score += (item.dpm / 250000) * 300;
-                score += (item.damage_burst / 30000) * 150;
+
+                // 1. Точность (было полностью пропущено). Плюс штраф за медленный снаряд —
+                // маневрирующей цели проще уклониться от медленной болванки, чем от быстрой.
+                let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
+                let metaDistance = 5.5;
+                let speedFactor = 700 / (item.max_speed || 700);
+                let evasionPenalty = (metaDistance * speedFactor * 1.2);
+                item.accuracyScore = Math.max(10, Math.min(100, baseAccuracy - evasionPenalty));
+
+                // 2. Разброс дроби/картечи (projectiles > 1) размывает разовый урон по нескольким
+                // целям/точкам попадания — альфа-страйк по одной цели становится слабее.
+                let pCount = item.projectiles || 1;
+                let alphaMultiplier = pCount > 1 ? Math.max(0.3, 1 - (pCount - 1) * 0.05) : 1;
+
+                item.effectiveDpm = (item.dpm || 0) * (item.accuracyScore / 100);
+                item.effectiveBurst = (item.damage_burst || 0) * (item.accuracyScore / 100) * alphaMultiplier;
+
+                score += (item.effectiveDpm / 250000) * 300;
+                score += (item.effectiveBurst / 30000) * 150;
                 
                 if (item.air_target === 1) score += 150; 
                 if (item.can_hit_subs === 1) score += 250; 
@@ -1933,11 +1949,11 @@
             }
             // 6. АВТОПУШКИ
             else if (e1.category === "Автопушки") {
-                labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
+                labels = ['Эффект. DPM', 'Эффект. Альфа', 'Точность', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
                 let util1 = ((e1.air_target ? 50 : 0) + (e1.can_hit_subs ? 50 : 0));
                 let util2 = ((e2.air_target ? 50 : 0) + (e2.can_hit_subs ? 50 : 0));
-                d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), pct(e1.ammo_clip || 1, cMax1.ammo_clip), util1, pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
+                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), e1.accuracyScore || 100, pct(e1.max_speed, cMax1.max_speed), pct(e1.ammo_clip || 1, cMax1.ammo_clip), util1, pct(e1.range, cMax1.range) ];
+                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), e2.accuracyScore || 100, pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
             }
             // 7. ПВО
             else if (e1.category === "ПВО") {
@@ -2064,9 +2080,10 @@
                 } else if (e1.category === "Автопушки") {
                     if (winner.can_hit_subs === 1 && loser.can_hit_subs === 0) reason = "возможности перехватывать и уничтожать подлодки (ПЛО)";
                     else if (winner.air_target === 1 && loser.air_target === 0) reason = "универсальности и возможности защищать корабль от авиации (ПВО-режим)";
-                    else if (winner.dpm > loser.dpm + 30000) reason = "колоссальному математическому урону в минуту";
-                    else if (winner.damage_burst > loser.damage_burst + 5000) reason = "разрушительному разовому урону (Альфа-страйку)";
-                    else reason = "лучшему балансу скорострельности, дальности и плотности огня";
+                    else if (winner.accuracyScore > loser.accuracyScore + 20) reason = "значительно более высокой точности стрельбы (меньше промахов по маневрирующей цели)";
+                    else if (winner.effectiveDpm > loser.effectiveDpm + 25000) reason = "колоссальному эффективному урону в минуту с учетом реальной точности попаданий";
+                    else if (winner.effectiveBurst > loser.effectiveBurst + 3000) reason = "разрушительному эффективному разовому урону (Альфа-страйку)";
+                    else reason = "лучшему балансу скорострельности, точности, дальности и плотности огня";
                 } else if (e1.category === "ПВО") {
                     if (winner.aa_type === "Лазерное" && loser.aa_type !== "Лазерное") reason = "лазерному типу наведения (мгновенный урон без времени полета снаряда)";
                     else if (winner.effectiveDpm > loser.effectiveDpm + 30000) reason = "огромному эффективному урону в минуту с учетом работы ловушек";
@@ -2519,16 +2536,18 @@
             let singleMissileHP = mis.hp || 50;
             let totalMissileHP = singleMissileHP * totalMissiles;
 
-            // 4. НОВЫЙ АЛГОРИТМ УРОНА (по правилу: 'damage' = DPS для лазеров/пулеметов)
+            // 4. АЛГОРИТМ УРОНА: для непрерывного луча (лазер) 'damage' = DPS.
+            // Для всех остальных типов (пулемет, ракета, гибрид) 'damage' = урон ЗА ВЫСТРЕЛ,
+            // а сам выстрел ограничен боезапасом (ammo_clip) и перезарядкой (reload) — считаем по таймлайну.
             let totalAADamage = 0;
             let accuracy = aa.accuracyScore ? (aa.accuracyScore / 100) : 1;
 
-            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
+            if (aa.aa_type === "Лазерное") {
                 // Строго по правилу: характеристика "урон" = урон в секунду (DPS)
                 let dps = aa.damage || 0;
                 totalAADamage = dps * engageTime * aaQty * accuracy;
             } else {
-                // Для ракетного и гибридного ПВО считаем физические выстрелы/залпы по таймлайну
+                // Для пулеметного, ракетного и гибридного ПВО считаем физические выстрелы/залпы по таймлайну
                 let shotsFired = 0;
                 let currentTime = 0;
                 let clipLeft = aa.ammo_clip || 1;
