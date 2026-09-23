@@ -3,31 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#071017">
+    <meta name="theme-color" content="#09050e">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>MWLAB | TACTICAL TERMINAL</title>
+    <title>MWLAB | SYSTEM</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jura:wght@400;600;700&family=Inter:wght@300;500;700;900&family=Orbitron:wght@500;700;900&display=swap');
 
         :root {
-            /* COLOR PALETTE - SCI-FI TEAL/CYAN */
-            --bg-base: #071017;
-            --primary: #42f5e3;       /* Cyan */
-            --primary-dim: rgba(66, 245, 227, 0.15);
-            --secondary: #ff3c5a;     /* Alert Red/Pink */
-            --text-main: #e2f1f8;
-            --text-muted: #7890a8;
+            /* COLOR PALETTE - SOLO LEVELING SYSTEM (PURPLE/MAGENTA) */
+            --bg-base: #09050e;
+            --primary: #b53cff;       /* Neon Purple */
+            --primary-dim: rgba(181, 60, 255, 0.15);
+            --secondary: #ff3c8a;     /* Neon Pink/Magenta */
+            --text-main: #e2e8f0;
+            --text-muted: #8b79a5;
             
-            /* LIQUID GLASS */
-            --glass-bg: rgba(11, 22, 36, 0.4); 
-            --glass-blur: blur(20px);
-            --glass-border: rgba(66, 245, 227, 0.2);
-            --glass-radius: 16px;
+            /* LIQUID GLASS & VOLUME */
+            --glass-bg: rgba(25, 12, 40, 0.45); 
+            --glass-blur: blur(24px);
+            --glass-border: rgba(181, 60, 255, 0.25);
+            --glass-radius: 20px;
             
             /* GLOWS */
-            --hud-glow: 0 0 15px rgba(66, 245, 227, 0.4);
+            --hud-glow: 0 0 15px rgba(181, 60, 255, 0.5);
+            --hud-glow-strong: 0 0 25px rgba(181, 60, 255, 0.8), 0 0 50px rgba(181, 60, 255, 0.4);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -35,14 +36,14 @@
         html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; width: 100%; }
 
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; box-shadow: var(--hud-glow); }
 
         body {
-            background: linear-gradient(135deg, #050a10 0%, #0d1e2b 100%);
+            background: linear-gradient(135deg, #05020a 0%, #150a21 100%);
             background-attachment: fixed;
             color: var(--text-main);
-            font-family: 'Jura', sans-serif;
+            font-family: 'Inter', sans-serif;
             text-transform: uppercase;
             overflow-x: hidden;
             width: 100%;
@@ -50,13 +51,14 @@
             min-height: 100vh;
         }
 
+        /* Фоновая аура Системы */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: radial-gradient(circle at center, rgba(66, 245, 227, 0.05) 0%, transparent 60%);
+            background-image: radial-gradient(circle at center, rgba(181, 60, 255, 0.08) 0%, transparent 70%);
             z-index: -2; pointer-events: none;
         }
 
-        /* --- ГЛОБАЛЬНЫЙ ФОН MWL --- */
+        /* --- ГЛОБАЛЬНЫЙ ФОН MWL (ГЛАВНАЯ СТРАНИЦА) --- */
         #global-mwl-wrapper {
             position: fixed; top: 50%; 
             z-index: 0; pointer-events: none;
@@ -67,22 +69,22 @@
         
         #global-mwl-text {
             font-family: 'Orbitron', sans-serif; font-weight: 900;
-            color: transparent; -webkit-text-stroke: 2px rgba(66, 245, 227, 0.1);
+            color: transparent; -webkit-text-stroke: 2px rgba(181, 60, 255, 0.15);
             letter-spacing: 5px;
             transition: font-size 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: pulseMWL 3s infinite alternate ease-in-out;
+            animation: pulseMWL 4s infinite alternate ease-in-out;
         }
         #global-mwl-wrapper.center #global-mwl-text { font-size: 25vw; }
-        #global-mwl-wrapper.right #global-mwl-text { font-size: 20vw; }
+        #global-mwl-wrapper.right #global-mwl-text { font-size: 22vw; }
 
         @keyframes pulseMWL {
-            0% { transform: scale(0.97); color: rgba(66, 245, 227, 0.01); text-shadow: 0 0 10px rgba(66, 245, 227, 0.05); filter: drop-shadow(0 0 5px rgba(66,245,227,0.05)); }
-            100% { transform: scale(1.03); color: rgba(66, 245, 227, 0.08); text-shadow: 0 0 40px rgba(66, 245, 227, 0.3); filter: drop-shadow(0 0 20px rgba(66,245,227,0.2)); }
+            0% { transform: scale(0.98); color: rgba(181, 60, 255, 0.02); text-shadow: 0 0 10px rgba(181, 60, 255, 0.1); }
+            100% { transform: scale(1.02); color: rgba(181, 60, 255, 0.1); text-shadow: 0 0 40px rgba(181, 60, 255, 0.4); filter: drop-shadow(0 0 20px rgba(181, 60, 255, 0.3)); }
         }
 
-        /* --- ГЛОБАЛЬНЫЕ ИСКРЫ --- */
+        /* --- ЧАСТИЦЫ "СИСТЕМЫ" --- */
         #sparks-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; overflow: hidden; }
-        .spark { position: absolute; bottom: -20px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 12px 2px var(--primary); opacity: 0; animation: spark-fly linear forwards; }
+        .spark { position: absolute; bottom: -20px; background: var(--primary); border-radius: 50%; box-shadow: var(--hud-glow); opacity: 0; animation: spark-fly linear forwards; }
         @keyframes spark-fly {
             0% { opacity: 0; transform: translate(0, 0) scale(0); }
             15% { opacity: 1; transform: translate(calc(var(--dx) * 0.2), -15vh) scale(1); }
@@ -90,409 +92,251 @@
             100% { opacity: 0; transform: translate(var(--dx), -120vh) scale(0); }
         }
 
-        /* --- BOOT SEQUENCE --- */
-        #intro-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #020508; z-index: 99999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        #intro-logo {
-            font-family: 'Inter', sans-serif; font-size: 6rem; font-weight: 900; letter-spacing: 15px;
-            color: var(--primary); text-shadow: var(--hud-glow);
-            animation: pulseIntro 1.5s infinite alternate;
-        }
-        @keyframes pulseIntro { 0% { opacity: 0.5; filter: blur(2px); } 100% { opacity: 1; filter: blur(0px); } }
-
         .app-wrapper { position: relative; z-index: 10; width: 100%; }
 
-        /* --- GLASSMORPHISM CLASS --- */
+        /* --- GLASSMORPHISM CLASS & VOLUME --- */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
             border: 1px solid var(--glass-border);
             border-radius: var(--glass-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.05);
+            /* Эффект глубины и объема */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 
+                        inset 0 2px 10px rgba(255, 255, 255, 0.05), 
+                        inset 0 -5px 15px rgba(0, 0, 0, 0.5);
             position: relative; overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
+
+        .glass-panel::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transform: skewX(-20deg); animation: shine 6s infinite; pointer-events: none;
+        }
+        @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
         /* --- NAVIGATION --- */
         nav { 
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 30px; 
-            padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.05); 
-            background: rgba(5, 10, 16, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 20px 40px; border-bottom: 1px solid var(--glass-border); 
+            background: rgba(9, 5, 14, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             position: sticky; top: 0; z-index: 100; width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         .nav-logo-small {
-            font-family: 'Inter'; font-weight: 900; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px; margin-right: auto; text-shadow: var(--hud-glow);
+            font-family: 'Orbitron'; font-weight: 900; font-size: 1.5rem; color: var(--primary); letter-spacing: 3px; margin-right: auto; text-shadow: var(--hud-glow);
         }
         .nav-btn {
             background: none; border: none; color: var(--text-muted);
-            font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px;
-            cursor: pointer; transition: all 0.3s ease; position: relative; padding: 5px 0;
+            font-family: 'Inter'; font-weight: 700; font-size: 0.9rem; letter-spacing: 1.5px;
+            cursor: pointer; transition: all 0.3s ease; position: relative; padding: 5px 15px;
+            border-radius: 8px;
         }
-        .nav-btn::after {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px; background: var(--primary); transition: width 0.3s ease; box-shadow: var(--hud-glow);
-        }
-        .nav-btn:hover { color: #fff; }
-        .nav-btn.active { color: var(--primary); }
-        .nav-btn.active::after { width: 100%; }
-        .info-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 20px;}
-        .info-btn:hover { color: var(--primary); transform: scale(1.1); text-shadow: var(--hud-glow); }
-        .info-btn.auth-active { color: var(--primary); text-shadow: var(--hud-glow); }
+        .nav-btn:hover { color: #fff; background: rgba(181, 60, 255, 0.1); }
+        .nav-btn.active { color: #fff; background: var(--primary-dim); box-shadow: inset 0 0 15px rgba(181, 60, 255, 0.2); border: 1px solid rgba(181, 60, 255, 0.3); text-shadow: var(--hud-glow);}
+        
+        .info-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 50%; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 10px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;}
+        .info-btn:hover { color: var(--primary); transform: scale(1.1); box-shadow: var(--hud-glow); border-color: var(--primary); }
+        .info-btn.auth-active { color: var(--primary); text-shadow: var(--hud-glow); border-color: var(--primary); box-shadow: inset 0 0 10px rgba(181, 60, 255, 0.3); }
 
-        .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
-        .page.active { display: block; animation: pageInstantIn 0.3s ease-out forwards; }
-        @keyframes pageInstantIn { 
-            0% { opacity: 0; transform: translateY(10px); } 
-            100% { opacity: 1; transform: translateY(0); } 
+        /* --- КРАСИВЫЕ ЭФФЕКТЫ ПЕРЕКЛЮЧЕНИЯ ПУНКТОВ --- */
+        .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 40px 20px; position: relative; opacity: 0;}
+        .page.active { display: block; animation: pageFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes pageFadeUp { 
+            0% { opacity: 0; transform: translateY(30px) scale(0.98); filter: blur(5px); } 
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
         }
 
         /* --- HOME PAGE --- */
-        #page-home { height: calc(100vh - 80px); padding: 0 5%; overflow: hidden; display: none; }
+        #page-home { height: calc(100vh - 85px); padding: 0 5%; overflow: hidden; display: none; }
         #page-home.active { display: flex; align-items: center; justify-content: space-between; }
         .home-container { display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; position: relative; z-index: 5;}
         .home-text-side { flex: 1; max-width: 50%; padding-right: 20px; z-index: 10; }
-        .home-title { font-family: 'Inter'; font-weight: 900; font-size: 6vw; line-height: 1; color: var(--primary); text-shadow: var(--hud-glow); letter-spacing: -2px; margin-bottom: 10px; }
-        .home-subtitle { font-family: 'Share Tech Mono'; color: #fff; font-size: 1.5rem; letter-spacing: 5px; opacity: 0.9; margin-bottom: 20px;}
-        .home-divider { width: 100px; height: 4px; background: var(--primary); box-shadow: var(--hud-glow); margin-bottom: 25px; border-radius: 2px;}
-        .home-desc { font-family: 'Jura'; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; max-width: 80%; text-transform: none;}
-        .home-image-side { flex: 1; display: flex; justify-content: flex-end; align-items: center; height: 100%; position: relative;}
-        .home-image-side img { max-width: 100%; max-height: 80vh; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)) drop-shadow(0 0 20px rgba(66, 245, 227, 0.3)); z-index: 5;}
-        .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(66, 245, 227, 0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
+        
+        .home-title { font-family: 'Orbitron'; font-weight: 900; font-size: 5vw; line-height: 1.1; color: #fff; text-shadow: var(--hud-glow-strong); letter-spacing: 2px; margin-bottom: 10px; }
+        .title-highlight { color: var(--primary); }
+        
+        .home-subtitle { font-family: 'Jura'; color: var(--text-muted); font-size: 1.2rem; letter-spacing: 8px; opacity: 0.9; margin-bottom: 30px;}
+        .home-divider { width: 150px; height: 3px; background: linear-gradient(90deg, var(--primary), transparent); box-shadow: var(--hud-glow); margin-bottom: 30px;}
+        .home-desc { font-family: 'Inter'; color: var(--text-muted); font-size: 1rem; line-height: 1.8; max-width: 80%; text-transform: none; font-weight: 300;}
+        
+        .cat-btn-main { background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: var(--text-main); padding: 12px 35px; border-radius: 12px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.9rem; letter-spacing: 1px; backdrop-filter: blur(10px); position: relative; overflow: hidden;}
+        .cat-btn-main:hover, .cat-btn-main.active { border-color: var(--primary); color: #fff; background: var(--primary-dim); box-shadow: var(--hud-glow); }
+        .cat-btn-main::after { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); transition: width 0.4s, height 0.4s; }
+        .cat-btn-main:active::after { width: 200px; height: 200px; opacity: 0; }
 
-        /* --- CONTROLS --- */
-        .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;}
-        .search-input, .filter-select { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; border-radius: 8px; outline: none; transition: 0.3s; appearance: none; -webkit-appearance: none; }
+        /* --- CONTROLS & FILTERS --- */
+        .controls-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; width: 100%;}
+        .search-input, .filter-select { background: rgba(10, 5, 20, 0.6); border: 1px solid rgba(181, 60, 255, 0.3); color: #fff; padding: 14px 25px; width: 100%; max-width: 280px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; border-radius: 12px; outline: none; transition: 0.3s; appearance: none; -webkit-appearance: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);}
         .search-input::placeholder { color: var(--text-muted); }
-        .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(66, 245, 227, 0.2); }
+        .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(181, 60, 255, 0.3), inset 0 2px 5px rgba(0,0,0,0.5); }
         .filter-select option { background: var(--bg-base); color: #fff; }
-        .filter-select option:disabled { color: var(--secondary); background: rgba(255,60,90,0.1); }
 
         .categories-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; width: 100%;}
-        .cat-btn-main { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 10px 35px; border-radius: 30px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
-        .cat-btn-main:hover, .cat-btn-main.active { border-color: var(--primary); color: #000; background: var(--primary); box-shadow: var(--hud-glow); }
-
-        .mechanics-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+        
+        .mechanics-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; }
         .mech-checkbox { display: none; }
-        .mech-checkbox:checked + .cat-btn-sub { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); box-shadow: inset 0 0 10px rgba(66,245,227,0.2); }
-        .cat-btn-sub { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 6px 20px; border-radius: 20px; font-family: 'Jura'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
+        .mech-checkbox:checked + .cat-btn-sub { background: var(--primary); border-color: var(--primary); color: #000; box-shadow: var(--hud-glow); }
+        .cat-btn-sub { background: rgba(0,0,0,0.4); border: 1px solid rgba(181, 60, 255, 0.2); color: var(--text-muted); padding: 8px 22px; border-radius: 8px; font-family: 'Jura'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.85rem; letter-spacing: 1px;}
 
-        /* --- BARS --- */
-        .stats-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; width: 100%; }
-        .stat-row { display: flex; flex-direction: column; gap: 4px; width: 100%;}
-        .stat-header { display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Jura'; font-size: 0.85rem; font-weight: 600; }
+        /* --- BARS & STATS (ХАРАКТЕРИСТИКИ) --- */
+        .stats-container { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; width: 100%; }
+        .stat-row { display: flex; flex-direction: column; gap: 6px; width: 100%;}
+        .stat-header { display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Jura'; font-size: 0.9rem; font-weight: 700; letter-spacing: 1px;}
         .stat-name { color: var(--text-muted); }
-        .stat-value { color: #fff; }
-        .stat-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; position: relative; }
-        .stat-bar-fill { height: 100%; background: var(--text-muted); border-radius: 2px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stat-value { color: #fff; font-family: 'Orbitron'; font-size: 1rem;}
+        
+        .stat-bar-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.05);}
+        .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--text-muted), #fff); border-radius: 3px; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1); }
+        
         .val-win { color: var(--primary); text-shadow: var(--hud-glow);}
-        .bar-win { background: var(--primary); box-shadow: var(--hud-glow); }
-        .val-lose { color: var(--text-muted); opacity: 0.8; }
+        .bar-win { background: linear-gradient(90deg, #6c18a4, var(--primary)); box-shadow: var(--hud-glow); }
+        .val-lose { color: var(--text-muted); opacity: 0.6; }
         .bar-lose { background: rgba(255,255,255,0.1); }
 
-        /* --- COMPARE GRID & VS ANIMATION --- */
+        /* --- COMPARE GRID --- */
         .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; width: 100%; overflow: hidden;}
-        .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 10;}
-        .card-winner { border-color: var(--primary); box-shadow: 0 10px 40px rgba(66,245,227,0.1), inset 0 0 20px rgba(66,245,227,0.05); }
-        .card-loser { opacity: 0.8; }
+        .equip-card { padding: 40px; display: flex; flex-direction: column; transition: all 0.4s ease; z-index: 10;}
+        .card-winner { border-color: var(--primary); box-shadow: 0 15px 40px rgba(181, 60, 255, 0.15), inset 0 0 30px rgba(181, 60, 255, 0.1); }
+        .card-loser { opacity: 0.6; filter: grayscale(50%); transform: scale(0.98); }
 
-        @keyframes flyInLeft { 0% { opacity: 0; transform: translateX(-300px); } 100% { opacity: 1; transform: translateX(0); } }
-        @keyframes flyInRight { 0% { opacity: 0; transform: translateX(300px); } 100% { opacity: 1; transform: translateX(0); } }
+        @keyframes flyInLeft { 0% { opacity: 0; transform: translateX(-100px) scale(0.95); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes flyInRight { 0% { opacity: 0; transform: translateX(100px) scale(0.95); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
 
         .vs-badge {
             font-family: 'Orbitron', sans-serif; font-size: 8rem; font-weight: 900; color: var(--secondary);
             text-shadow: 0 0 30px var(--secondary), 0 0 80px var(--secondary);
-            animation: vsPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: vsPop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;
         }
-        @keyframes vsPop { 
-            0% { transform: scale(0.5); opacity: 0; filter: blur(10px); } 
-            60% { transform: scale(1.2); opacity: 1; filter: blur(0); } 
-            100% { transform: scale(1); opacity: 1; } 
-        }
-        @keyframes fadeOutVs { 
-            to { opacity: 0; transform: scale(1.5); filter: blur(10px); } 
-        }
+        @keyframes vsPop { 0% { transform: scale(0.5); opacity: 0; filter: blur(10px); } 60% { transform: scale(1.1); opacity: 1; filter: blur(0); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes fadeOutVs { to { opacity: 0; transform: scale(1.5); filter: blur(15px); } }
 
-        .weapon-showcase { position: relative; width: 100%; height: 260px; margin-bottom: 20px; display: flex; justify-content: center; align-items: flex-end; perspective: 1000px;}
+        .weapon-showcase { position: relative; width: 100%; height: 280px; margin-bottom: 30px; display: flex; justify-content: center; align-items: flex-end; perspective: 1000px;}
         .equip-img-container { 
             width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center bottom; 
             position: absolute; bottom: 30px; z-index: 3; transition: opacity 0.3s ease;
             filter: drop-shadow(0 20px 25px rgba(0,0,0,0.9));
         }
-        .floating-weapon { animation: floatItem 4s ease-in-out infinite; filter: drop-shadow(0 20px 25px rgba(0,0,0,0.9)); }
-        @keyframes floatItem { 0%, 100% { transform: translateY(0); filter: drop-shadow(0 20px 25px rgba(0,0,0,0.9)); } 50% { transform: translateY(-12px); filter: drop-shadow(0 30px 25px rgba(66, 245, 227, 0.4)); } }
         
-        .holo-base { position: absolute; bottom: 10px; width: 60%; height: 15px; background: radial-gradient(ellipse at center, var(--primary) 0%, transparent 70%); filter: blur(3px); z-index: 1; opacity: 0.8; box-shadow: 0 0 20px var(--primary); animation: pulseBase 4s ease-in-out infinite; }
-        .holo-rays { position: absolute; bottom: 17px; width: 90%; height: 120%; background: linear-gradient(to top, rgba(66,245,227,0.2) 0%, transparent 80%); clip-path: polygon(30% 100%, 70% 100%, 100% 0, 0 0); z-index: 2; opacity: 0.6; animation: holoFlicker 2.5s infinite alternate; pointer-events: none; }
-        .holo-scanline { position: absolute; width: 100%; height: 2px; background: #fff; box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); z-index: 4; opacity: 0.5; animation: holoScan 3s linear infinite; }
+        .holo-base { position: absolute; bottom: 10px; width: 70%; height: 20px; background: radial-gradient(ellipse at center, var(--primary) 0%, transparent 70%); filter: blur(5px); z-index: 1; opacity: 0.6; box-shadow: 0 0 30px var(--primary); animation: pulseBase 3s ease-in-out infinite; }
+        .holo-rays { position: absolute; bottom: 20px; width: 100%; height: 130%; background: linear-gradient(to top, rgba(181, 60, 255, 0.15) 0%, transparent 80%); clip-path: polygon(20% 100%, 80% 100%, 100% 0, 0 0); z-index: 2; opacity: 0.6; animation: holoFlicker 2s infinite alternate; pointer-events: none; }
+        .holo-scanline { position: absolute; width: 100%; height: 3px; background: #fff; box-shadow: 0 0 15px var(--primary), 0 0 30px var(--primary); z-index: 4; opacity: 0.7; animation: holoScan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
         
-        @keyframes pulseBase { 0%, 100% { transform: scaleX(1); opacity: 0.5; } 50% { transform: scaleX(0.8); opacity: 1; background: radial-gradient(ellipse at center, rgba(66,245,227,0.6) 0%, transparent 70%);} }
-        @keyframes holoFlicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } 20% { opacity: 0.4; } 80% { opacity: 0.7; } }
-        @keyframes holoScan { 0% { top: 10%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 90%; opacity: 0; } }
+        @keyframes pulseBase { 0%, 100% { transform: scaleX(1); opacity: 0.4; } 50% { transform: scaleX(0.8); opacity: 0.8; background: radial-gradient(ellipse at center, rgba(181, 60, 255, 0.8) 0%, transparent 70%);} }
+        @keyframes holoFlicker { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.6; } 20% { opacity: 0.3; } 80% { opacity: 0.7; } }
+        @keyframes holoScan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 15px; text-align: center;}
+        .item-title { color: #fff; font-size: 1.5rem; font-family: 'Orbitron'; font-weight: 900; letter-spacing: 2px; margin-bottom: 25px; border-bottom: 2px solid rgba(181, 60, 255, 0.2); padding-bottom: 15px; text-align: center; text-shadow: var(--hud-glow);}
 
         /* --- ANALYTICS CORE --- */
-        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); width: 100%; position: relative; z-index: 5;}
+        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; z-index: 5;}
         
-        .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px; margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow); text-align: center;}
-        .center-subtitle { font-family: 'Share Tech Mono'; color: #fff; letter-spacing: 5px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.7; text-align: center;}
+        .center-logo { font-family: 'Orbitron'; font-weight: 900; font-size: 3.5rem; color: var(--primary); letter-spacing: 2px; margin-bottom: 5px; line-height: 1; text-shadow: var(--hud-glow-strong); text-align: center;}
+        .center-subtitle { font-family: 'Jura'; color: var(--text-muted); letter-spacing: 8px; font-size: 0.85rem; margin-bottom: 40px; opacity: 0.8; text-align: center;}
 
-        .analysis-cols { display: flex; gap: 20px; width: 100%; margin-bottom: 20px; }
-        .analysis-col { flex: 1; padding: 15px; border-left: 2px solid var(--primary-dim); }
-        .col-title { font-family: 'Inter'; font-weight: 700; color: #fff; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; text-align: center;}
-        
-        .pro-item { color: var(--text-main); font-family: 'Jura'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
-        .pro-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: var(--hud-glow); }
-        
-        .con-item { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
-        .con-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 2px; background: var(--secondary); }
-
-        .final-summary-block { width: 100%; margin-top: auto; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
-        .radar-container { width: 100%; max-width: 400px; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(66,245,227,0.1)); }
-
-        .meta-legend { margin-top: 15px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px; font-family: 'Jura'; line-height: 1.5;}
-
-        /* --- BUILDER & EXPORT --- */
-        .build-columns { display: flex; gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto 30px auto; flex-wrap: wrap; }
-        .build-col { flex: 1; min-width: 300px; }
-        .build-slot-container { 
-            display: flex; align-items: center; justify-content: center; gap: 15px; 
-            padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary); 
-            width: 100%; overflow: visible !important; position: relative; z-index: 1;
+        /* --- CATALOG --- */
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 35px; width: 100%;}
+        .catalog-item { 
+            padding: 30px 20px 25px 20px; cursor: pointer; 
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            opacity: 0; animation: itemFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .build-slot-container.ship2 { border-left-color: var(--secondary); }
-        .export-wrapper { padding: 40px; width: 100%;}
-
-        /* --- КАСТОМНЫЙ СЕЛЕКТ (С ИКОНКАМИ) --- */
-        .custom-select-wrapper { position: relative; width: 100%; max-width: 280px; flex-grow: 1; }
-        .custom-select-trigger {
-            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff;
-            padding: 8px 15px; width: 100%; border-radius: 8px; cursor: pointer;
-            display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            font-family: 'Jura'; font-size: 0.9rem; transition: 0.3s;
-        }
-        .custom-select-trigger:hover { border-color: var(--primary); box-shadow: 0 0 10px rgba(66,245,227,0.2); }
-        .trigger-left { display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; }
-        .trigger-img { width: 28px; height: 28px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
-        .trigger-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
+        .catalog-item:hover { border-color: var(--primary); transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(181, 60, 255, 0.15); }
+        .catalog-item.selected { border-color: var(--primary); background: var(--primary-dim); box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 30px rgba(181, 60, 255, 0.3); }
+        .catalog-item.selected::after { content: "СЛОТ ВЫБРАН"; position: absolute; top: 15px; right: 15px; background: var(--primary); color: #000; font-family: 'Inter'; font-size: 0.7rem; font-weight: 900; padding: 5px 12px; border-radius: 20px; box-shadow: var(--hud-glow);}
         
-        .custom-select-dropdown {
-            position: absolute; top: calc(100% + 5px); left: 0; width: 320px; background: rgba(11,22,36,0.95);
-            border: 1px solid var(--primary); border-radius: 8px; z-index: 9999;
-            display: flex; flex-direction: column; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.9); overflow: hidden;
-            visibility: hidden; opacity: 0; transform: translateY(-10px); transition: 0.2s ease;
-        }
-        .custom-select-dropdown.active { visibility: visible; opacity: 1; transform: translateY(0); }
-        .dropdown-filter { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
-        .dropdown-filter select, .dropdown-filter input { width: 100%; background: rgba(0,0,0,0.6); color: var(--primary); border: 1px solid rgba(66,245,227,0.3); padding: 8px; border-radius: 4px; font-family: 'Jura'; font-weight: bold; outline: none; transition: 0.3s; }
-        .dropdown-filter input::placeholder { color: var(--text-muted); }
-        .dropdown-filter input:focus, .dropdown-filter select:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(66,245,227,0.2); }
-        .dropdown-filter select option { background: #071017; color: #fff; }
+        .catalog-item-img { width: 100%; height: 130px; margin-bottom: 25px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.8)); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .catalog-item:hover .catalog-item-img { transform: scale(1.1) translateY(-5px); filter: drop-shadow(0 20px 20px rgba(181, 60, 255, 0.4));}
         
-        .dropdown-list { max-height: 280px; overflow-y: auto; padding: 5px; scrollbar-width: thin; scrollbar-color: var(--primary) rgba(0,0,0,0.2); }
-        .dropdown-list::-webkit-scrollbar { width: 4px; }
-        .dropdown-option {
-            display: flex; align-items: center; gap: 12px; padding: 8px 10px; cursor: pointer;
-            border-radius: 6px; transition: 0.2s; border-left: 3px solid transparent;
-        }
-        .dropdown-option:hover { background: var(--primary-dim); border-left-color: var(--primary); }
-        .dropdown-option-img { width: 35px; height: 35px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8));}
-        .dropdown-option-text { font-family: 'Inter'; font-size: 0.85rem; font-weight: 700; color: #fff; display: flex; flex-direction: column; line-height: 1.2; }
-        .dropdown-option-sub { font-size: 0.65rem; font-weight: 400; color: var(--text-muted); font-family: 'Jura'; margin-top: 2px; text-transform: uppercase;}
-        .dropdown-category-title { padding: 8px 10px; color: var(--primary); font-family: 'Orbitron'; font-size: 0.75rem; letter-spacing: 2px; background: rgba(0,0,0,0.6); margin: 5px 0; border-radius: 4px; text-align: center; border-bottom: 1px dashed rgba(66,245,227,0.2);}
+        .cat-item-name { color: #fff; font-size: 1.15rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 12px; width: 100%; letter-spacing: 1px;}
+        .cat-item-meta { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px; width: 100%;}
+        .cat-meta-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px;}
 
         @keyframes itemFadeIn {
-            0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(3px); }
+            0% { opacity: 0; transform: translateY(40px) scale(0.9); filter: blur(5px); }
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
-        /* --- CATALOG --- */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; width: 100%;}
-        .catalog-item { 
-            padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-            opacity: 0; animation: itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .catalog-item:hover { border-color: var(--primary); transform: translateY(-8px) !important; box-shadow: 0 15px 30px rgba(0,0,0,0.6), var(--hud-glow); }
-        .catalog-item.selected { border-color: var(--primary); background: var(--primary-dim); box-shadow: var(--hud-glow); }
-        .catalog-item.selected::after { content: "ВЫБРАНО"; position: absolute; top: 15px; right: 15px; background: var(--primary); color: #000; font-family: 'Inter'; font-size: 0.7rem; font-weight: 900; padding: 4px 10px; border-radius: 20px; }
-        .catalog-item-img { width: 100%; height: 120px; margin-bottom: 25px; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: transparent; border: none; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.7)); transition: 0.3s; }
-        .catalog-item:hover .catalog-item-img { transform: scale(1.05); filter: drop-shadow(0 15px 15px rgba(66,245,227,0.3));}
-        .cat-item-name { color: #fff; font-size: 1.1rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 10px; width: 100%;}
-        .cat-item-meta { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; width: 100%;}
-        .cat-meta-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px;}
-
         /* --- MODALS & TOASTS --- */
-        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
-        .toast { background: rgba(11, 22, 36, 0.95); border: 1px solid var(--primary); border-radius: 8px; color: var(--primary); padding: 15px 25px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
-        .toast.error { border-color: var(--secondary); color: var(--secondary); }
+        #toast-container { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 15px; pointer-events: none; width: 90%; max-width: 450px;}
+        .toast { background: rgba(20, 10, 30, 0.95); border: 1px solid var(--primary); border-radius: 12px; color: #fff; padding: 18px 25px; font-family: 'Orbitron'; font-weight: 700; font-size: 1rem; text-align: center; opacity: 0; transform: translateY(30px); transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 15px 30px rgba(0,0,0,0.8), var(--hud-glow); backdrop-filter: blur(15px); letter-spacing: 1px;}
+        .toast.error { border-color: var(--secondary); color: var(--secondary); box-shadow: 0 15px 30px rgba(0,0,0,0.8), 0 0 15px rgba(255, 60, 138, 0.5); }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 10, 16, 0.85); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s ease; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { padding: 40px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border-top: 3px solid var(--primary); }
-        .modal-close { position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--text-muted); font-size: 2.5rem; line-height: 1; cursor: pointer; transition: 0.3s; padding: 0;}
-        .modal-close:hover { color: var(--primary); transform: scale(1.1); }
-
-        /* =========================================
-           EFFECTS TOGGLE (выключение всех декоративных эффектов)
-           ========================================= */
-        html.effects-off #sparks-container { display: none !important; }
-        html.effects-off body::before { display: none !important; }
-        html.effects-off #global-mwl-text,
-        html.effects-off .floating-weapon,
-        html.effects-off .holo-base,
-        html.effects-off .holo-rays,
-        html.effects-off .holo-scanline,
-        html.effects-off .spark {
-            animation: none !important;
-        }
-        html.effects-off #global-mwl-text { opacity: 0.05 !important; filter: none !important; text-shadow: none !important; }
-        html.effects-off * {
-            text-shadow: none !important;
-        }
-        html.effects-off .glass-panel,
-        html.effects-off .home-title,
-        html.effects-off .nav-logo-small,
-        html.effects-off .val-win,
-        html.effects-off .bar-win,
-        html.effects-off .cat-btn-main.active,
-        html.effects-off .info-btn.auth-active {
-            box-shadow: none !important;
-        }
-        html.effects-off #effects-toggle { color: var(--text-muted); }
-
-        /* =========================================
-           MOBILE & TABLET RESPONSIVE QUERIES
-           ========================================= */
+        /* Адаптивность для мобильных */
         @media (max-width: 1200px) {
-            .compare-grid { grid-template-columns: 1fr 1fr; gap: 20px;}
+            .compare-grid { grid-template-columns: 1fr 1fr; gap: 25px;}
             .analytics-core { grid-column: 1 / -1; order: 3; }
             #card-equip-1 { order: 1; }
             #card-equip-2 { order: 2; }
-            
-            #page-home { overflow: hidden; }
-            #page-home.active { flex-direction: column; justify-content: center; text-align: center; overflow: hidden;}
-            .home-container { flex-direction: column; }
-            .home-text-side { max-width: 100%; padding-right: 0; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center;}
-            .home-title { font-size: 5rem; }
-            .home-desc { max-width: 100%; }
-            .home-image-side { width: 100%; justify-content: center; min-height: 40vh;}
-            
+            #page-home.active { flex-direction: column; justify-content: center; text-align: center; }
+            .home-text-side { max-width: 100%; padding-right: 0; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center;}
+            .home-title { font-size: 4rem; }
             #global-mwl-wrapper.right { left: 50%; }
-            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 35vw; }
-            #global-mwl-wrapper { top: 78% !important; }
         }
-
         @media (max-width: 768px) {
-            .page { padding: 15px 10px; }
-            nav { padding: 15px 10px; justify-content: center; gap: 8px; border-radius: 0; }
-            .nav-logo-small { width: 100%; text-align: center; margin: 0 0 10px 0; font-size: 1.8rem;}
-            .nav-btn { flex: 1 1 30%; font-size: 0.75rem; padding: 10px 5px; text-align: center; }
-            .info-btn { flex: 1 1 30%; margin-left: 0; height: 35px; font-size: 1.1rem;}
-
-            .compare-grid { grid-template-columns: 1fr; gap: 15px; }
-            .analytics-core { grid-column: 1 / -1; order: 1; padding: 25px 15px; }
+            .compare-grid { grid-template-columns: 1fr; }
+            .analytics-core { order: 1; padding: 20px 10px; }
             #card-equip-1 { order: 2; }
             #card-equip-2 { order: 3; }
-            .equip-card { padding: 20px 15px; }
-            .weapon-showcase { height: 160px; }
-            .equip-img-container { bottom: 15px; }
-            .item-title { font-size: 1.1rem; }
-            .vs-badge { font-size: 5rem; }
-            
-            .analysis-cols { flex-direction: column; gap: 15px; }
-            .analysis-col { border-left: none; border-top: 2px solid var(--primary-dim); padding: 15px 5px 5px 5px; }
-            .center-logo { font-size: 2.8rem; margin-bottom: 0;}
-            .center-subtitle { font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 20px;}
-            .radar-container { height: 200px; }
-            
-            .controls-container { flex-direction: column; width: 100%; gap: 10px; margin-bottom: 15px;}
-            .search-input, .filter-select { max-width: 100%; width: 100%; font-size: 0.9rem; padding: 12px 15px; }
-            .cat-btn-main { width: 100%; font-size: 0.9rem; padding: 12px; border-radius: 8px;}
-            .categories-bar { flex-direction: column; width: 100%; gap: 10px;}
-
-            .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-            .catalog-item { padding: 15px 10px 10px 10px; border-radius: 12px;}
-            .catalog-item-img { height: 80px; margin-bottom: 15px; }
-            .cat-item-name { font-size: 0.85rem; margin-bottom: 10px; line-height: 1.2;}
-            .cat-meta-row { flex-direction: column; font-size: 0.7rem; gap: 2px; text-align: center; border-bottom: none;}
-            .catalog-item.selected::after { font-size: 0.5rem; padding: 3px 6px; top: 10px; right: 10px; }
-
-            .build-columns { flex-direction: column; gap: 10px; }
-            .build-slot-container { flex-direction: column; gap: 10px; padding: 15px; border-left: none; border-top: 3px solid var(--primary); border-radius: 12px;}
-            .build-slot-container.ship2 { border-top-color: var(--secondary); }
-            .build-slot-container .search-input { max-width: 100%; width: 100%; }
-            .custom-select-wrapper { max-width: 100%; }
-            .custom-select-dropdown { width: 100%; min-width: 0; }
-            
-            .export-wrapper { padding: 20px 15px; }
-            
-            #page-home { padding: 0 15px; height: calc(100vh - 210px); height: calc(100dvh - 210px); min-height: 0; overflow: hidden; }
-            #page-home.active { justify-content: center; gap: 0; }
-            .home-title { font-size: 3rem; margin-top: 0; }
-            .home-subtitle { font-size: 0.9rem; letter-spacing: 3px; }
-            .home-desc { font-size: 0.85rem; line-height: 1.4; }
-            .home-divider { margin-bottom: 15px; }
-            .home-text-side { margin-bottom: 10px; }
-            .home-image-side { min-height: 28vh; }
-            .home-image-side img { max-height: 32vh; }
-            
-            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 50vw; }
-            #global-mwl-wrapper { top: 82% !important; }
-            
-            .modal-content { padding: 25px 15px; }
-            .modal-close { top: 5px; right: 15px; font-size: 2.5rem; }
+            .home-title { font-size: 2.8rem; }
+            #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 40vw; }
         }
     </style>
 </head>
 <body>
+    <!-- Фоновые искры Системы -->
     <div id="sparks-container"></div>
+    
+    <!-- Фоновый текст MWL -->
     <div id="global-mwl-wrapper" class="right">
         <div id="global-mwl-text">MWL</div>
     </div>
 
     <div class="app-wrapper">
+        <!-- НАВИГАЦИЯ -->
         <nav class="glass-panel" style="border-radius: 0; border-left:none; border-right:none; border-top:none;">
-            <div class="nav-logo-small">MWLAB</div>
-            <button class="nav-btn active" id="nav-home" onclick="switchMainPage('page-home', this)">Главная</button>
-            <button class="nav-btn" id="nav-compare" onclick="switchMainPage('page-compare', this)">Анализатор</button>
-            <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast('ТРЕБУЕТСЯ PRO ДОСТУП', true); }">Конструктор <span id="builder-lock">🔒</span></button>
-            <button class="nav-btn" id="nav-catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
+            <div class="nav-logo-small">MWL <span style="color: #fff; text-shadow: none;">SYS</span></div>
+            <button class="nav-btn active" id="nav-home" onclick="switchMainPage('page-home', this)">ГЛАВНАЯ</button>
+            <button class="nav-btn" id="nav-compare" onclick="switchMainPage('page-compare', this)">АНАЛИЗАТОР</button>
+            <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast('ТРЕБУЕТСЯ PRO ДОСТУП', true); }">СБОРКИ <span id="builder-lock">🔒</span></button>
+            <button class="nav-btn" id="nav-catalog" onclick="switchMainPage('page-catalog', this)">ИНВЕНТАРЬ</button>
             <button class="info-btn" id="nav-admin" onclick="switchMainPage('page-admin')" title="Профиль">👤</button>
             <button class="info-btn" id="effects-toggle" onclick="toggleEffects()" title="Выключить эффекты">✨</button>
             <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
         </nav>
 
-        <div style="padding: 15px 15px 0 15px; text-align: center; position: relative; z-index: 10; display: none;" id="category-bar-wrapper">
+        <!-- ПАНЕЛЬ КАТЕГОРИЙ (скрыта на главной) -->
+        <div style="padding: 20px 20px 0 20px; text-align: center; position: relative; z-index: 10; display: none;" id="category-bar-wrapper">
             <div class="categories-bar" id="category-bar"></div>
         </div>
 
+        <!-- === ГЛАВНАЯ СТРАНИЦА === -->
         <main id="page-home" class="page active">
             <div class="home-container">
                 <div class="home-text-side">
-                    <h1 class="home-title">MWLAB</h1>
+                    <h1 class="home-title">MWL <span class="title-highlight">SYSTEM</span></h1>
                     <p class="home-subtitle">TACTICAL DATABASE</p>
                     <div class="home-divider"></div>
-                    <p class="home-desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
-                    <button class="cat-btn-main active" style="margin-top:30px; font-size: 1rem; padding: 12px 30px; border:none;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
+                    <p class="home-desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала. Интегрировано с базой данных меты.</p>
+                    <button class="cat-btn-main active" style="margin-top:40px; font-size: 1.1rem; padding: 15px 40px;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ ИНВЕНТАРЬ</button>
                 </div>
                 <div class="home-image-side" id="home-image-side">
-                    <div class="home-image-glow"></div>
-                    <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 0 20px rgba(66, 245, 227, 0.3));" onerror="this.style.display='none'">
+                    <!-- Заглушка под изображение персонажа/корабля -->
+                    <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 0 30px rgba(181, 60, 255, 0.4));" onerror="this.style.display='none'">
                 </div>
             </div>
         </main>
 
+        <!-- === СТРАНИЦА АНАЛИЗАТОРА (СРАВНЕНИЕ) === -->
         <main id="page-compare" class="page">
             <div class="controls-container">
                 <button class="cat-btn-main btn-export" onclick="exportToImage('compare-export-wrapper', 'MWLAB_Анализ')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ ОТЧЕТ</button>
             </div>
             <div id="compare-export-wrapper" class="export-wrapper">
                 <div class="compare-grid">
+                    <!-- Слот 1 -->
                     <div class="equip-card glass-panel" id="card-equip-1">
                         <div class="weapon-showcase">
                             <div class="holo-rays" id="holo-rays-1" style="display:none;"></div>
@@ -504,14 +348,16 @@
                         <div class="stats-container" id="stats-equip-1"></div>
                     </div>
                     
+                    <!-- Вердикт -->
                     <div class="analytics-core glass-panel">
-                        <div class="center-logo">MWLAB</div>
-                        <div class="center-subtitle">TACTICAL ANALYSIS</div>
+                        <div class="center-logo">SYS</div>
+                        <div class="center-subtitle">АНАЛИЗ БОЕВОГО ПОТЕНЦИАЛА</div>
                         <div id="verdict-screen" style="width: 100%; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; align-items: center; color: var(--text-muted);">
-                            <p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
+                            <p style="font-family:'Jura'; font-size:1.1rem; text-align:center; letter-spacing: 2px;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
                         </div>
                     </div>
 
+                    <!-- Слот 2 -->
                     <div class="equip-card glass-panel" id="card-equip-2">
                         <div class="weapon-showcase">
                             <div class="holo-rays" id="holo-rays-2" style="display:none;"></div>
@@ -526,80 +372,79 @@
             </div>
         </main>
 
+        <!-- === СТРАНИЦА КОНСТРУКТОРА СБОРОК === -->
         <main id="page-builder" class="page">
             <div class="controls-container">
                 <button class="cat-btn-main" onclick="addBuildSlot(1)">+ СЛОТ (КОР. 1)</button>
                 <button class="cat-btn-main" onclick="addBuildSlot(2)" style="color:var(--secondary); border-color:var(--secondary);">+ СЛОТ (КОР. 2)</button>
-                <button class="cat-btn-main active" style="border:none;" onclick="calculateBuild()">СРАВНИТЬ СБОРКИ</button>
-                <button class="cat-btn-main btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ</button>
+                <button class="cat-btn-main active" style="border:none; box-shadow: var(--hud-glow-strong);" onclick="calculateBuild()">СРАВНИТЬ СБОРКИ</button>
             </div>
             
-            <div class="build-columns">
-                <div class="build-col">
-                    <h3 style="text-align:center; color:var(--primary); font-family:'Inter'; font-weight:900; margin-bottom:15px; letter-spacing:1px;">КОРАБЛЬ 1</h3>
+            <div class="build-columns" style="display: flex; gap: 30px; width: 100%; max-width: 1200px; margin: 0 auto 30px auto; flex-wrap: wrap;">
+                <div class="build-col" style="flex: 1; min-width: 300px;">
+                    <h3 style="text-align:center; color:var(--primary); font-family:'Orbitron'; font-weight:900; margin-bottom:20px; letter-spacing:2px; text-shadow: var(--hud-glow);">КОРАБЛЬ 1</h3>
                     <div id="build-slots-1"></div>
                 </div>
-                <div class="build-col">
-                    <h3 style="text-align:center; color:var(--secondary); font-family:'Inter'; font-weight:900; margin-bottom:15px; letter-spacing:1px;">КОРАБЛЬ 2</h3>
+                <div class="build-col" style="flex: 1; min-width: 300px;">
+                    <h3 style="text-align:center; color:var(--secondary); font-family:'Orbitron'; font-weight:900; margin-bottom:20px; letter-spacing:2px; text-shadow: 0 0 15px var(--secondary);">КОРАБЛЬ 2</h3>
                     <div id="build-slots-2"></div>
                 </div>
             </div>
 
-            <div id="build-export-wrapper" class="export-wrapper glass-panel" style="display:none; max-width: 1000px; margin: 0 auto; width:100%;">
-                <h2 style="text-align: center; color: #fff; font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 20px;">СРАВНИТЕЛЬНЫЙ АНАЛИЗ СБОРОК</h2>
-                <div class="analysis-cols" style="flex-wrap: wrap;" id="build-stats-container"></div>
-                <div class="radar-container" style="position: relative; height: 350px; margin-top: 20px; max-width: 600px;">
+            <div id="build-export-wrapper" class="export-wrapper glass-panel" style="display:none; max-width: 1000px; margin: 0 auto; width:100%; padding: 40px;">
+                <h2 style="text-align: center; color: #fff; font-family: 'Orbitron'; font-size: 1.5rem; margin-bottom: 30px; letter-spacing: 2px;">СРАВНИТЕЛЬНЫЙ АНАЛИЗ</h2>
+                <div class="analysis-cols" style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%; margin-bottom: 20px;" id="build-stats-container"></div>
+                <div class="radar-container" style="position: relative; height: 350px; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
                     <canvas id="buildRadarChart"></canvas>
                 </div>
-                <div id="build-tactics" style="margin-top: 20px; font-family: 'Jura'; display:flex; flex-wrap:wrap; gap:20px;"></div>
+                <div id="build-tactics" style="margin-top: 30px; font-family: 'Jura'; display:flex; flex-wrap:wrap; gap:30px;"></div>
             </div>
-
+            
             <!-- СИМУЛЯТОР ПРОРЫВА ПВО -->
-            <div class="glass-panel" style="margin: 40px auto 0 auto; padding: 30px; max-width: 1200px; width: 100%;">
-                <h2 style="text-align:center; color:#fff; font-family:'Inter'; font-size: 1.5rem; margin-bottom: 25px;">СИМУЛЯТОР ПРОРЫВА ПВО</h2>
+            <div class="glass-panel" style="margin: 40px auto 0 auto; padding: 40px; max-width: 1200px; width: 100%;">
+                <h2 style="text-align:center; color:#fff; font-family:'Orbitron'; font-size: 1.5rem; margin-bottom: 35px; letter-spacing: 2px;">СИМУЛЯТОР ПРОРЫВА ПВО</h2>
 
-                <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                <div style="display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 30px;">
                     <!-- ПВО -->
-                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
-                        <h3 style="color:var(--primary); margin-bottom: 15px; font-family:'Inter';">СИСТЕМА ПВО</h3>
-                        <select id="sim-aa-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
+                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.4); padding: 25px; border-radius: 15px; border-left: 4px solid var(--primary); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
+                        <h3 style="color:var(--primary); margin-bottom: 20px; font-family:'Inter'; letter-spacing: 1px;">СИСТЕМА ПВО</h3>
+                        <select id="sim-aa-select" class="filter-select" style="width: 100%; margin-bottom: 15px;"></select>
                         <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Jura';">Количество модулей ПВО:</label>
-                        <select id="sim-aa-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
+                        <select id="sim-aa-qty" class="search-input" style="width: 100%; margin-top: 8px; text-align: left;">
                             <option value="1">1 слот</option><option value="2">2 слота</option>
                             <option value="3">3 слота</option><option value="4" selected>4 слота</option>
                             <option value="5">5 слотов</option><option value="6">6 слотов</option>
-                            <option value="7">7 слотов</option><option value="8">8 слотов</option>
                         </select>
                     </div>
 
                     <!-- Ракеты -->
-                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
-                        <h3 style="color:var(--secondary); margin-bottom: 15px; font-family:'Inter';">РАКЕТНЫЙ ЗАЛП</h3>
-                        <select id="sim-missile-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
-                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Jura';">Количество пусковых установок:</label>
-                        <select id="sim-missile-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
+                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.4); padding: 25px; border-radius: 15px; border-left: 4px solid var(--secondary); box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
+                        <h3 style="color:var(--secondary); margin-bottom: 20px; font-family:'Inter'; letter-spacing: 1px;">РАКЕТНЫЙ ЗАЛП</h3>
+                        <select id="sim-missile-select" class="filter-select" style="width: 100%; margin-bottom: 15px;"></select>
+                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Jura';">Количество ПУ:</label>
+                        <select id="sim-missile-qty" class="search-input" style="width: 100%; margin-top: 8px; text-align: left;">
                             <option value="1">1 слот</option><option value="2" selected>2 слота</option>
                             <option value="3">3 слота</option><option value="4">4 слота</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Дистанция и кнопка запуска -->
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <label style="color: #fff; font-family:'Jura'; font-size: 1.1rem;">Дистанция пуска: <span id="sim-dist-val" style="color:var(--primary); font-weight:bold;">7.0</span> км</label><br>
-                    <input type="range" id="sim-dist" min="1" max="15" step="0.5" value="7" style="width: 100%; max-width: 500px; margin-top: 15px; accent-color: var(--primary);" oninput="document.getElementById('sim-dist-val').innerText = this.value">
+                <div style="text-align: center; margin-bottom: 35px;">
+                    <label style="color: var(--text-muted); font-family:'Jura'; font-size: 1.1rem; letter-spacing: 1px;">ДИСТАНЦИЯ ПУСКА: <span id="sim-dist-val" style="color:var(--primary); font-weight:bold; font-size: 1.3rem; text-shadow: var(--hud-glow);">7.0</span> КМ</label><br>
+                    <input type="range" id="sim-dist" min="1" max="15" step="0.5" value="7" style="width: 100%; max-width: 500px; margin-top: 20px; accent-color: var(--primary);" oninput="document.getElementById('sim-dist-val').innerText = this.value">
                 </div>
 
-                <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto; display: block; border:none; padding: 15px;" onclick="simulateAA()">РАССЧИТАТЬ ВЕРОЯТНОСТЬ</button>
+                <button class="cat-btn-main active" style="width: 100%; max-width: 400px; margin: 0 auto; display: block; border:none; padding: 18px; font-size: 1rem; letter-spacing: 2px; box-shadow: var(--hud-glow-strong);" onclick="simulateAA()">РАССЧИТАТЬ</button>
 
                 <!-- Вывод результата -->
-                <div id="sim-result" style="margin-top: 30px; display: none; padding: 20px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; text-align: center; background: rgba(0,0,0,0.4);"></div>
+                <div id="sim-result" style="margin-top: 40px; display: none; padding: 30px; border: 1px dashed var(--glass-border); border-radius: 15px; text-align: center; background: rgba(0,0,0,0.5); box-shadow: inset 0 0 20px rgba(0,0,0,0.8);"></div>
             </div>
         </main>
 
+        <!-- === СТРАНИЦА КАТАЛОГА (АРСЕНАЛ) === -->
         <main id="page-catalog" class="page">
             <div class="controls-container">
-                <input type="text" class="search-input glass-panel" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК..." oninput="handleSearch(this.value)">
+                <input type="text" class="search-input glass-panel" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК В БАЗЕ..." oninput="handleSearch(this.value)">
                 <select class="filter-select glass-panel" id="filter-country-catalog" onchange="handleFilter()">
                     <option value="" selected>ВСЕ ФРАКЦИИ</option>
                     <option value="Бразилия">Бразилия</option>
@@ -608,7 +453,6 @@
                     <option value="Европейский Союз">Европейский Союз</option>
                     <option value="Израиль">Израиль</option>
                     <option value="Индия">Индия</option>
-                    <option value="Индонезия">Индонезия</option>
                     <option value="Иран">Иран</option>
                     <option value="Италия">Италия</option>
                     <option value="Китай">Китай</option>
@@ -617,7 +461,6 @@
                     <option value="Турция">Турция</option>
                     <option value="Франция">Франция</option>
                     <option value="Швеция">Швеция</option>
-                    <option value="ЮАР">ЮАР</option>
                     <option value="Южная Корея">Южная Корея</option>
                     <option value="Япония">Япония</option>
                 </select>
@@ -629,7 +472,7 @@
                 </select>
                 <select class="filter-select glass-panel" id="sort-catalog" onchange="handleFilter()">
                     <option value="none" selected>СОРТИРОВКА: ОТКЛ.</option>
-                    <option value="rating">ТОП: РЕЙТИНГ МЕТЫ</option>
+                    <option value="rating">ТОП: ИНДЕКС СИСТЕМЫ</option>
                     <option value="dpm">ТОП: УРОН В МИНУТУ</option>
                     <option value="burst">ТОП: АЛЬФА-СТРАЙК</option>
                     <option value="speed">ТОП: СКОРОСТЬ</option>
@@ -641,67 +484,70 @@
             <div class="catalog-grid" id="catalog-content"></div>
         </main>
 
+        <!-- === СТРАНИЦА АДМИНА (ПРОФИЛЬ) === -->
         <main id="page-admin" class="page">
-            <div class="glass-panel" style="max-width: 400px; margin: 0 auto; padding: 40px; text-align: center; width: 100%;">
-                <h2 style="color:#fff; font-family:'Inter'; margin-bottom: 10px; font-size:1.5rem;" id="auth-title">АВТОРИЗАЦИЯ</h2>
-                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 25px;" id="auth-subtitle">Войдите для доступа к диаграммам, индексу меты и конструктору сборок.</p>
+            <div class="glass-panel" style="max-width: 450px; margin: 0 auto; padding: 50px 40px; text-align: center; width: 100%;">
+                <h2 style="color:#fff; font-family:'Orbitron'; margin-bottom: 15px; font-size:1.8rem; letter-spacing: 2px;" id="auth-title">СИНХРОНИЗАЦИЯ</h2>
+                <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 35px; line-height: 1.5;" id="auth-subtitle">Войдите для доступа к закрытым данным Системы.</p>
                 
                 <div id="admin-auth">
-                    <input type="text" id="admin-login" class="search-input glass-panel" autocomplete="username" placeholder="ЛОГИН" style="margin-bottom: 15px; text-align:center; width: 100%;">
-                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="current-password" placeholder="ПАРОЛЬ" style="margin-bottom: 25px; text-align:center; width: 100%;">
-                    <button class="cat-btn-main active" style="border:none; width:100%;" onclick="checkAuthLogin()">ВОЙТИ</button>
+                    <input type="text" id="admin-login" class="search-input glass-panel" autocomplete="username" placeholder="ИДЕНТИФИКАТОР" style="margin-bottom: 20px; text-align:center; width: 100%;">
+                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="current-password" placeholder="КЛЮЧ ДОСТУПА" style="margin-bottom: 30px; text-align:center; width: 100%;">
+                    <button class="cat-btn-main active" style="border:none; width:100%; padding: 15px; font-size: 1rem; letter-spacing: 2px;" onclick="checkAuthLogin()">УСТАНОВИТЬ СВЯЗЬ</button>
                 </div>
 
                 <div id="admin-dashboard" style="display: none;">
-                    <div style="width: 80px; height: 80px; background: rgba(66, 245, 227, 0.1); border: 2px solid var(--primary); border-radius: 50%; margin: 0 auto 20px auto; display:flex; align-items:center; justify-content:center; font-size: 2.5rem; text-shadow: var(--hud-glow);">👑</div>
-                    <h3 style="color: var(--primary); font-family: 'Inter'; font-weight: 900; margin-bottom: 25px;">PRO ДОСТУП АКТИВЕН</h3>
-                    <p style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 10px;">ПОСЕЩЕНИЯ САЙТА</p>
-                    <div style="font-size: 3rem; color: #fff; font-family: 'Share Tech Mono'; font-weight: bold; margin-bottom: 30px;" id="visit-counter">0</div>
-                    <button class="cat-btn-main" style="width:100%; color:var(--secondary); border-color:var(--secondary);" onclick="logout()">ВЫЙТИ ИЗ АККАУНТА</button>
+                    <div style="width: 90px; height: 90px; background: rgba(181, 60, 255, 0.1); border: 2px solid var(--primary); border-radius: 50%; margin: 0 auto 25px auto; display:flex; align-items:center; justify-content:center; font-size: 2.8rem; text-shadow: var(--hud-glow); box-shadow: var(--hud-glow-strong);">👁</div>
+                    <h3 style="color: var(--primary); font-family: 'Orbitron'; font-weight: 900; margin-bottom: 30px; letter-spacing: 1px; text-shadow: var(--hud-glow);">ДОСТУП ИГРОКА АКТИВЕН</h3>
+                    <p style="color:var(--text-muted); font-size: 0.85rem; margin-bottom: 10px; letter-spacing: 1px;">ИНДЕКС СИНХРОНИЗАЦИИ</p>
+                    <div style="font-size: 3.5rem; color: #fff; font-family: 'Orbitron'; font-weight: bold; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255,255,255,0.3);" id="visit-counter">0</div>
+                    <button class="cat-btn-main" style="width:100%; color:var(--secondary); border-color:var(--secondary);" onclick="logout()">РАЗОРВАТЬ СВЯЗЬ</button>
                 </div>
             </div>
         </main>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО СПРАВКИ -->
-    <div id="ibe-modal" class="modal-overlay">
-        <div class="modal-content glass-panel">
-            <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
-            <h2 style="color: #fff; font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 15px;">БАЗА ЗНАНИЙ MWLAB</h2>
+    <div id="ibe-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(9, 5, 14, 0.9); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s ease; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);">
+        <div class="modal-content glass-panel" style="padding: 40px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border-top: 4px solid var(--primary);">
+            <button class="modal-close" style="position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--text-muted); font-size: 2.5rem; line-height: 1; cursor: pointer; transition: 0.3s; padding: 0;" onclick="closeModal('ibe-modal')">×</button>
+            <h2 style="color: #fff; font-family: 'Orbitron'; font-size: 1.5rem; margin-bottom: 15px; letter-spacing: 2px;">ИНФОРМАЦИЯ О СИСТЕМЕ</h2>
             
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 25px; line-height: 1.6;">
                 <b>Анализатор:</b> Сравнивает вооружение в мете 5-10 км.<br>
                 <b>Конструктор:</b> Симулирует реальную сборку корабля.
             </p>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
                 <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none; flex-grow:1;" onclick="switchModalTab('cannons')">ПУШКИ</button>
                 <button class="cat-btn-main" id="btn-modal-missiles" style="border:none; flex-grow:1;" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
             </div>
 
-            <div id="info-cannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5;">
+            <div id="info-cannons" style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон с учетом крита.</li>
+                    <li style="margin-bottom: 12px;"><b style="color: #fff;">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
+                    <li style="margin-bottom: 12px;"><b style="color: #fff;">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
+                    <li style="margin-bottom: 12px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
+                    <li style="margin-bottom: 12px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон с учетом крита.</li>
                 </ul>
             </div>
 
-            <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
+            <div id="info-missiles" style="color: var(--text-main); font-size: 0.9rem; line-height: 1.6; display: none;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
+                    <li style="margin-bottom: 12px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
+                    <li style="margin-bottom: 12px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
+                    <li style="margin-bottom: 12px;"><b style="color: #fff;">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
+                    <li style="margin-bottom: 12px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
                 </ul>
             </div>
         </div>
     </div>
 
+    <!-- Контейнер для уведомлений -->
     <div id="toast-container"></div>
+    
     <script>
-        // --- AUTH LOGIC ---
+// --- AUTH LOGIC ---
         let isAuth = localStorage.getItem('mw_auth') === 'true';
         let siteVisits = localStorage.getItem('mw_site_visits') || 0; 
         siteVisits++; 
@@ -717,8 +563,8 @@
             if (isAuth) {
                 adminDash.style.display = 'block';
                 adminAuth.style.display = 'none';
-                document.getElementById('auth-title').innerText = "АККАУНТ";
-                document.getElementById('auth-subtitle').innerText = "Управление доступом";
+                document.getElementById('auth-title').innerText = "АККАУНТ СИСТЕМЫ";
+                document.getElementById('auth-subtitle').innerText = "Доступ к расширенным базам данных.";
                 document.getElementById('visit-counter').innerText = siteVisits;
                 if (lockIcon) lockIcon.style.display = 'none';
                 navAdminBtn.classList.add('auth-active');
@@ -726,8 +572,8 @@
             } else {
                 adminDash.style.display = 'none';
                 adminAuth.style.display = 'block';
-                document.getElementById('auth-title').innerText = "АВТОРИЗАЦИЯ";
-                document.getElementById('auth-subtitle').innerText = "Войдите для доступа к диаграммам, индексу меты и конструктору сборок.";
+                document.getElementById('auth-title').innerText = "СИНХРОНИЗАЦИЯ";
+                document.getElementById('auth-subtitle').innerText = "Войдите для доступа к закрытым данным Системы.";
                 if (lockIcon) lockIcon.style.display = 'inline';
                 navAdminBtn.classList.remove('auth-active');
                 sortOpts.forEach(opt => opt.disabled = true);
@@ -756,9 +602,9 @@
                 document.getElementById('admin-login').value = '';
                 document.getElementById('admin-pass').value = '';
                 updateAuthStateUI();
-                showToast("ДОСТУП РАЗРЕШЕН");
+                showToast("СВЯЗЬ УСТАНОВЛЕНА");
             } else { 
-                showToast('ОШИБКА АВТОРИЗАЦИИ', true); 
+                showToast('ОШИБКА СИНХРОНИЗАЦИИ', true); 
             }
         }
 
@@ -766,7 +612,7 @@
             isAuth = false;
             localStorage.setItem('mw_auth', 'false');
             updateAuthStateUI();
-            showToast("ВЫХОД ВЫПОЛНЕН");
+            showToast("СВЯЗЬ РАЗОРВАНА");
             
             if (document.getElementById('page-builder').classList.contains('active')) {
                 switchMainPage('page-home', document.getElementById('nav-home'));
@@ -809,7 +655,7 @@
             effectsEnabled = !effectsEnabled;
             localStorage.setItem('mw_effects', effectsEnabled ? 'on' : 'off');
             applyEffectsState();
-            showToast(effectsEnabled ? 'ЭФФЕКТЫ ВКЛЮЧЕНЫ' : 'ЭФФЕКТЫ ВЫКЛЮЧЕНЫ');
+            showToast(effectsEnabled ? 'СИСТЕМА: ЭФФЕКТЫ ВКЛЮЧЕНЫ' : 'СИСТЕМА: ЭФФЕКТЫ ВЫКЛЮЧЕНЫ');
         }
 
         applyEffectsState();
@@ -895,7 +741,10 @@
             fire_penalty: { label: "Штраф маскировки", higherIsBetter: false }
         };
 
-        const DB = {
+        // =========================================================================
+        // ВСТАВЬТЕ СВОЙ ОБЪЕКТ DB ЗДЕСЬ
+        // =========================================================================
+         const DB = {
 // ----- ПУШКИ -----
             "a192": { name: "A-192 ARMAT (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 308225, damage_burst: 15925, damage: 3185, accuracy: 100, reload: 2.80, crit_chance: 50, projectiles: 4, range: 17.33, max_speed: 777, fire_penalty: 35, img: "img/A192.png" },
             "a200navigator": { name: "A-200 NAVIGATOR (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 326132, damage_burst: 46800, damage: 46800, accuracy: 100, reload: 8.61, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/A200.png" },
@@ -1168,10 +1017,12 @@
             "ksam": { name: "KSAM BLOCK 2", category: "ПВО", aa_type: "Ракетное", country: "Южная Корея", rarity: "Эпический", dpm: 26000, damage_burst: 2080, damage: 520, reload: 4.20, crit_chance: 20, detonation_radius: 20, range: 4.77, max_speed: 340, start_speed: 194, accel_time: 0.83, ammo_clip: 4, fire_penalty: 15, fire_delay: 0.2, img: "img/KSAMBlock2.png" },
             "type730c": { name: "TYPE 730C", category: "ПВО", aa_type: "Гибрид", country: "Китай", rarity: "Эпический", dpm: 16595, damage_burst: 1300, damage: 650, reload: 4.55, crit_chance: 20, detonation_radius: 10, range: 3.90, max_speed: 311, start_speed: 155, accel_time: 1.33, ammo_clip: 2, fire_penalty: 15, fire_delay: 0.2, img: "img/Type730C.png" }
         };
-// Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
+
+        // =========================================================================
+
         function getSafeDistance(item) {
             const MW_COEF = 0.00278; 
-            let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
+            let T = 11.0; 
             let v0 = (item.start_speed || 0) * MW_COEF;
             let vmax = (item.max_speed || 0) * MW_COEF;
             let ta = item.accel_time || 0.1; 
@@ -1184,9 +1035,6 @@
             }
         }
 
-        // Усредненный "портрет" реальной атакующей ракеты (по фактическим ракетам из БД),
-        // относительно которого считается эффективность ПВО. Без этого рейтинг ПВО был оторван
-        // от того, против чего ПВО реально работает — против ракет.
         let _threatMissileProfileCache = null;
         function getThreatMissileProfile() {
             if (_threatMissileProfileCache) return _threatMissileProfileCache;
@@ -1416,8 +1264,6 @@
             },
           "Гранатометы": function(item) {
                 let score = 100;
-
-                // 1. Штраф за отдачу
                 let recoil = item.recoil !== undefined ? item.recoil : 15; 
                 let recoilPenalty = (recoil - 11) * 5; 
                 score -= Math.max(0, recoilPenalty);
@@ -1551,35 +1397,25 @@
             "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Установка индекса разброса (Чем меньше, тем лучше)
-                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
+                let aa_dispersion = 11; 
                 if (item.aa_type === "Пулеметное") aa_dispersion = 22;
                 else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
+                else if (item.aa_type === "Ракетное") aa_dispersion = 14; 
                 
                 item.aa_dispersion = aa_dispersion; 
 
-                // 2. Математика точности (Зависимость от разброса и дальности)
-                // 11 (Лазер) — нет штрафа (точность 100%).
-                // 14 (Ракеты) — небольшой штраф на большой дистанции.
-                // 16 (Гибрид) — средний штраф.
-                // 22 (Пулемет) — максимальный штраф от отдачи.
                 let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
-                // Радиус детонации компенсирует часть промаха (крупный подрыв прощает неточность),
-                // но не подменяет саму точность — это отдельный фактор эффективности, а не она сама.
                 let detonationCompensation = (item.detonation_radius || 0) * 0.5;
                 let effectiveMissPenalty = Math.max(0, spreadPenalty - detonationCompensation);
                 let accuracyScore = Math.max(10, 100 - effectiveMissPenalty); 
                 item.accuracyScore = accuracyScore;
                 
-                // Коэффициент попаданий
                 let hitRatio = accuracyScore / 100;
 
-                // 3. Эффективный урон (Точность + Ловушки)
                 let effectiveDpm = (item.dpm || 0) * hitRatio;
                 let effectiveBurst = (item.damage_burst || 0) * hitRatio;
                 
-                let flareCycle = 5.0; // Откат ловушек
+                let flareCycle = 5.0; 
                 
                 if (item.aa_type === "Ракетное") {
                     let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
@@ -1589,21 +1425,14 @@
                     effectiveDpm = item.dpm * 0.75; 
                 }
                 
-                // 3.5 РЕАЛЬНАЯ УГРОЗА: сверяем ПВО с усредненными характеристиками боевых ракет из БД.
-                //     Без этого система оценивалась бы "в вакууме", а не по способности сбивать ракеты.
                 const MW_COEF = 0.00278;
                 const threat = getThreatMissileProfile();
                 const misV0 = threat.avgStartSpeed * MW_COEF;
                 const misVmax = threat.avgMaxSpeed * MW_COEF;
 
-                // Время, за которое типичная атакующая ракета пролетает зону поражения этого ПВО
-                // (от границы дальности до цели) — это и есть "окно перехвата".
                 let engageWindow = missileFlightTime(misV0, misVmax, threat.avgAccelTime, item.range || 3);
                 item.avgEngageWindow = engageWindow;
 
-                // Шанс, что собственная ракета-перехватчик ПВО вообще успевает поймать типичную
-                // по скорости атакующую ракету (актуально для "Ракетное"/"Гибрид" — у них есть
-                // разгон и своя баллистика, а не мгновенный луч/поток снарядов).
                 let vsMissileSpeedFactor = 1;
                 if ((item.accel_time || 0) > 0 && misVmax > 0) {
                     const aaVmax = (item.max_speed || 0) * MW_COEF;
@@ -1612,8 +1441,6 @@
                 }
                 item.vsMissileSpeedFactor = vsMissileSpeedFactor;
 
-                // Сколько выстрелов/пусков ПВО реально успевает сделать за окно перехвата
-                // (обойма + перезарядка + задержка выстрела).
                 const fireDelay = item.fire_delay || 0.2;
                 const clip = item.ammo_clip || 1;
                 const reloadT = item.reload || 3;
@@ -1621,8 +1448,6 @@
                 const expectedShots = Math.max(0.1, (engageWindow / cycleTime) * clip);
                 item.expectedShotsVsMissile = expectedShots;
 
-                // Сколько попаданий нужно, чтобы "убить" типичную ракету (по её HP), и итоговый
-                // реалистичный шанс сбить её за время подлета — ГЛАВНЫЙ практический показатель ПВО.
                 const shotsToKill = Math.max(1, threat.avgHp / Math.max(1, item.damage || 1));
                 const killChanceVsMissile = Math.min(1, (expectedShots * vsMissileSpeedFactor) / shotsToKill);
                 item.killChanceVsMissile = killChanceVsMissile;
@@ -1630,22 +1455,16 @@
                 item.effectiveDpm = effectiveDpm * vsMissileSpeedFactor;
                 item.effectiveBurst = effectiveBurst;
 
-                // 4. Фундаментальный урон с учетом точности + реальный шанс сбить ракету
                 score += (item.effectiveDpm / 200000) * 180; 
                 score += (effectiveBurst / 20000) * 60; 
-                score += killChanceVsMissile * 250; // главный вклад: реально ли собьет типичную ракету
+                score += killChanceVsMissile * 250; 
 
-                // 5. Оценка дальности и чистоты попаданий
                 score += ((item.range || 3) / 6) * 80; 
-                // Чем МЕНЬШЕ разброс (ближе к 11), тем БОЛЬШЕ бонус к очкам рейтинга
                 let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
                 score += dispersionBonus; 
 
-                // 6. Баллистика и скорость перехвата — теперь относительно скорости РЕАЛЬНОЙ
-                //    атакующей ракеты, а не абсолютной шкалы "чем быстрее, тем лучше"
                 score += vsMissileSpeedFactor * 130;
 
-                // 7. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || item.detonation_radius > 0) {
                     let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
                     if (item.splash_damage > 0) {
@@ -1654,12 +1473,10 @@
                     score += Math.min(200, aoeValue); 
                 }
 
-                // 8. Плотность огня (Боезапас)
                 if (item.ammo_clip > 1) {
                     score += Math.min(100, (item.ammo_clip / 150) * 80);
                 }
                 
-                // 9. Критический урон
                 if (item.crit_chance > 0) {
                     score += (item.crit_chance / 40) * 30;
                 }
@@ -1706,7 +1523,7 @@
             t.className = `toast ${isErr ? 'error' : ''}`; t.innerText = msg;
             c.appendChild(t);
             setTimeout(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; }, 10);
-            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; setTimeout(() => t.remove(), 300); }, 2500);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(30px)'; setTimeout(() => t.remove(), 400); }, 2500);
         }
 
         function handleSearch(val) {
@@ -1725,7 +1542,7 @@
                     currentCategory = cat; compareQueue = []; 
                     document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
                     document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
-                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
+                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem; text-align:center; letter-spacing: 2px;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
                     renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
                     switchMainPage('page-catalog', document.getElementById('nav-catalog'));
                 };
@@ -1887,7 +1704,7 @@
                     if(el.dataset.id === itemId) el.classList.add('selected');
                     else el.classList.remove('selected');
                 });
-                showToast(`ЗАХВАТ СЛОТА 1: ${item.name}`);
+                showToast(`СИСТЕМА: ЗАХВАТ СЛОТА 1 (${item.name})`);
             } else if (compareQueue.length === 1) {
                 if (compareQueue[0] === itemId) { 
                     compareQueue = []; 
@@ -1913,7 +1730,7 @@
                 
                 verdictScreen.style.animation = 'none';
                 verdictScreen.innerHTML = `<div class="vs-badge">VS</div>`;
-                showToast("СИМУЛЯЦИЯ БОЯ...");
+                showToast("ИНИЦИАЛИЗАЦИЯ БОЕВОЙ СИМУЛЯЦИИ...");
                 
                 compareQueue = []; 
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('selected'));
@@ -1951,7 +1768,7 @@
                         <div class="cat-item-name">${s.name}</div>
                         <div class="cat-item-meta">
                             <div class="cat-meta-row"><span>ФРАКЦИЯ</span> <span style="color:#fff">${s.country}</span></div>
-                            <div class="cat-meta-row"><span>ИНДЕКС МЕТЫ</span> <span style="color:${ratingColor}; font-weight:bold;">${ratingText}</span></div>
+                            <div class="cat-meta-row"><span>ИНДЕКС СИСТЕМЫ</span> <span style="color:${ratingColor}; font-weight:bold; font-family:'Orbitron';">${ratingText}</span></div>
                         </div>
                     </div>`;
             });
@@ -2015,33 +1832,29 @@
             let canvas = document.getElementById('radarChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
-                canvas.parentElement.innerHTML = `<div style="color:var(--secondary); font-family:Inter; padding:20px; text-align:center;">[ RADAR OFFLINE ]</div>`; return;
+                canvas.parentElement.innerHTML = `<div style="color:var(--secondary); font-family:Inter; padding:20px; text-align:center;">[ СИСТЕМА: ОШИБКА РАДАРА ]</div>`; return;
             }
             let ctx = canvas.getContext('2d');
             if(window.radarChartInstance) window.radarChartInstance.destroy();
             
             let labels = [], d1 = [], d2 = [];
 
-            // Вспомогательные функции для чистоты кода (считают проценты от максимума в категории)
             const pct = (val, max) => Math.min(100, Math.max(0, ((val || 0) / (max || 1)) * 100));
             const invPct = (val, max) => Math.max(0, 100 - pct(val, max));
 
             let cMax1 = CATEGORY_MAX_STATS[e1.category] || CATEGORY_MAX_STATS["Пушки"];
             let cMax2 = CATEGORY_MAX_STATS[e2.category] || CATEGORY_MAX_STATS["Пушки"];
 
-            // 1. ПУШКИ
             if (e1.category === "Пушки") {
                 labels = ['Эффект. DPM', 'Эффект. Альфа', 'Баллистика (Скор.)', 'Точность', 'Скорострельность', 'Дальность'];
                 d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), e1.accuracyScore || 100, invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), e2.accuracyScore || 100, invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
             } 
-            // 2. РАКЕТЫ
             else if (e1.category === "Ракеты") {
                 labels = ['Эффект. DPM', 'Альфа-страйк', 'Живучесть (HP)', 'Макс. Скорость', 'Стартовый рывок', 'Дальность'];
                 d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.hp, cMax1.hp), pct(e1.max_speed, cMax1.max_speed), pct(e1.start_speed, cMax1.start_speed), pct(e1.range, cMax1.range) ];
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.hp, cMax2.hp), pct(e2.max_speed, cMax2.max_speed), pct(e2.start_speed, cMax2.start_speed), pct(e2.range, cMax2.range) ];
             }
-            // 3. ЗЕНИТНЫЕ РАКЕТЫ (А/А)
             else if (e1.category === "Ракеты А/А") {
                 labels = ['Урон по авиации', 'Урон по кораблям', 'Скорость перехвата', 'Сплэш / АОЕ', 'Скорострельность', 'Дальность'];
                 let aoe1 = (e1.splash_radius || 0) + (e1.detonation_radius || 0);
@@ -2049,13 +1862,11 @@
                 d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.max_speed, cMax1.max_speed), pct(aoe1, 700), invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
                 d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.max_speed, cMax2.max_speed), pct(aoe2, 700), invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
             }
-            // 4. ТОРПЕДЫ
             else if (e1.category === "Торпеды") {
                 labels = ['Эффект. DPM', 'Альфа-страйк', 'Скрытность (Разгон)', 'Макс. Скорость', 'Скорострельность', 'Дальность'];
                 d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), invPct(e1.accel_time, cMax1.accel_time), pct(e1.max_speed, cMax1.max_speed), invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), invPct(e2.accel_time, cMax2.accel_time), pct(e2.max_speed, cMax2.max_speed), invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
             }
-            // 5. ГРАНАТОМЕТЫ
             else if (e1.category === "Гранатометы") {
                 labels = ['Эффект. DPM', 'Эффект. Альфа', 'ПТЗ (Радиус сплэша)', 'Скорость снаряда', 'Плотность огня', 'Дальность'];
                 let dens1 = (e1.projectiles || 1) * (e1.ammo_clip || 1);
@@ -2063,7 +1874,6 @@
                 d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.splash_radius || e1.detonation_radius, Math.max(cMax1.splash_radius, cMax1.detonation_radius)), pct(e1.max_speed, cMax1.max_speed), pct(dens1, 20), pct(e1.range, cMax1.range) ];
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.splash_radius || e2.detonation_radius, Math.max(cMax2.splash_radius, cMax2.detonation_radius)), pct(e2.max_speed, cMax2.max_speed), pct(dens2, 20), pct(e2.range, cMax2.range) ];
             }
-            // 6. АВТОПУШКИ
             else if (e1.category === "Автопушки") {
                 labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
                 let util1 = ((e1.air_target ? 50 : 0) + (e1.can_hit_subs ? 50 : 0));
@@ -2071,7 +1881,6 @@
                 d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), pct(e1.ammo_clip || 1, cMax1.ammo_clip), util1, pct(e1.range, cMax1.range) ];
                 d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
             }
-            // 7. ПВО
             else if (e1.category === "ПВО") {
                 labels = ['Эффект. DPM', 'Точность перехвата', 'Плотность огня', 'Скорость снаряда', 'Сплэш / АОЕ', 'Дальность'];
                 let dens1 = (e1.ammo_clip || 1) * (e1.projectiles || 1);
@@ -2085,25 +1894,25 @@
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), e2.accuracyScore || 100, pct(dens2, 175), pct(spd2, cMax2.max_speed), pct(aoe2, 333), pct(e2.range, cMax2.range) ];
             }
 
-            Chart.defaults.color = '#7890a8';
-            Chart.defaults.font.family = 'Share Tech Mono';
+            Chart.defaults.color = '#8b79a5';
+            Chart.defaults.font.family = 'Orbitron';
 
             window.radarChartInstance = new Chart(ctx, {
                 type: 'radar',
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: e1.name, data: d1, backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 3 },
-                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 3 }
+                        { label: e1.name, data: d1, backgroundColor: 'rgba(181, 60, 255, 0.2)', borderColor: '#b53cff', pointBackgroundColor: '#b53cff', borderWidth: 2, pointRadius: 3 },
+                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 138, 0.2)', borderColor: '#ff3c8a', pointBackgroundColor: '#ff3c8a', borderWidth: 2, pointRadius: 3 }
                     ]
                 },
                 options: {
                     scales: { 
                         r: { 
                             min: 0, max: 100, 
-                            angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, 
-                            grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, 
-                            pointLabels: { color: '#e2f1f8', font: { family: 'Inter', size: 11 } }, 
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' }, 
+                            grid: { color: 'rgba(255, 255, 255, 0.1)', circular: true }, 
+                            pointLabels: { color: '#e2e8f0', font: { family: 'Inter', size: 11, weight: 'bold' } }, 
                             ticks: { display: false } 
                         } 
                     },
@@ -2111,7 +1920,7 @@
                         legend: { 
                             display: true, 
                             position: 'bottom', 
-                            labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 12 }, padding: 15 } 
+                            labels: { color: '#fff', font: { family: 'Orbitron', size: 12 }, padding: 15 } 
                         } 
                     }, 
                     responsive: true, maintainAspectRatio: false
@@ -2119,10 +1928,6 @@
             });
         }
 
-        // Приоритетные показатели по категориям для АВТОМАТИЧЕСКОГО объяснения "ключевого фактора",
-        // если ни одно из специальных условий выше не сработало. Гарантирует, что для ЛЮБОЙ пары
-        // предметов во ВСЕХ категориях объяснение всегда опирается на реальную, самую значимую
-        // разницу в характеристиках, а не на общую фразу-заглушку.
         const CATEGORY_KEY_STATS = {
             "Пушки": [
                 ['effectiveBurst', 'более высокому эффективному разовому урону (Alpha-strike)', 'higher'],
@@ -2268,8 +2073,6 @@
                     else if (winner.damage_burst > loser.damage_burst + 5000) reason = "разрушительному разовому урону (Альфа-страйку)";
                     else reason = "лучшему балансу скорострельности, дальности и плотности огня";
                 } else if (e1.category === "ПВО") {
-                    // В первую очередь смотрим на РЕАЛЬНЫЙ шанс сбить типичную атакующую ракету —
-                    // это и есть смысл существования ПВО, а не абстрактные цифры урона.
                     if (winner.killChanceVsMissile !== undefined && winner.killChanceVsMissile > (loser.killChanceVsMissile || 0) + 0.15) {
                         reason = `значительно более высокому реальному шансу сбить типичную атакующую ракету (${Math.round(winner.killChanceVsMissile*100)}% против ${Math.round((loser.killChanceVsMissile||0)*100)}%)`;
                     }
@@ -2294,11 +2097,9 @@
                     else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости полета снаряда";
                 }
 
-                // Страховка: если ни одно из точечных условий выше не сработало — берем реальный
-                // ключевой показатель с наибольшим относительным превосходством по этой категории.
                 if (!reason) reason = getKeyFactorReason(winner, loser, e1.category);
 
-                summaryText = `<span style="color:var(--primary); font-size: 1.4rem; display:block; margin-bottom: 15px; font-family:'Orbitron'; letter-spacing:1px; text-transform: uppercase;">ПОБЕДИТЕЛЬ: ${winner.name}</span>
+                summaryText = `<span style="color:var(--primary); font-size: 1.4rem; display:block; margin-bottom: 15px; font-family:'Orbitron'; letter-spacing:1px; text-transform: uppercase;">СИСТЕМА ВЫБИРАЕТ: ${winner.name}</span>
                 <span style="color:var(--text-main); font-size: 1rem; line-height: 1.6;">
                     В актуальной мете ближнего боя (5-10 км) это оружие эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b>.<br><br>
                     <span style="color:var(--text-muted); font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;">Ключевой фактор:</span><br>
@@ -2307,8 +2108,8 @@
             }
 
             let metaLegend = `
-                <div class="meta-legend" style="margin-top: 25px;">
-                    <b style="color:#fff;">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
+                <div class="meta-legend" style="margin-top: 25px; border-top: 1px dashed rgba(181, 60, 255, 0.3); padding-top: 15px;">
+                    <b style="color:#fff; font-family: 'Orbitron'; letter-spacing: 1px;">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
                     <span style="color:#fff;">0-5%</span>: ПАРИТЕТ | 
                     <span style="color:var(--primary);">5-15%</span>: НЕБОЛЬШОЕ ПРЕИМУЩЕСТВО | 
                     <span style="color:var(--secondary);">>15%</span>: АБСОЛЮТНАЯ ДОМИНАЦИЯ
@@ -2316,10 +2117,10 @@
             `;
 
             let visualsHTML = isAuth 
-                ? `<div class="radar-container" style="position: relative; height: 250px; margin-top:20px;"><canvas id="radarChart"></canvas></div>` 
-                : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Jura'; font-weight:bold; border: 1px dashed rgba(255,60,90,0.3); margin-top:15px; border-radius:12px; background:rgba(255,60,90,0.05);">🔒 ДИАГРАММА АНАЛИЗА ДОСТУПНА В PRO ВЕРСИИ</div>`;
+                ? `<div class="radar-container" style="position: relative; height: 300px; margin-top:30px;"><canvas id="radarChart"></canvas></div>` 
+                : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Orbitron'; font-weight:bold; border: 1px dashed rgba(255,60,138,0.4); margin-top:20px; border-radius:12px; background:rgba(255,60,138,0.05); text-shadow: 0 0 10px rgba(255,60,138,0.5);">🔒 ТРЕБУЕТСЯ СИНХРОНИЗАЦИЯ ДЛЯ ДОСТУПА К РАДАРУ</div>`;
 
-            let finalVerdictHTML = `<div class="final-summary-block glass-panel" style="padding:30px; width:100%;">
+            let finalVerdictHTML = `<div class="final-summary-block glass-panel" style="padding:40px; width:100%;">
                 <div style="font-family:'Jura'; text-transform: none;">${summaryText}</div>
                 ${metaLegend}
                 ${visualsHTML}
@@ -2375,17 +2176,17 @@
                     if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
                     
                     catHtml += `
-                    <div class="dropdown-option" onclick="selectSlotOption('${slotId}', '${key}', event)">
-                        <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
-                        <div class="dropdown-option-text">
+                    <div class="dropdown-option" onclick="selectSlotOption('${slotId}', '${key}', event)" style="display: flex; align-items: center; gap: 12px; padding: 10px; cursor: pointer; border-radius: 8px; transition: 0.2s; border-left: 3px solid transparent;" onmouseover="this.style.background='var(--primary-dim)'; this.style.borderLeftColor='var(--primary)';" onmouseout="this.style.background='transparent'; this.style.borderLeftColor='transparent';">
+                        <div class="dropdown-option-img" style="width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; background-image: url('${item.img}')"></div>
+                        <div class="dropdown-option-text" style="font-family: 'Inter'; font-size: 0.9rem; font-weight: 700; color: #fff; display: flex; flex-direction: column; line-height: 1.2;">
                             ${item.name}
-                            <span class="dropdown-option-sub">${item.country}</span>
+                            <span class="dropdown-option-sub" style="font-size: 0.7rem; font-weight: 400; color: var(--text-muted); font-family: 'Jura'; margin-top: 2px;">${item.country}</span>
                         </div>
                     </div>`;
                 });
                 
                 if (catHtml !== '') {
-                    html += `<div class="dropdown-category-title">${cat}</div>` + catHtml;
+                    html += `<div class="dropdown-category-title" style="padding: 10px; color: var(--primary); font-family: 'Orbitron'; font-size: 0.8rem; letter-spacing: 2px; background: rgba(0,0,0,0.6); margin: 5px 0; border-radius: 6px; text-align: center; border-bottom: 1px dashed rgba(181, 60, 255, 0.3);">${cat}</div>` + catHtml;
                 }
             });
             
@@ -2413,27 +2214,27 @@
         function addBuildSlot(shipNum) {
             const container = document.getElementById('build-slots-' + shipNum);
             const slotId = 'buildslot-' + slotCounter++;
-            const colorClass = shipNum === 1 ? '' : 'ship2';
             const colorStyle = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
             
             let defaultItemKey = Object.keys(DB)[0];
 
             const slotHtml = `
-                <div class="build-slot-container glass-panel ${colorClass}" id="${slotId}">
-                    <div style="color: ${colorStyle}; font-family: 'Share Tech Mono';">СЛОТ:</div>
+                <div class="build-slot-container glass-panel" id="${slotId}" style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; margin-bottom: 15px; border-left: 4px solid ${colorStyle}; width: 100%; overflow: visible !important; position: relative; z-index: 1;">
+                    <div style="color: ${colorStyle}; font-family: 'Orbitron'; font-weight: bold; letter-spacing: 1px;">СЛОТ:</div>
                     
-                    <div class="custom-select-wrapper" id="wrapper-${slotId}" data-value="${defaultItemKey}">
-                        <div class="custom-select-trigger" onclick="toggleBuildDropdown('${slotId}')">
-                            <div class="trigger-left">
-                                <div class="trigger-img" id="img-${slotId}" style="background-image: url('${DB[defaultItemKey].img}')"></div>
-                                <div class="trigger-text" id="text-${slotId}">${DB[defaultItemKey].name}</div>
+                    <div class="custom-select-wrapper" id="wrapper-${slotId}" data-value="${defaultItemKey}" style="position: relative; width: 100%; max-width: 280px; flex-grow: 1;">
+                        <div class="custom-select-trigger" onclick="toggleBuildDropdown('${slotId}')" style="background: rgba(0,0,0,0.6); border: 1px solid rgba(181, 60, 255, 0.3); color: #fff; padding: 10px 15px; width: 100%; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-family: 'Jura'; font-size: 0.95rem; transition: 0.3s;">
+                            <div class="trigger-left" style="display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0;">
+                                <div class="trigger-img" id="img-${slotId}" style="width: 32px; height: 32px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; background-image: url('${DB[defaultItemKey].img}')"></div>
+                                <div class="trigger-text" id="text-${slotId}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">${DB[defaultItemKey].name}</div>
                             </div>
-                            <div>▼</div>
+                            <div style="color: var(--primary);">▼</div>
                         </div>
-                        <div class="custom-select-dropdown" id="dropdown-${slotId}">
-                            <div class="dropdown-filter">
-                                <input type="text" id="search-${slotId}" placeholder="ПОИСК..." oninput="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
-                                <select id="cat-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
+                        
+                        <div class="custom-select-dropdown" id="dropdown-${slotId}" style="position: absolute; top: calc(100% + 5px); left: 0; width: 340px; background: rgba(15, 5, 25, 0.95); border: 1px solid var(--primary); border-radius: 12px; z-index: 9999; display: flex; flex-direction: column; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.9), var(--hud-glow); overflow: hidden; visibility: hidden; opacity: 0; transform: translateY(-10px); transition: 0.3s ease;">
+                            <div class="dropdown-filter" style="padding: 15px; border-bottom: 1px solid rgba(181, 60, 255, 0.3); background: rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px;">
+                                <input type="text" id="search-${slotId}" placeholder="ПОИСК..." oninput="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()" style="width: 100%; background: rgba(0,0,0,0.8); color: #fff; border: 1px solid rgba(181, 60, 255, 0.5); padding: 10px; border-radius: 6px; font-family: 'Jura'; font-weight: bold; outline: none;">
+                                <select id="cat-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()" style="width: 100%; background: rgba(0,0,0,0.8); color: var(--primary); border: 1px solid rgba(181, 60, 255, 0.5); padding: 10px; border-radius: 6px; font-family: 'Jura'; font-weight: bold; outline: none;">
                                     <option value="">ВСЕ КАТЕГОРИИ</option>
                                     <option value="Ракеты">Ракеты</option>
                                     <option value="Ракеты А/А">Ракеты А/А</option>
@@ -2443,7 +2244,7 @@
                                     <option value="Автопушки">Автопушки</option>
                                     <option value="ПВО">ПВО</option>
                                 </select>
-                                <select id="country-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
+                                <select id="country-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()" style="width: 100%; background: rgba(0,0,0,0.8); color: var(--primary); border: 1px solid rgba(181, 60, 255, 0.5); padding: 10px; border-radius: 6px; font-family: 'Jura'; font-weight: bold; outline: none;">
                                     <option value="">ВСЕ НАЦИИ</option>
                                     <option value="Бразилия">Бразилия</option>
                                     <option value="Великобритания">Великобритания</option>
@@ -2459,22 +2260,21 @@
                                     <option value="Турция">Турция</option>
                                     <option value="Франция">Франция</option>
                                     <option value="Швеция">Швеция</option>
-                                    <option value="ЮАР">ЮАР</option>
                                     <option value="Южная Корея">Южная Корея</option>
                                     <option value="Япония">Япония</option>
                                 </select>
                             </div>
-                            <div class="dropdown-list" id="list-${slotId}"></div>
+                            <div class="dropdown-list" id="list-${slotId}" style="max-height: 300px; overflow-y: auto; padding: 10px;"></div>
                         </div>
                     </div>
 
-                    <select class="search-input slot-qty" style="width: 80px;">
+                    <select class="search-input slot-qty" style="width: 80px; text-align: center; font-family: 'Orbitron';">
                         <option value="1">x1</option><option value="2">x2</option>
                         <option value="3">x3</option><option value="4">x4</option>
                         <option value="5">x5</option><option value="6">x6</option>
                         <option value="7">x7</option><option value="8">x8</option>
                     </select>
-                    <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--text-muted); font-size:1.8rem; cursor:pointer; font-family:'Jura'; font-weight:bold; transition:0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
+                    <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--text-muted); font-size:2rem; cursor:pointer; font-family:'Jura'; font-weight:bold; transition:0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', slotHtml);
@@ -2511,16 +2311,16 @@
         function buildShipSummaryHTML(shipNum, stats) {
             const color = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
             return `
-                <div class="analysis-col glass-panel" style="border-left-color:${color};">
-                    <div class="col-title" style="color:${color};">КОРАБЛЬ ${shipNum}</div>
-                    <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:0.95rem; line-height:1.6; text-transform:none;">
-                        Урон в минуту: <b style="color:#fff;">${Math.round(stats.totalDpm).toLocaleString('ru')}</b><br>
-                        Эффект. DPM: <b style="color:#ffaa00">${Math.round(stats.totalEffDpm).toLocaleString('ru')}</b><br>
+                <div class="analysis-col glass-panel" style="flex: 1; padding: 25px; border-left: 4px solid ${color};">
+                    <div class="col-title" style="color:${color}; font-family: 'Orbitron'; font-weight: 900; font-size: 1.1rem; margin-bottom: 20px; letter-spacing: 1px;">КОРАБЛЬ ${shipNum}</div>
+                    <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:1.05rem; line-height:1.8; text-transform:none;">
+                        Матем. урон/мин: <b style="color:#fff;">${Math.round(stats.totalDpm).toLocaleString('ru')}</b><br>
+                        Эффективный DPM: <b style="color:var(--primary); text-shadow: var(--hud-glow);">${Math.round(stats.totalEffDpm).toLocaleString('ru')}</b><br>
                         Альфа-страйк: <b style="color:#fff">${Math.round(stats.totalBurst).toLocaleString('ru')}</b><br>
                         Дальность: <b style="color:#fff">${stats.maxRange} км</b><br>
                         Баллистика: <b style="color:#fff">${Math.round(stats.avgSpeed)} уз.</b><br>
-                        ПВО: ${stats.hasAir ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}<br>
-                        Атака ПЛ: ${stats.hasSub ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}
+                        Защита В/У (ПВО): ${stats.hasAir ? '<b style="color:var(--primary)">ОБЕСПЕЧЕНА</b>' : '<b style="color:var(--secondary)">УЯЗВИМОСТЬ</b>'}<br>
+                        Атака ПЛ (ПЛО): ${stats.hasSub ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}
                     </div>
                 </div>
             `;
@@ -2528,13 +2328,13 @@
 
         function buildShipTacticsHTML(shipNum, stats) {
             const color = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
-            let tacticsText = `<div style="flex:1; min-width:250px;"><b style="color:${color}; font-size:1.1rem; font-family:'Inter'; font-weight:900;">ОЦЕНКА КОР. ${shipNum}:</b><br><br>`;
-            if (stats.itemsCount === 0) return tacticsText + `<span style="color:var(--text-muted)">Слоты пусты</span></div>`;
+            let tacticsText = `<div style="flex:1; min-width:250px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);"><b style="color:${color}; font-size:1.1rem; font-family:'Orbitron'; font-weight:900; letter-spacing: 1px; display: block; margin-bottom: 15px;">АНАЛИЗ КОР. ${shipNum}:</b>`;
+            if (stats.itemsCount === 0) return tacticsText + `<span style="color:var(--text-muted)">Слоты не заполнены</span></div>`;
             
-            if (stats.hasAntiJamming) tacticsText += `<span style="color:${color}">[+]</span> Защита от ловушек (часть урона неотводима).<br>`;
-            if (stats.totalBurst > 100000) tacticsText += `<span style="color:#fff">[!]</span> Разрушительный Альфа-страйк! Идеально от укрытий.<br>`;
-            if (stats.totalEffDpm > 500000) tacticsText += `<span style="color:#ffaa00">[!]</span> Колоссальный DPM. Распилит любого в открытом бою.<br>`;
-            if (!stats.hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Уязвимость с воздуха (требуется сильное ПВО).<br>`;
+            if (stats.hasAntiJamming) tacticsText += `<span style="color:${color}">[+]</span> СИСТЕМА: Защита от РЭБ (часть урона неотводима).<br>`;
+            if (stats.totalBurst > 100000) tacticsText += `<span style="color:#fff">[!]</span> ВНИМАНИЕ: Разрушительный Альфа-страйк.<br>`;
+            if (stats.totalEffDpm > 500000) tacticsText += `<span style="color:var(--primary)">[!]</span> ВНИМАНИЕ: Колоссальный DPM. Угроза в открытом бою.<br>`;
+            if (!stats.hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> КРИТИЧЕСКАЯ УЯЗВИМОСТЬ: Отсутствует ПВО.<br>`;
             tacticsText += `</div>`;
             return tacticsText;
         }
@@ -2543,7 +2343,7 @@
             const s1 = getShipStats(1);
             const s2 = getShipStats(2);
 
-            if (s1.itemsCount === 0 && s2.itemsCount === 0) return showToast("ОШИБКА: ДОБАВЬТЕ СЛОТЫ", true);
+            if (s1.itemsCount === 0 && s2.itemsCount === 0) return showToast("СИСТЕМА: СЛОТЫ ПУСТЫ", true);
 
             document.getElementById('build-export-wrapper').style.display = 'block';
 
@@ -2556,8 +2356,8 @@
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
             
-            Chart.defaults.color = '#7890a8';
-            Chart.defaults.font.family = 'Share Tech Mono';
+            Chart.defaults.color = '#8b79a5';
+            Chart.defaults.font.family = 'Orbitron';
 
             const datasets = [];
             
@@ -2571,7 +2371,7 @@
                         Math.min(100, (s1.avgSpeed / 1000) * 100),
                         ((s1.hasAir ? 50 : 0) + (s1.hasSub ? 30 : 0) + (s1.hasAntiJamming ? 20 : 0))
                     ],
-                    backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 4
+                    backgroundColor: 'rgba(181, 60, 255, 0.2)', borderColor: '#b53cff', pointBackgroundColor: '#b53cff', borderWidth: 2, pointRadius: 4
                 });
             }
             if(s2.itemsCount > 0) {
@@ -2584,7 +2384,7 @@
                         Math.min(100, (s2.avgSpeed / 1000) * 100),
                         ((s2.hasAir ? 50 : 0) + (s2.hasSub ? 30 : 0) + (s2.hasAntiJamming ? 20 : 0))
                     ],
-                    backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 4
+                    backgroundColor: 'rgba(255, 60, 138, 0.2)', borderColor: '#ff3c8a', pointBackgroundColor: '#ff3c8a', borderWidth: 2, pointRadius: 4
                 });
             }
 
@@ -2595,19 +2395,19 @@
                     datasets: datasets
                 },
                 options: {
-                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, pointLabels: { color: '#e2f1f8', font: { family: 'Share Tech Mono', size: 12 } }, ticks: { display: false } } },
-                    plugins: { legend: { display: true, position: 'bottom', labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 12 }, padding: 15 } } }, responsive: true, maintainAspectRatio: false
+                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(255, 255, 255, 0.1)' }, grid: { color: 'rgba(255, 255, 255, 0.1)', circular: true }, pointLabels: { color: '#e2e8f0', font: { family: 'Inter', size: 12, weight: 'bold' } }, ticks: { display: false } } },
+                    plugins: { legend: { display: true, position: 'bottom', labels: { color: '#fff', font: { family: 'Orbitron', size: 12 }, padding: 15 } } }, responsive: true, maintainAspectRatio: false
                 }
             });
-            showToast("СИСТЕМЫ РАССЧИТАНЫ");
+            showToast("СИСТЕМА: РАСЧЕТ СБОРКИ ЗАВЕРШЕН");
         }
 
         /* --- ГЕНЕРАТОР ИНФОГРАФИКИ --- */
         function exportToImage(elementId, filename) {
             const el = document.getElementById(elementId);
-            if (!el || el.style.display === 'none') return showToast("ОШИБКА: НЕТ ДАННЫХ", true);
+            if (!el || el.style.display === 'none') return showToast("СИСТЕМА: НЕТ ДАННЫХ ДЛЯ ЭКСПОРТА", true);
             
-            showToast("ФОРМИРОВАНИЕ ОТЧЕТА...");
+            showToast("ФОРМИРОВАНИЕ ОТЧЕТА СИСТЕМЫ...");
             
             document.body.style.overflow = 'hidden';
             const originalScrollY = window.scrollY;
@@ -2617,12 +2417,12 @@
             glassPanels.forEach(p => { 
                 p.style.backdropFilter = 'none'; 
                 p.style.webkitBackdropFilter = 'none'; 
-                p.style.background = 'rgba(11, 22, 36, 0.95)';
+                p.style.background = 'rgba(15, 5, 25, 0.95)';
             });
             
             setTimeout(() => {
                 html2canvas(el, {
-                    backgroundColor: '#071017',
+                    backgroundColor: '#09050e',
                     scale: window.devicePixelRatio > 1 ? window.devicePixelRatio : 2,
                     useCORS: true,
                     allowTaint: true,
@@ -2637,10 +2437,10 @@
                     window.scrollTo(0, originalScrollY);
                     
                     let link = document.createElement('a');
-                    link.download = `${filename}_${new Date().getTime()}.png`;
+                    link.download = `${filename}_SYSTEM_${new Date().getTime()}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
-                    showToast("ОТЧЕТ СОХРАНЕН");
+                    showToast("ОТЧЕТ УСПЕШНО СОХРАНЕН");
                 }).catch(err => {
                     glassPanels.forEach(p => { 
                         p.style.backdropFilter = ''; 
@@ -2649,7 +2449,7 @@
                     });
                     document.body.style.overflow = '';
                     window.scrollTo(0, originalScrollY);
-                    showToast("ОШИБКА ЭКСПОРТА", true);
+                    showToast("КРИТИЧЕСКАЯ ОШИБКА ЭКСПОРТА", true);
                 });
             }, 500);
         }
@@ -2679,7 +2479,6 @@
             });
         }
 
-        // Время полета снаряда/ракеты с разгоном (v0 -> vmax за accelTime) на дистанцию distance
         function missileFlightTime(v0, vmax, accelTime, distance) {
             if (distance <= 0) return 0;
             accelTime = accelTime || 0;
@@ -2697,7 +2496,6 @@
             }
         }
 
-        // Точность оружия: явное поле accuracy (автопушки/бакшот) либо расчет по разбросу для ПВО
         function getEffectiveAccuracy(item) {
             if (item.accuracy != null) return item.accuracy / 100;
             if (item.category === "ПВО") {
@@ -2718,21 +2516,19 @@
             const misQty = parseInt(document.getElementById('sim-missile-qty').value);
             const distance = parseFloat(document.getElementById('sim-dist').value);
 
-            if (!aaKey || !misKey) return showToast("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО", true);
+            if (!aaKey || !misKey) return showToast("СИСТЕМА: ОРУЖИЕ НЕ ВЫБРАНО", true);
 
             const aa = DB[aaKey];
             const mis = DB[misKey];
 
             const MW_COEF = 0.00278;
 
-            // 1. Физика полета АТАКУЮЩЕЙ ракеты (нач. скорость -> макс. скорость за accel_time)
             let misV0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
             let misVmax = (mis.max_speed || 0) * MW_COEF;
             let misAccelTime = mis.accel_time || 0.1;
 
             let flyTime = missileFlightTime(misV0, misVmax, misAccelTime, distance);
 
-            // 2. Время до входа в зону поражения ПВО (по дальности aa.range)
             let aaRange = aa.range || 3.0;
             let timeToEnterAARange = 0;
             if (distance > aaRange) {
@@ -2741,23 +2537,16 @@
             }
             let engageTime = Math.max(0, flyTime - timeToEnterAARange);
 
-            // 3. Формирование ракетного роя
             let projectilesPerLaunch = mis.projectiles || 1;
             let totalMissiles = misQty * projectilesPerLaunch;
             let singleMissileHP = mis.hp || 50;
             let totalMissileHP = singleMissileHP * totalMissiles;
 
-            // 4. Кинематика ПЕРЕХВАТЧИКА (собственная нач./макс. скорость и время разгона ПВО-ракеты).
-            //    Применяется к "Ракетное"/"Гибрид" ПВО, а также к гибридным автопушкам с accel_time
-            //    (Гибка, Комар, Тайфун-NLOS, Пакет-НК и т.п.) — у них тоже летит своя ракета/снаряд.
             let aaHasMissileProfile = (aa.accel_time || 0) > 0;
             let aaV0 = (aa.start_speed || aa.max_speed || 0) * MW_COEF;
             let aaVmax = (aa.max_speed || 0) * MW_COEF;
             let aaAccelTime = aa.accel_time || 0;
 
-            // 4.1 Фактор "не успевает поймать скоростную цель": сравниваем макс. скорость ракеты
-            //     ПВО с макс. скоростью атакующей ракеты. Чем медленнее интерцептор — тем резче
-            //     падает шанс довести наведение до попадания (квадратичный штраф).
             let speedFactor = 1;
             if (aaHasMissileProfile && misVmax > 0) {
                 let ratio = Math.min(1, aaVmax / misVmax);
@@ -2766,16 +2555,13 @@
 
             let accuracy = getEffectiveAccuracy(aa);
 
-            // 5. Урон ПВО
             let totalAADamage = 0;
             let shotsFired = 0, shotsLanded = 0;
 
             if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                // Луч/поток снарядов долетает практически мгновенно: 'урон' = урон в секунду (DPS)
                 let dps = aa.damage || 0;
                 totalAADamage = dps * engageTime * aaQty * accuracy;
             } else {
-                // Ракетное/Гибрид ПВО и все Автопушки (в т.ч. гибридные) — считаем реальные пуски
                 let currentTime = 0;
                 let clipLeft = aa.ammo_clip || 1;
                 let fireDelay = aa.fire_delay || 0.2;
@@ -2783,8 +2569,6 @@
 
                 while (currentTime < engageTime) {
                     if (clipLeft > 0) {
-                        // Дистанция, которую нужно пролететь ракете-перехватчику, сокращается
-                        // по мере приближения атакующей ракеты (цель уже ближе к кораблю)
                         let remainingShare = Math.max(0, 1 - (currentTime / (engageTime || 1)));
                         let requiredDist = aaRange * remainingShare;
                         let interceptFlightTime = aaHasMissileProfile
@@ -2802,49 +2586,46 @@
                         clipLeft = aa.ammo_clip || 1;
                     }
                 }
-
                 totalAADamage = shotsLanded * (aa.damage || 0) * aaQty * accuracy * speedFactor;
             }
 
-            // Штраф по РЭБ для отводимых ракет (ПВО отвлекается на ловушки)
             if (mis.anti_jamming === 0 && (aa.aa_type === "Ракетное" || aa.aa_type === "Гибрид")) {
-                totalAADamage *= 0.6; // 40% урона от ракет ПВО уходит "в молоко"
+                totalAADamage *= 0.6; 
             }
 
-            // 6. Итоги перехвата
             let destroyedMissiles = Math.floor(totalAADamage / singleMissileHP);
             destroyedMissiles = Math.min(destroyedMissiles, totalMissiles);
 
             let survivedMissiles = totalMissiles - destroyedMissiles;
             let survivalProbability = (survivedMissiles / totalMissiles) * 100;
             
-            let resColor = survivalProbability > 0 ? 'var(--primary)' : 'var(--secondary)';
-            let verdict = survivalProbability === 0 ? "ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА" : "ПРОРЫВ ПВО УСПЕШЕН!";
+            let resColor = survivalProbability > 0 ? 'var(--secondary)' : 'var(--primary)';
+            let verdict = survivalProbability === 0 ? "ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА" : "ВНИМАНИЕ: ПРОРЫВ ПВО!";
 
             let speedWarning = '';
             if (aaHasMissileProfile && speedFactor < 0.5) {
-                speedWarning = `<div style="margin-top:10px; color: var(--secondary); font-size:0.85rem; line-height:1.5;">⚠ Ракета ПВО (макс. ${Math.round(aa.max_speed)}) слишком медленная против цели (макс. ${Math.round(mis.max_speed)}) — большая часть пусков не успевает довести перехват.</div>`;
+                speedWarning = `<div style="margin-top:15px; color: var(--secondary); font-size:0.9rem; line-height:1.6; border: 1px solid rgba(255,60,138,0.3); padding: 10px; border-radius: 8px;">⚠ КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ: Скорость перехватчика (макс. ${Math.round(aa.max_speed)}) недостаточна против цели (макс. ${Math.round(mis.max_speed)}). Пуски не достигают цели.</div>`;
             }
 
             const resDiv = document.getElementById('sim-result');
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
                 <div style="font-family:'Share Tech Mono'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
-                    Время реакции ПВО: <b style="color:#fff;">${engageTime.toFixed(2)} сек.</b><br>
-                    ${aaHasMissileProfile ? `Фактор скорости перехвата: <b style="color:#fff;">${(speedFactor*100).toFixed(0)}%</b> (долетело пусков: ${shotsLanded}/${shotsFired})<br>` : ''}
-                    Точность системы: <b style="color:#fff;">${(accuracy*100).toFixed(0)}%</b><br>
-                    Математический урон ПВО: <b style="color:var(--primary);">${Math.round(totalAADamage).toLocaleString('ru')} HP</b><br>
-                    Прочность роя ракет (${totalMissiles} шт.): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString('ru')} HP</b><br>
-                    <div style="margin: 15px 0; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
-                        <span style="font-family:'Inter'; font-weight:900; font-size:1.4rem; color:${resColor};">${verdict}</span><br>
-                        Сбито ракет: <b style="color:#fff; font-size:1.2rem;">${destroyedMissiles}</b> из <b style="color:#fff; font-size:1.2rem;">${totalMissiles}</b><br>
-                        Проходимость урона: <b style="font-size:1.8rem; color:${resColor};">${survivalProbability.toFixed(1)}%</b>
+                    Время реакции Системы: <b style="color:#fff;">${engageTime.toFixed(2)} сек.</b><br>
+                    ${aaHasMissileProfile ? `Индекс скорости перехвата: <b style="color:#fff;">${(speedFactor*100).toFixed(0)}%</b> (Достигло цели: ${shotsLanded}/${shotsFired})<br>` : ''}
+                    Точность наведения: <b style="color:#fff;">${(accuracy*100).toFixed(0)}%</b><br>
+                    Урон по рою: <b style="color:var(--primary); text-shadow: var(--hud-glow);">${Math.round(totalAADamage).toLocaleString('ru')} HP</b><br>
+                    Прочность роя (${totalMissiles} шт.): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString('ru')} HP</b><br>
+                    <div style="margin: 20px 0; border-top: 1px dashed rgba(181, 60, 255, 0.3); padding-top: 20px;">
+                        <span style="font-family:'Orbitron'; font-weight:900; font-size:1.5rem; color:${resColor}; letter-spacing: 2px; text-shadow: 0 0 15px ${resColor}; display:block; margin-bottom: 10px;">${verdict}</span>
+                        Уничтожено: <b style="color:#fff; font-size:1.3rem;">${destroyedMissiles}</b> / <b style="color:#fff; font-size:1.3rem;">${totalMissiles}</b><br>
+                        Угроза поражения: <b style="font-size:1.8rem; color:${resColor}; font-family: 'Orbitron';">${survivalProbability.toFixed(1)}%</b>
                     </div>
                     ${speedWarning}
                 </div>
             `;
             
-            showToast("СИМУЛЯЦИЯ ЗАВЕРШЕНА");
+            showToast("СИСТЕМА: СИМУЛЯЦИЯ ЗАВЕРШЕНА");
         }
 
         function initApp() {
