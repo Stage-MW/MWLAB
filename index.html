@@ -799,13 +799,15 @@
             "ПВО": {
                 damage_burst: 20000, dpm: 200000, damage: 5000, accuracy: 100, 
                 reload: 6, range: 6, max_speed: 1500, aa_accuracy: 25,
-                splash_damage: 500, splash_radius: 333, detonation_radius: 33
+                splash_damage: 500, splash_radius: 333, detonation_radius: 33,
+                killChanceVsMissile: 1
             }
         };
 
         const STATS_LOGIC = {
             aa_type: { label: "Тип ПВО", isString: true },
             aa_accuracy: { label: "Индекс точности", higherIsBetter: true },
+            killChanceVsMissile: { label: "Шанс сбить ракету", higherIsBetter: true },
             damage_burst: { label: "Урон за залп", higherIsBetter: true },
             dpm: { label: "Урон в минуту", higherIsBetter: true },
             damage: { label: "Урон", higherIsBetter: true },
@@ -817,10 +819,10 @@
             projectiles: { label: "Снарядов", higherIsBetter: false }, 
             ammo_clip: { label: "Обойма", higherIsBetter: false },
             anti_jamming: { label: "Помехозащита", higherIsBetter: true },
-            air_target: { label: "Атака авиации", isBool: true },
-            sub_launch: { label: "Подводный пуск", isBool: true },
-            can_hit_subs: { label: "Атака подлодок", isBool: true },
-            cluster: { label: "Кластерная БЧ", isBool: true }, 
+            air_target: { label: "Атака авиации", isBool: true, higherIsBetter: true },
+            sub_launch: { label: "Подводный пуск", isBool: true, higherIsBetter: true },
+            can_hit_subs: { label: "Атака подлодок", isBool: true, higherIsBetter: true },
+            cluster: { label: "Кластерная БЧ", isBool: true, higherIsBetter: true }, 
             splash_damage: { label: "Сплэш-урон", higherIsBetter: true },
             splash_radius: { label: "Радиус взрыва (м)", higherIsBetter: true },
             fragmentation_damage: { label: "Урон осколков", higherIsBetter: true },
@@ -1121,6 +1123,31 @@
             } else {
                 return (((v0 + vmax) / 2) * ta) + (vmax * (T - ta));
             }
+        }
+
+        // Усредненный "портрет" реальной атакующей ракеты (по фактическим ракетам из БД),
+        // относительно которого считается эффективность ПВО. Без этого рейтинг ПВО был оторван
+        // от того, против чего ПВО реально работает — против ракет.
+        let _threatMissileProfileCache = null;
+        function getThreatMissileProfile() {
+            if (_threatMissileProfileCache) return _threatMissileProfileCache;
+            const threatKeys = Object.keys(DB).filter(k => DB[k].category === "Ракеты" || DB[k].category === "Ракеты А/А");
+            let sums = { max_speed: 0, start_speed: 0, accel_time: 0, hp: 0, n: 0 };
+            threatKeys.forEach(k => {
+                const m = DB[k];
+                sums.max_speed += (m.max_speed || 0);
+                sums.start_speed += (m.start_speed || m.max_speed || 0);
+                sums.accel_time += (m.accel_time || 0.1);
+                sums.hp += (m.hp || 50);
+                sums.n++;
+            });
+            _threatMissileProfileCache = sums.n > 0 ? {
+                avgMaxSpeed: sums.max_speed / sums.n,
+                avgStartSpeed: sums.start_speed / sums.n,
+                avgAccelTime: sums.accel_time / sums.n,
+                avgHp: sums.hp / sums.n
+            } : { avgMaxSpeed: 400, avgStartSpeed: 100, avgAccelTime: 2, avgHp: 250 };
+            return _threatMissileProfileCache;
         }
 
         const RATING_CALCULATORS = {
@@ -1499,12 +1526,51 @@
                     effectiveDpm = item.dpm * 0.75; 
                 }
                 
-                item.effectiveDpm = effectiveDpm;
+                // 3.5 РЕАЛЬНАЯ УГРОЗА: сверяем ПВО с усредненными характеристиками боевых ракет из БД.
+                //     Без этого система оценивалась бы "в вакууме", а не по способности сбивать ракеты.
+                const MW_COEF = 0.00278;
+                const threat = getThreatMissileProfile();
+                const misV0 = threat.avgStartSpeed * MW_COEF;
+                const misVmax = threat.avgMaxSpeed * MW_COEF;
+
+                // Время, за которое типичная атакующая ракета пролетает зону поражения этого ПВО
+                // (от границы дальности до цели) — это и есть "окно перехвата".
+                let engageWindow = missileFlightTime(misV0, misVmax, threat.avgAccelTime, item.range || 3);
+                item.avgEngageWindow = engageWindow;
+
+                // Шанс, что собственная ракета-перехватчик ПВО вообще успевает поймать типичную
+                // по скорости атакующую ракету (актуально для "Ракетное"/"Гибрид" — у них есть
+                // разгон и своя баллистика, а не мгновенный луч/поток снарядов).
+                let vsMissileSpeedFactor = 1;
+                if ((item.accel_time || 0) > 0 && misVmax > 0) {
+                    const aaVmax = (item.max_speed || 0) * MW_COEF;
+                    const ratio = Math.min(1, aaVmax / misVmax);
+                    vsMissileSpeedFactor = Math.pow(ratio, 2);
+                }
+                item.vsMissileSpeedFactor = vsMissileSpeedFactor;
+
+                // Сколько выстрелов/пусков ПВО реально успевает сделать за окно перехвата
+                // (обойма + перезарядка + задержка выстрела).
+                const fireDelay = item.fire_delay || 0.2;
+                const clip = item.ammo_clip || 1;
+                const reloadT = item.reload || 3;
+                const cycleTime = Math.max(0.05, (clip * fireDelay) + reloadT);
+                const expectedShots = Math.max(0.1, (engageWindow / cycleTime) * clip);
+                item.expectedShotsVsMissile = expectedShots;
+
+                // Сколько попаданий нужно, чтобы "убить" типичную ракету (по её HP), и итоговый
+                // реалистичный шанс сбить её за время подлета — ГЛАВНЫЙ практический показатель ПВО.
+                const shotsToKill = Math.max(1, threat.avgHp / Math.max(1, item.damage || 1));
+                const killChanceVsMissile = Math.min(1, (expectedShots * vsMissileSpeedFactor) / shotsToKill);
+                item.killChanceVsMissile = killChanceVsMissile;
+
+                item.effectiveDpm = effectiveDpm * vsMissileSpeedFactor;
                 item.effectiveBurst = effectiveBurst;
 
-                // 4. Фундаментальный урон с учетом точности
-                score += (effectiveDpm / 200000) * 280; 
-                score += (effectiveBurst / 20000) * 80; 
+                // 4. Фундаментальный урон с учетом точности + реальный шанс сбить ракету
+                score += (item.effectiveDpm / 200000) * 180; 
+                score += (effectiveBurst / 20000) * 60; 
+                score += killChanceVsMissile * 250; // главный вклад: реально ли собьет типичную ракету
 
                 // 5. Оценка дальности и чистоты попаданий
                 score += ((item.range || 3) / 6) * 80; 
@@ -1512,15 +1578,9 @@
                 let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
                 score += dispersionBonus; 
 
-                // 6. Баллистика и скорость перехвата
-                let startSpd = item.start_speed || item.max_speed || 0;
-                let maxSpd = item.max_speed || 0;
-                let avgSpeed = (startSpd + maxSpd) / 2;
-                
-                if (item.accel_time > 0) {
-                    avgSpeed = avgSpeed * (1 - Math.min(0.5, item.accel_time / 10));
-                }
-                score += (avgSpeed / 800) * 130;
+                // 6. Баллистика и скорость перехвата — теперь относительно скорости РЕАЛЬНОЙ
+                //    атакующей ракеты, а не абсолютной шкалы "чем быстрее, тем лучше"
+                score += vsMissileSpeedFactor * 130;
 
                 // 7. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || item.detonation_radius > 0) {
@@ -1858,6 +1918,7 @@
                 if (key === 'cluster') val = val === 1 ? "ДА" : "НЕТ";
                 if (key === 'air_target' || key === 'sub_launch' || key === 'can_hit_subs') val = val === 1 ? "ДА" : "НЕТ";
                 if (key === 'fire_penalty' || key === 'accuracy' || key === 'dispersion') val = `${val}%`;
+                if (key === 'killChanceVsMissile') val = `${Math.round((val || 0) * 100)}%`;
 
                 let max = catMax[key] || 100;
 
@@ -1995,6 +2056,74 @@
             });
         }
 
+        // Приоритетные показатели по категориям для АВТОМАТИЧЕСКОГО объяснения "ключевого фактора",
+        // если ни одно из специальных условий выше не сработало. Гарантирует, что для ЛЮБОЙ пары
+        // предметов во ВСЕХ категориях объяснение всегда опирается на реальную, самую значимую
+        // разницу в характеристиках, а не на общую фразу-заглушку.
+        const CATEGORY_KEY_STATS = {
+            "Пушки": [
+                ['effectiveBurst', 'более высокому эффективному разовому урону (Alpha-strike)', 'higher'],
+                ['effectiveDpm', 'более высокому эффективному урону в минуту (DPM)', 'higher'],
+                ['accuracyScore', 'более высокой практической точности', 'higher'],
+                ['max_speed', 'более высокой скорости полета снаряда', 'higher'],
+                ['range', 'большей дальности стрельбы', 'higher'],
+                ['reload', 'более высокой скорострельности', 'lower']
+            ],
+            "Ракеты": [
+                ['effectiveDpm', 'более высокому эффективному урону в минуту (DPM)', 'higher'],
+                ['damage_burst', 'большему урону за попадание', 'higher'],
+                ['hp', 'большей живучести ракеты (HP)', 'higher'],
+                ['max_speed', 'более высокой максимальной скорости', 'higher'],
+                ['start_speed', 'более резкому стартовому рывку', 'higher'],
+                ['range', 'большей дальности пуска', 'higher']
+            ],
+            "Торпеды": [
+                ['effectiveDpm', 'более высокому эффективному урону в минуту', 'higher'],
+                ['damage_burst', 'большему разовому урону', 'higher'],
+                ['max_speed', 'более высокой скорости хода', 'higher'],
+                ['accel_time', 'более скрытному (быстрому) разгону', 'lower'],
+                ['range', 'большей дальности хода', 'higher']
+            ],
+            "Гранатометы": [
+                ['effectiveDpm', 'более высокому эффективному урону в минуту', 'higher'],
+                ['effectiveBurst', 'большему эффективному разовому урону', 'higher'],
+                ['splash_radius', 'большему радиусу поражения (ПТЗ)', 'higher'],
+                ['detonation_radius', 'большему радиусу детонации', 'higher'],
+                ['max_speed', 'более высокой скорости снаряда', 'higher'],
+                ['range', 'большей дальности', 'higher']
+            ],
+            "Автопушки": [
+                ['dpm', 'более высокому урону в минуту', 'higher'],
+                ['damage_burst', 'большему разовому урону', 'higher'],
+                ['ammo_clip', 'большему боекомплекту', 'higher'],
+                ['range', 'большей дальности', 'higher'],
+                ['max_speed', 'более высокой баллистике снаряда', 'higher']
+            ],
+            "ПВО": [
+                ['killChanceVsMissile', 'более высокому реальному шансу сбить типичную атакующую ракету', 'higher'],
+                ['vsMissileSpeedFactor', 'способности догнать по скорости современные ракеты', 'higher'],
+                ['effectiveDpm', 'более высокому эффективному урону в минуту с учетом ловушек', 'higher'],
+                ['accuracyScore', 'более высокой точности перехвата', 'higher'],
+                ['range', 'большему радиусу перехвата целей', 'higher'],
+                ['ammo_clip', 'большей плотности огня (боезапас)', 'higher']
+            ]
+        };
+        CATEGORY_KEY_STATS["Ракеты А/А"] = CATEGORY_KEY_STATS["Ракеты"];
+
+        function getKeyFactorReason(winner, loser, category) {
+            const list = CATEGORY_KEY_STATS[category] || CATEGORY_KEY_STATS["Пушки"];
+            let best = null;
+            list.forEach(([key, label, dir]) => {
+                let wv = parseFloat(winner[key]); let lv = parseFloat(loser[key]);
+                if (isNaN(wv) || isNaN(lv)) return;
+                let isBetter = dir === 'higher' ? wv > lv : wv < lv;
+                if (!isBetter) return;
+                let advantage = Math.abs(lv) > 0.0001 ? Math.abs(wv - lv) / Math.abs(lv) : (wv !== lv ? 1 : 0);
+                if (!best || advantage > best.advantage) best = { label, advantage };
+            });
+            return best ? best.label : "лучшему общему балансу характеристик в этой категории";
+        }
+
         function runAnalysis(id1, id2) {
             const e1 = DB[id1]; const e2 = DB[id2];
             const card1 = document.getElementById('card-equip-1'); const card2 = document.getElementById('card-equip-2');
@@ -2048,7 +2177,7 @@
                 
                 let percentDiff = (((winner.rating - loser.rating) / loser.rating) * 100).toFixed(1);
                 
-                let reason = "отличному балансу характеристик";
+                let reason = null;
                 if (e1.category === "Ракеты" || e1.category === "Ракеты А/А") {
                     if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "абсолютной защите от РЭБ (не сбрасывается ловушками)";
                     else if (loser.min_range > 0 && winner.min_range === 0) reason = "отсутствию мертвой зоны пуска (можно бить в упор)";
@@ -2076,10 +2205,16 @@
                     else if (winner.damage_burst > loser.damage_burst + 5000) reason = "разрушительному разовому урону (Альфа-страйку)";
                     else reason = "лучшему балансу скорострельности, дальности и плотности огня";
                 } else if (e1.category === "ПВО") {
-                    if (winner.aa_type === "Лазерное" && loser.aa_type !== "Лазерное") reason = "лазерному типу наведения (мгновенный урон без времени полета снаряда)";
-                    else if (winner.effectiveDpm > loser.effectiveDpm + 30000) reason = "огромному эффективному урону в минуту с учетом работы ловушек";
-                    else if (winner.aa_accuracy > loser.aa_accuracy) reason = "повышенному индексу точности";
-                    else if (winner.range > loser.range + 0.5) reason = "повышенному радиусу перехвата целей";
+                    // В первую очередь смотрим на РЕАЛЬНЫЙ шанс сбить типичную атакующую ракету —
+                    // это и есть смысл существования ПВО, а не абстрактные цифры урона.
+                    if (winner.killChanceVsMissile !== undefined && winner.killChanceVsMissile > (loser.killChanceVsMissile || 0) + 0.15) {
+                        reason = `значительно более высокому реальному шансу сбить типичную атакующую ракету (${Math.round(winner.killChanceVsMissile*100)}% против ${Math.round((loser.killChanceVsMissile||0)*100)}%)`;
+                    }
+                    else if (winner.aa_type === "Лазерное" && loser.aa_type !== "Лазерное") reason = "лазерному типу наведения (мгновенный урон без времени полета снаряда — не нужно догонять ракету)";
+                    else if (winner.vsMissileSpeedFactor !== undefined && winner.vsMissileSpeedFactor > (loser.vsMissileSpeedFactor || 0) + 0.2) reason = "более высокой скорости перехватчика относительно скорости современных ракет";
+                    else if (winner.effectiveDpm > loser.effectiveDpm + 20000) reason = "огромному эффективному урону в минуту с учетом работы ловушек";
+                    else if (winner.accuracyScore > loser.accuracyScore + 10) reason = "повышенному индексу точности перехвата";
+                    else if (winner.range > loser.range + 0.5) reason = "повышенному радиусу перехвата целей (больше времени на стрельбу по подлетающей ракете)";
                     else reason = "оптимальному сочетанию урона, дальности и сопротивления ловушкам";
                 } else if (e1.category === "Пушки") {
                     let wHasClip = winner.ammo_clip !== undefined && winner.ammo_clip > 1;
@@ -2095,6 +2230,10 @@
                     else if (wTotalShots > 2 && winner.damage_burst > loser.damage_burst + 15000) reason = "огромной плотности огня";
                     else if (winner.max_speed > loser.max_speed + 150) reason = "превосходной скорости полета снаряда";
                 }
+
+                // Страховка: если ни одно из точечных условий выше не сработало — берем реальный
+                // ключевой показатель с наибольшим относительным превосходством по этой категории.
+                if (!reason) reason = getKeyFactorReason(winner, loser, e1.category);
 
                 summaryText = `<span style="color:var(--primary); font-size: 1.4rem; display:block; margin-bottom: 15px; font-family:'Orbitron'; letter-spacing:1px; text-transform: uppercase;">ПОБЕДИТЕЛЬ: ${winner.name}</span>
                 <span style="color:var(--text-main); font-size: 1rem; line-height: 1.6;">
