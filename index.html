@@ -2628,17 +2628,25 @@
 
         // Точность оружия: явное поле accuracy (автопушки/бакшот) либо расчет по разбросу для ПВО
         function getEffectiveAccuracy(item) {
-            if (item.accuracy != null) return item.accuracy / 100;
-            if (item.category === "ПВО") {
-                let aa_dispersion = 11;
-                if (item.aa_type === "Пулеметное") aa_dispersion = 22;
-                else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 14;
-                let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7);
-                return Math.max(0.10, (100 - spreadPenalty) / 100);
-            }
-            return 1;
+    if (item.accuracy != null) return item.accuracy / 100;
+    if (item.category === "ПВО") {
+        let aa_dispersion = 11;
+        if (item.aa_type === "Пулеметное") aa_dispersion = 22;
+        else if (item.aa_type === "Гибрид") aa_dispersion = 16;
+        else if (item.aa_type === "Ракетное") aa_dispersion = 14;
+
+        let baseSpreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7);
+        let detonationCompensation = 0;
+        if (item.aa_type !== "Лазерное" && item.detonation_radius > 0) {
+            detonationCompensation = item.detonation_radius * 0.5;
         }
+
+        let finalSpreadPenalty = Math.max(0, baseSpreadPenalty - detonationCompensation);
+        return Math.max(0.10, (100 - finalSpreadPenalty) / 100);
+    }
+    return 1;
+}
+
 
         function simulateAA() {
             const aaKey = document.getElementById('sim-aa-select').value;
