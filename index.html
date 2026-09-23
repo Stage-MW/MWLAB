@@ -338,6 +338,34 @@
         .modal-close:hover { color: var(--primary); transform: scale(1.1); }
 
         /* =========================================
+           EFFECTS TOGGLE (выключение всех декоративных эффектов)
+           ========================================= */
+        html.effects-off #sparks-container { display: none !important; }
+        html.effects-off body::before { display: none !important; }
+        html.effects-off #global-mwl-text,
+        html.effects-off .floating-weapon,
+        html.effects-off .holo-base,
+        html.effects-off .holo-rays,
+        html.effects-off .holo-scanline,
+        html.effects-off .spark {
+            animation: none !important;
+        }
+        html.effects-off #global-mwl-text { opacity: 0.05 !important; filter: none !important; text-shadow: none !important; }
+        html.effects-off * {
+            text-shadow: none !important;
+        }
+        html.effects-off .glass-panel,
+        html.effects-off .home-title,
+        html.effects-off .nav-logo-small,
+        html.effects-off .val-win,
+        html.effects-off .bar-win,
+        html.effects-off .cat-btn-main.active,
+        html.effects-off .info-btn.auth-active {
+            box-shadow: none !important;
+        }
+        html.effects-off #effects-toggle { color: var(--text-muted); }
+
+        /* =========================================
            MOBILE & TABLET RESPONSIVE QUERIES
            ========================================= */
         @media (max-width: 1200px) {
@@ -346,15 +374,17 @@
             #card-equip-1 { order: 1; }
             #card-equip-2 { order: 2; }
             
-            #page-home.active { flex-direction: column; justify-content: center; text-align: center; overflow-y: auto;}
+            #page-home { overflow: hidden; }
+            #page-home.active { flex-direction: column; justify-content: center; text-align: center; overflow: hidden;}
             .home-container { flex-direction: column; }
-            .home-text-side { max-width: 100%; padding-right: 0; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center;}
+            .home-text-side { max-width: 100%; padding-right: 0; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center;}
             .home-title { font-size: 5rem; }
             .home-desc { max-width: 100%; }
             .home-image-side { width: 100%; justify-content: center; min-height: 40vh;}
             
             #global-mwl-wrapper.right { left: 50%; }
             #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 35vw; }
+            #global-mwl-wrapper { top: 78% !important; }
         }
 
         @media (max-width: 768px) {
@@ -362,7 +392,7 @@
             nav { padding: 15px 10px; justify-content: center; gap: 8px; border-radius: 0; }
             .nav-logo-small { width: 100%; text-align: center; margin: 0 0 10px 0; font-size: 1.8rem;}
             .nav-btn { flex: 1 1 30%; font-size: 0.75rem; padding: 10px 5px; text-align: center; }
-            .info-btn { flex: 1 1 40%; margin-left: 0; height: 35px; font-size: 1.1rem;}
+            .info-btn { flex: 1 1 30%; margin-left: 0; height: 35px; font-size: 1.1rem;}
 
             .compare-grid { grid-template-columns: 1fr; gap: 15px; }
             .analytics-core { grid-column: 1 / -1; order: 1; padding: 25px 15px; }
@@ -401,13 +431,18 @@
             
             .export-wrapper { padding: 20px 15px; }
             
-            #page-home { padding: 0 15px 40px 15px; height: auto; min-height: calc(100vh - 120px); overflow-y: auto;}
-            .home-title { font-size: 3.5rem; margin-top: 20px; }
-            .home-subtitle { font-size: 1rem; letter-spacing: 3px; }
-            .home-desc { font-size: 0.95rem; }
-            .home-image-side img { max-height: 45vh; }
+            #page-home { padding: 0 15px; height: calc(100vh - 210px); height: calc(100dvh - 210px); min-height: 0; overflow: hidden; }
+            #page-home.active { justify-content: center; gap: 0; }
+            .home-title { font-size: 3rem; margin-top: 0; }
+            .home-subtitle { font-size: 0.9rem; letter-spacing: 3px; }
+            .home-desc { font-size: 0.85rem; line-height: 1.4; }
+            .home-divider { margin-bottom: 15px; }
+            .home-text-side { margin-bottom: 10px; }
+            .home-image-side { min-height: 28vh; }
+            .home-image-side img { max-height: 32vh; }
             
             #global-mwl-wrapper.center #global-mwl-text, #global-mwl-wrapper.right #global-mwl-text { font-size: 50vw; }
+            #global-mwl-wrapper { top: 82% !important; }
             
             .modal-content { padding: 25px 15px; }
             .modal-close { top: 5px; right: 15px; font-size: 2.5rem; }
@@ -428,6 +463,7 @@
             <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast('ТРЕБУЕТСЯ PRO ДОСТУП', true); }">Конструктор <span id="builder-lock">🔒</span></button>
             <button class="nav-btn" id="nav-catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
             <button class="info-btn" id="nav-admin" onclick="switchMainPage('page-admin')" title="Профиль">👤</button>
+            <button class="info-btn" id="effects-toggle" onclick="toggleEffects()" title="Выключить эффекты">✨</button>
             <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
         </nav>
 
@@ -738,7 +774,10 @@
         }
 
         // --- BACKGROUND EFFECTS ---
+        let effectsEnabled = localStorage.getItem('mw_effects') !== 'off';
+
         function spawnSpark() {
+            if (!effectsEnabled) return;
             const container = document.getElementById('sparks-container');
             if (!container) return;
             const spark = document.createElement('div');
@@ -754,6 +793,26 @@
             setTimeout(() => { if(spark.parentNode) spark.remove() }, duration * 1000);
         }
         setInterval(spawnSpark, 200);
+
+        function applyEffectsState() {
+            document.documentElement.classList.toggle('effects-off', !effectsEnabled);
+            const btn = document.getElementById('effects-toggle');
+            if (btn) {
+                btn.textContent = effectsEnabled ? '✨' : '🚫';
+                btn.title = effectsEnabled ? 'Выключить эффекты' : 'Включить эффекты';
+            }
+            const sparksContainer = document.getElementById('sparks-container');
+            if (sparksContainer && !effectsEnabled) sparksContainer.innerHTML = '';
+        }
+
+        function toggleEffects() {
+            effectsEnabled = !effectsEnabled;
+            localStorage.setItem('mw_effects', effectsEnabled ? 'on' : 'off');
+            applyEffectsState();
+            showToast(effectsEnabled ? 'ЭФФЕКТЫ ВКЛЮЧЕНЫ' : 'ЭФФЕКТЫ ВЫКЛЮЧЕНЫ');
+        }
+
+        applyEffectsState();
 
         const ALL_CATEGORIES = ["Ракеты", "Ракеты А/А", "Пушки", "Торпеды", "Гранатометы", "Автопушки", "ПВО"];
         let currentCategory = "Ракеты";
@@ -1490,113 +1549,125 @@
                 return score;
             },
             "ПВО": function(item) {
-    let score = 100;
-    
-    // 1. Установка базового индекса разброса по технологии
-    let aa_dispersion = 11; // Лазерное (идеальная точность на любую дистанцию)
-    if (item.aa_type === "Пулеметное") aa_dispersion = 22;
-    else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-    else if (item.aa_type === "Ракетное") aa_dispersion = 14;
-    
-    item.aa_dispersion = aa_dispersion; 
+                let score = 100;
+                
+                // 1. Установка индекса разброса (Чем меньше, тем лучше)
+                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
+                if (item.aa_type === "Пулеметное") aa_dispersion = 22;
+                else if (item.aa_type === "Гибрид") aa_dispersion = 16;
+                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
+                
+                item.aa_dispersion = aa_dispersion; 
 
-    // 2. Расчет штрафа за дальность с компенсацией радиусом детонации
-    let baseSpreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7);
-    
-    // Лазеры бьют направленным лучом без дистанционного подрыва
-    let detonationCompensation = 0;
-    if (item.aa_type !== "Лазерное" && item.detonation_radius > 0) {
-        detonationCompensation = item.detonation_radius * 0.5; // Коэффициент компенсации k = 0.5
-    }
+                // 2. Математика точности (Зависимость от разброса и дальности)
+                // 11 (Лазер) — нет штрафа (точность 100%).
+                // 14 (Ракеты) — небольшой штраф на большой дистанции.
+                // 16 (Гибрид) — средний штраф.
+                // 22 (Пулемет) — максимальный штраф от отдачи.
+                let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
+                // Радиус детонации компенсирует часть промаха (крупный подрыв прощает неточность),
+                // но не подменяет саму точность — это отдельный фактор эффективности, а не она сама.
+                let detonationCompensation = (item.detonation_radius || 0) * 0.5;
+                let effectiveMissPenalty = Math.max(0, spreadPenalty - detonationCompensation);
+                let accuracyScore = Math.max(10, 100 - effectiveMissPenalty); 
+                item.accuracyScore = accuracyScore;
+                
+                // Коэффициент попаданий
+                let hitRatio = accuracyScore / 100;
 
-    let finalSpreadPenalty = Math.max(0, baseSpreadPenalty - detonationCompensation);
-    let accuracyScore = Math.max(10, 100 - finalSpreadPenalty); 
-    item.accuracyScore = accuracyScore;
-    
-    // Коэффициент попаданий
-    let hitRatio = accuracyScore / 100;
+                // 3. Эффективный урон (Точность + Ловушки)
+                let effectiveDpm = (item.dpm || 0) * hitRatio;
+                let effectiveBurst = (item.damage_burst || 0) * hitRatio;
+                
+                let flareCycle = 5.0; // Откат ловушек
+                
+                if (item.aa_type === "Ракетное") {
+                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
+                    effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
+                } 
+                else if (item.aa_type === "Гибрид") {
+                    effectiveDpm = item.dpm * 0.75; 
+                }
+                
+                // 3.5 РЕАЛЬНАЯ УГРОЗА: сверяем ПВО с усредненными характеристиками боевых ракет из БД.
+                //     Без этого система оценивалась бы "в вакууме", а не по способности сбивать ракеты.
+                const MW_COEF = 0.00278;
+                const threat = getThreatMissileProfile();
+                const misV0 = threat.avgStartSpeed * MW_COEF;
+                const misVmax = threat.avgMaxSpeed * MW_COEF;
 
-    // 3. Эффективный урон (Точность + Ловушки)
-    let effectiveDpm = (item.dpm || 0) * hitRatio;
-    let effectiveBurst = (item.damage_burst || 0) * hitRatio;
-    
-    let flareCycle = 5.0; // Откат ловушек
-    
-    if (item.aa_type === "Ракетное") {
-        let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
-        effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
-    } 
-    else if (item.aa_type === "Гибрид") {
-        effectiveDpm = item.dpm * 0.75; 
-    }
-    
-    // 3.5. Оценка окна перехвата и кинематики против атакующей ракеты
-    const MW_COEF = 0.00278;
-    const threat = getThreatMissileProfile();
-    const misV0 = threat.avgStartSpeed * MW_COEF;
-    const misVmax = threat.avgMaxSpeed * MW_COEF;
+                // Время, за которое типичная атакующая ракета пролетает зону поражения этого ПВО
+                // (от границы дальности до цели) — это и есть "окно перехвата".
+                let engageWindow = missileFlightTime(misV0, misVmax, threat.avgAccelTime, item.range || 3);
+                item.avgEngageWindow = engageWindow;
 
-    let engageWindow = missileFlightTime(misV0, misVmax, threat.avgAccelTime, item.range || 3);
-    item.avgEngageWindow = engageWindow;
+                // Шанс, что собственная ракета-перехватчик ПВО вообще успевает поймать типичную
+                // по скорости атакующую ракету (актуально для "Ракетное"/"Гибрид" — у них есть
+                // разгон и своя баллистика, а не мгновенный луч/поток снарядов).
+                let vsMissileSpeedFactor = 1;
+                if ((item.accel_time || 0) > 0 && misVmax > 0) {
+                    const aaVmax = (item.max_speed || 0) * MW_COEF;
+                    const ratio = Math.min(1, aaVmax / misVmax);
+                    vsMissileSpeedFactor = Math.pow(ratio, 2);
+                }
+                item.vsMissileSpeedFactor = vsMissileSpeedFactor;
 
-    let vsMissileSpeedFactor = 1;
-    if ((item.accel_time || 0) > 0 && misVmax > 0) {
-        const aaVmax = (item.max_speed || 0) * MW_COEF;
-        const ratio = Math.min(1, aaVmax / misVmax);
-        vsMissileSpeedFactor = Math.pow(ratio, 2);
-    }
-    item.vsMissileSpeedFactor = vsMissileSpeedFactor;
+                // Сколько выстрелов/пусков ПВО реально успевает сделать за окно перехвата
+                // (обойма + перезарядка + задержка выстрела).
+                const fireDelay = item.fire_delay || 0.2;
+                const clip = item.ammo_clip || 1;
+                const reloadT = item.reload || 3;
+                const cycleTime = Math.max(0.05, (clip * fireDelay) + reloadT);
+                const expectedShots = Math.max(0.1, (engageWindow / cycleTime) * clip);
+                item.expectedShotsVsMissile = expectedShots;
 
-    const fireDelay = item.fire_delay || 0.2;
-    const clip = item.ammo_clip || 1;
-    const reloadT = item.reload || 3;
-    const cycleTime = Math.max(0.05, (clip * fireDelay) + reloadT);
-    const expectedShots = Math.max(0.1, (engageWindow / cycleTime) * clip);
-    item.expectedShotsVsMissile = expectedShots;
+                // Сколько попаданий нужно, чтобы "убить" типичную ракету (по её HP), и итоговый
+                // реалистичный шанс сбить её за время подлета — ГЛАВНЫЙ практический показатель ПВО.
+                const shotsToKill = Math.max(1, threat.avgHp / Math.max(1, item.damage || 1));
+                const killChanceVsMissile = Math.min(1, (expectedShots * vsMissileSpeedFactor) / shotsToKill);
+                item.killChanceVsMissile = killChanceVsMissile;
 
-    const shotsToKill = Math.max(1, threat.avgHp / Math.max(1, item.damage || 1));
-    const killChanceVsMissile = Math.min(1, (expectedShots * vsMissileSpeedFactor) / shotsToKill);
-    item.killChanceVsMissile = killChanceVsMissile;
+                item.effectiveDpm = effectiveDpm * vsMissileSpeedFactor;
+                item.effectiveBurst = effectiveBurst;
 
-    item.effectiveDpm = effectiveDpm * vsMissileSpeedFactor;
-    item.effectiveBurst = effectiveBurst;
+                // 4. Фундаментальный урон с учетом точности + реальный шанс сбить ракету
+                score += (item.effectiveDpm / 200000) * 180; 
+                score += (effectiveBurst / 20000) * 60; 
+                score += killChanceVsMissile * 250; // главный вклад: реально ли собьет типичную ракету
 
-    // 4. Фундаментальный урон и шанс перехвата
-    score += (item.effectiveDpm / 200000) * 180; 
-    score += (effectiveBurst / 20000) * 60; 
-    score += killChanceVsMissile * 250;
+                // 5. Оценка дальности и чистоты попаданий
+                score += ((item.range || 3) / 6) * 80; 
+                // Чем МЕНЬШЕ разброс (ближе к 11), тем БОЛЬШЕ бонус к очкам рейтинга
+                let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
+                score += dispersionBonus; 
 
-    // 5. Оценка дальности и разброса
-    score += ((item.range || 3) / 6) * 80; 
-    let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
-    score += dispersionBonus; 
+                // 6. Баллистика и скорость перехвата — теперь относительно скорости РЕАЛЬНОЙ
+                //    атакующей ракеты, а не абсолютной шкалы "чем быстрее, тем лучше"
+                score += vsMissileSpeedFactor * 130;
 
-    // 6. Скорость перехвата
-    score += vsMissileSpeedFactor * 130;
+                // 7. АОЕ и Сплэш (Эффективность против роев ракет)
+                if (item.splash_radius > 0 || item.detonation_radius > 0) {
+                    let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
+                    if (item.splash_damage > 0) {
+                        aoeValue += (item.splash_damage / 1000) * 15;
+                    }
+                    score += Math.min(200, aoeValue); 
+                }
 
-    // 7. АОЕ и Сплэш (с сохранением базового бонуса за радиус детонации)
-    if (item.splash_radius > 0 || item.detonation_radius > 0) {
-        let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
-        if (item.splash_damage > 0) {
-            aoeValue += (item.splash_damage / 1000) * 15;
-        }
-        score += Math.min(200, aoeValue); 
-    }
+                // 8. Плотность огня (Боезапас)
+                if (item.ammo_clip > 1) {
+                    score += Math.min(100, (item.ammo_clip / 150) * 80);
+                }
+                
+                // 9. Критический урон
+                if (item.crit_chance > 0) {
+                    score += (item.crit_chance / 40) * 30;
+                }
 
-    // 8. Плотность огня (Боезапас)
-    if (item.ammo_clip > 1) {
-        score += Math.min(100, (item.ammo_clip / 150) * 80);
-    }
-    
-    // 9. Критический урон
-    if (item.crit_chance > 0) {
-        score += (item.crit_chance / 40) * 30;
-    }
+                if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
 
-    if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
-
-    return Math.round(score);
-}
+                return Math.round(score);
+            }
         };
 
         RATING_CALCULATORS["Ракеты А/А"] = RATING_CALCULATORS["Ракеты"];
@@ -2628,25 +2699,17 @@
 
         // Точность оружия: явное поле accuracy (автопушки/бакшот) либо расчет по разбросу для ПВО
         function getEffectiveAccuracy(item) {
-    if (item.accuracy != null) return item.accuracy / 100;
-    if (item.category === "ПВО") {
-        let aa_dispersion = 11;
-        if (item.aa_type === "Пулеметное") aa_dispersion = 22;
-        else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-        else if (item.aa_type === "Ракетное") aa_dispersion = 14;
-
-        let baseSpreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7);
-        let detonationCompensation = 0;
-        if (item.aa_type !== "Лазерное" && item.detonation_radius > 0) {
-            detonationCompensation = item.detonation_radius * 0.5;
+            if (item.accuracy != null) return item.accuracy / 100;
+            if (item.category === "ПВО") {
+                let aa_dispersion = 11;
+                if (item.aa_type === "Пулеметное") aa_dispersion = 22;
+                else if (item.aa_type === "Гибрид") aa_dispersion = 16;
+                else if (item.aa_type === "Ракетное") aa_dispersion = 14;
+                let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7);
+                return Math.max(0.10, (100 - spreadPenalty) / 100);
+            }
+            return 1;
         }
-
-        let finalSpreadPenalty = Math.max(0, baseSpreadPenalty - detonationCompensation);
-        return Math.max(0.10, (100 - finalSpreadPenalty) / 100);
-    }
-    return 1;
-}
-
 
         function simulateAA() {
             const aaKey = document.getElementById('sim-aa-select').value;
