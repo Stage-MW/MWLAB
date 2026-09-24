@@ -3,31 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#071017">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>MWLAB | TACTICAL TERMINAL</title>
+    <meta name="theme-color" content="#eef0f2">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>MWLAB | UNIT TERMINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jura:wght@400;600;700&family=Inter:wght@300;500;700;900&family=Orbitron:wght@500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
         :root {
-            /* COLOR PALETTE - SCI-FI TEAL/CYAN */
-            --bg-base: #071017;
-            --primary: #42f5e3;       /* Cyan */
-            --primary-dim: rgba(66, 245, 227, 0.15);
-            --secondary: #ff3c5a;     /* Alert Red/Pink */
-            --text-main: #e2f1f8;
-            --text-muted: #7890a8;
+            /* COLOR PALETTE - LIGHT ROBOTICS UI */
+            --bg-base: #eef0f2;
+            --surface: #ffffff;
+            --primary: #14181c;       /* Ink (main accent/CTA) */
+            --primary-dim: rgba(20, 24, 28, 0.06);
+            --accent: #3fd9c7;        /* Faint brand teal, used sparingly */
+            --accent-dim: rgba(63, 217, 199, 0.14);
+            --secondary: #e8483f;     /* Alert / loser red */
+            --text-main: #14181c;
+            --text-muted: #838b96;
+            --line: rgba(20, 24, 28, 0.09);
             
-            /* LIQUID GLASS */
-            --glass-bg: rgba(11, 22, 36, 0.4); 
-            --glass-blur: blur(20px);
-            --glass-border: rgba(66, 245, 227, 0.2);
-            --glass-radius: 16px;
+            /* CARD SURFACE (was liquid glass) */
+            --glass-bg: #ffffff; 
+            --glass-blur: blur(0px);
+            --glass-border: rgba(20, 24, 28, 0.07);
+            --glass-radius: 22px;
             
-            /* GLOWS */
-            --hud-glow: 0 0 15px rgba(66, 245, 227, 0.4);
+            /* SOFT SHADOW (was neon glow) */
+            --hud-glow: 0 10px 24px rgba(20, 24, 28, 0.08);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -35,15 +39,14 @@
         html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; width: 100%; }
 
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: rgba(20, 24, 28, 0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(20, 24, 28, 0.25); border-radius: 3px; }
 
         body {
-            background: linear-gradient(135deg, #050a10 0%, #0d1e2b 100%);
+            background: var(--bg-base);
             background-attachment: fixed;
             color: var(--text-main);
-            font-family: 'Jura', sans-serif;
-            text-transform: uppercase;
+            font-family: 'Inter', sans-serif;
             overflow-x: hidden;
             width: 100%;
             position: relative;
@@ -52,7 +55,7 @@
 
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: radial-gradient(circle at center, rgba(66, 245, 227, 0.05) 0%, transparent 60%);
+            background-image: radial-gradient(circle at center, rgba(20, 24, 28, 0.03) 0%, transparent 60%);
             z-index: -2; pointer-events: none;
         }
 
@@ -66,80 +69,80 @@
         #global-mwl-wrapper.right { left: 75%; transform: translate(-50%, -50%); }
         
         #global-mwl-text {
-            font-family: 'Orbitron', sans-serif; font-weight: 900;
-            color: transparent; -webkit-text-stroke: 2px rgba(66, 245, 227, 0.1);
+            font-family: 'Inter', sans-serif; font-weight: 900;
+            color: transparent; -webkit-text-stroke: 2px rgba(20, 24, 28, 0.05);
             letter-spacing: 5px;
             transition: font-size 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: pulseMWL 3s infinite alternate ease-in-out;
+            animation: pulseMWL 4s infinite alternate ease-in-out;
         }
         #global-mwl-wrapper.center #global-mwl-text { font-size: 25vw; }
         #global-mwl-wrapper.right #global-mwl-text { font-size: 20vw; }
 
         @keyframes pulseMWL {
-            0% { transform: scale(0.97); color: rgba(66, 245, 227, 0.01); text-shadow: 0 0 10px rgba(66, 245, 227, 0.05); filter: drop-shadow(0 0 5px rgba(66,245,227,0.05)); }
-            100% { transform: scale(1.03); color: rgba(66, 245, 227, 0.08); text-shadow: 0 0 40px rgba(66, 245, 227, 0.3); filter: drop-shadow(0 0 20px rgba(66,245,227,0.2)); }
+            0% { transform: scale(0.99); -webkit-text-stroke-color: rgba(20, 24, 28, 0.035); }
+            100% { transform: scale(1.01); -webkit-text-stroke-color: rgba(20, 24, 28, 0.07); }
         }
 
         /* --- ГЛОБАЛЬНЫЕ ИСКРЫ --- */
         #sparks-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; overflow: hidden; }
-        .spark { position: absolute; bottom: -20px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 12px 2px var(--primary); opacity: 0; animation: spark-fly linear forwards; }
+        .spark { position: absolute; bottom: -20px; background: rgba(20, 24, 28, 0.18); border-radius: 50%; opacity: 0; animation: spark-fly linear forwards; }
         @keyframes spark-fly {
             0% { opacity: 0; transform: translate(0, 0) scale(0); }
             15% { opacity: 1; transform: translate(calc(var(--dx) * 0.2), -15vh) scale(1); }
-            80% { opacity: 0.8; }
+            80% { opacity: 0.5; }
             100% { opacity: 0; transform: translate(var(--dx), -120vh) scale(0); }
         }
 
         /* --- BOOT SEQUENCE --- */
         #intro-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #020508; z-index: 99999;
+            background: var(--bg-base); z-index: 99999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         #intro-logo {
             font-family: 'Inter', sans-serif; font-size: 6rem; font-weight: 900; letter-spacing: 15px;
-            color: var(--primary); text-shadow: var(--hud-glow);
+            color: var(--primary);
             animation: pulseIntro 1.5s infinite alternate;
         }
-        @keyframes pulseIntro { 0% { opacity: 0.5; filter: blur(2px); } 100% { opacity: 1; filter: blur(0px); } }
+        @keyframes pulseIntro { 0% { opacity: 0.4; filter: blur(2px); } 100% { opacity: 1; filter: blur(0px); } }
 
         .app-wrapper { position: relative; z-index: 10; width: 100%; }
 
-        /* --- GLASSMORPHISM CLASS --- */
+        /* --- SURFACE CARD CLASS (was liquid glass) --- */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
             border: 1px solid var(--glass-border);
             border-radius: var(--glass-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.05);
+            box-shadow: var(--hud-glow);
             position: relative; overflow: hidden;
         }
 
         /* --- NAVIGATION --- */
         nav { 
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 30px; 
-            padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.05); 
-            background: rgba(5, 10, 16, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 18px 40px; border-bottom: 1px solid var(--line); 
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             position: sticky; top: 0; z-index: 100; width: 100%;
         }
         .nav-logo-small {
-            font-family: 'Inter'; font-weight: 900; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px; margin-right: auto; text-shadow: var(--hud-glow);
+            font-family: 'Inter'; font-weight: 900; font-size: 1.4rem; color: var(--primary); letter-spacing: 1px; margin-right: auto;
         }
         .nav-btn {
             background: none; border: none; color: var(--text-muted);
-            font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px;
+            font-family: 'Inter'; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;
             cursor: pointer; transition: all 0.3s ease; position: relative; padding: 5px 0;
         }
         .nav-btn::after {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px; background: var(--primary); transition: width 0.3s ease; box-shadow: var(--hud-glow);
+            content: ''; position: absolute; bottom: -19px; left: 0; width: 0%; height: 2px; background: var(--primary); transition: width 0.3s ease;
         }
-        .nav-btn:hover { color: #fff; }
+        .nav-btn:hover { color: var(--primary); }
         .nav-btn.active { color: var(--primary); }
         .nav-btn.active::after { width: 100%; }
         .info-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.3s; margin-left: 20px;}
-        .info-btn:hover { color: var(--primary); transform: scale(1.1); text-shadow: var(--hud-glow); }
-        .info-btn.auth-active { color: var(--primary); text-shadow: var(--hud-glow); }
+        .info-btn:hover { color: var(--primary); transform: scale(1.1); }
+        .info-btn.auth-active { color: var(--accent); }
 
         .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px 20px; position: relative;}
         .page.active { display: block; animation: pageInstantIn 0.3s ease-out forwards; }
@@ -153,56 +156,55 @@
         #page-home.active { display: flex; align-items: center; justify-content: space-between; }
         .home-container { display: flex; width: 100%; height: 100%; align-items: center; justify-content: space-between; position: relative; z-index: 5;}
         .home-text-side { flex: 1; max-width: 50%; padding-right: 20px; z-index: 10; }
-        .home-title { font-family: 'Inter'; font-weight: 900; font-size: 6vw; line-height: 1; color: var(--primary); text-shadow: var(--hud-glow); letter-spacing: -2px; margin-bottom: 10px; }
-        .home-subtitle { font-family: 'Share Tech Mono'; color: #fff; font-size: 1.5rem; letter-spacing: 5px; opacity: 0.9; margin-bottom: 20px;}
-        .home-divider { width: 100px; height: 4px; background: var(--primary); box-shadow: var(--hud-glow); margin-bottom: 25px; border-radius: 2px;}
-        .home-desc { font-family: 'Jura'; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; max-width: 80%; text-transform: none;}
+        .home-title { font-family: 'Inter'; font-weight: 900; font-size: 6vw; line-height: 1; color: var(--primary); letter-spacing: -3px; margin-bottom: 10px; }
+        .home-subtitle { font-family: 'Inter'; color: var(--text-muted); font-weight: 700; font-size: 1.1rem; letter-spacing: 4px; margin-bottom: 20px; text-transform: uppercase;}
+        .home-divider { width: 60px; height: 3px; background: var(--secondary); margin-bottom: 25px; border-radius: 2px;}
+        .home-desc { font-family: 'Inter'; color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; max-width: 80%; text-transform: none;}
         .home-image-side { flex: 1; display: flex; justify-content: flex-end; align-items: center; height: 100%; position: relative;}
-        .home-image-side img { max-width: 100%; max-height: 80vh; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8)) drop-shadow(0 0 20px rgba(66, 245, 227, 0.3)); z-index: 5;}
-        .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(66, 245, 227, 0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
+        .home-image-side img { max-width: 100%; max-height: 80vh; object-fit: contain; filter: drop-shadow(0 25px 30px rgba(20,24,28,0.18)); z-index: 5;}
+        .home-image-glow { position: absolute; width: 60%; height: 60%; background: radial-gradient(circle, rgba(20,24,28,0.05) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; filter: blur(40px);}
 
         /* --- CONTROLS --- */
         .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;}
-        .search-input, .filter-select { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; border-radius: 8px; outline: none; transition: 0.3s; appearance: none; -webkit-appearance: none; }
-        .search-input::placeholder { color: var(--text-muted); }
-        .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(66, 245, 227, 0.2); }
-        .filter-select option { background: var(--bg-base); color: #fff; }
-        .filter-select option:disabled { color: var(--secondary); background: rgba(255,60,90,0.1); }
+        .search-input, .filter-select { background: #f4f5f7; border: 1px solid var(--line); color: var(--text-main); padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; border-radius: 10px; outline: none; transition: 0.3s; appearance: none; -webkit-appearance: none; }
+        .search-input::placeholder { color: var(--text-muted); text-transform: none; }
+        .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-dim); }
+        .filter-select option { background: #fff; color: var(--text-main); }
+        .filter-select option:disabled { color: var(--secondary); }
 
         .categories-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; width: 100%;}
-        .cat-btn-main { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 10px 35px; border-radius: 30px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
-        .cat-btn-main:hover, .cat-btn-main.active { border-color: var(--primary); color: #000; background: var(--primary); box-shadow: var(--hud-glow); }
+        .cat-btn-main { background: #f4f5f7; border: 1px solid var(--line); color: var(--text-muted); padding: 10px 30px; border-radius: 30px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.3px;}
+        .cat-btn-main:hover, .cat-btn-main.active { border-color: var(--primary); color: #fff; background: var(--primary); }
 
         .mechanics-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
         .mech-checkbox { display: none; }
-        .mech-checkbox:checked + .cat-btn-sub { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); box-shadow: inset 0 0 10px rgba(66,245,227,0.2); }
-        .cat-btn-sub { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 6px 20px; border-radius: 20px; font-family: 'Jura'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
+        .mech-checkbox:checked + .cat-btn-sub { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .cat-btn-sub { background: #f4f5f7; border: 1px solid var(--line); color: var(--text-muted); padding: 6px 20px; border-radius: 20px; font-family: 'Inter'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.3px;}
 
         /* --- BARS --- */
-        .stats-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; width: 100%; }
-        .stat-row { display: flex; flex-direction: column; gap: 4px; width: 100%;}
-        .stat-header { display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Jura'; font-size: 0.85rem; font-weight: 600; }
-        .stat-name { color: var(--text-muted); }
-        .stat-value { color: #fff; }
-        .stat-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; position: relative; }
-        .stat-bar-fill { height: 100%; background: var(--text-muted); border-radius: 2px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .val-win { color: var(--primary); text-shadow: var(--hud-glow);}
-        .bar-win { background: var(--primary); box-shadow: var(--hud-glow); }
+        .stats-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; width: 100%; }
+        .stat-row { display: flex; flex-direction: column; gap: 6px; width: 100%;}
+        .stat-header { display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Inter'; font-size: 0.78rem; font-weight: 700; }
+        .stat-name { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { color: var(--text-main); font-weight: 800; }
+        .stat-bar-bg { width: 100%; height: 5px; background: var(--primary-dim); border-radius: 3px; overflow: hidden; position: relative; }
+        .stat-bar-fill { height: 100%; background: var(--text-main); border-radius: 3px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .val-win { color: var(--accent); font-weight: 900; }
+        .bar-win { background: var(--accent); }
         .val-lose { color: var(--text-muted); opacity: 0.8; }
-        .bar-lose { background: rgba(255,255,255,0.1); }
+        .bar-lose { background: var(--primary-dim); }
 
         /* --- COMPARE GRID & VS ANIMATION --- */
         .compare-grid { display: grid; grid-template-columns: 1fr 500px 1fr; gap: 30px; align-items: stretch; width: 100%; overflow: hidden;}
-        .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 10;}
-        .card-winner { border-color: var(--primary); box-shadow: 0 10px 40px rgba(66,245,227,0.1), inset 0 0 20px rgba(66,245,227,0.05); }
-        .card-loser { opacity: 0.8; }
+        .equip-card { padding: 30px; display: flex; flex-direction: column; transition: all 0.4s ease; border: 1px solid var(--line); position: relative; z-index: 10;}
+        .card-winner { border-color: var(--accent); box-shadow: 0 14px 34px rgba(20,24,28,0.1); }
+        .card-loser { opacity: 0.85; }
 
         @keyframes flyInLeft { 0% { opacity: 0; transform: translateX(-300px); } 100% { opacity: 1; transform: translateX(0); } }
         @keyframes flyInRight { 0% { opacity: 0; transform: translateX(300px); } 100% { opacity: 1; transform: translateX(0); } }
 
         .vs-badge {
-            font-family: 'Orbitron', sans-serif; font-size: 8rem; font-weight: 900; color: var(--secondary);
-            text-shadow: 0 0 30px var(--secondary), 0 0 80px var(--secondary);
+            font-family: 'Inter', sans-serif; font-size: 8rem; font-weight: 900; color: var(--secondary);
             animation: vsPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;
         }
@@ -219,41 +221,41 @@
         .equip-img-container { 
             width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center bottom; 
             position: absolute; bottom: 30px; z-index: 3; transition: opacity 0.3s ease;
-            filter: drop-shadow(0 20px 25px rgba(0,0,0,0.9));
+            filter: drop-shadow(0 18px 20px rgba(20,24,28,0.18));
         }
-        .floating-weapon { animation: floatItem 4s ease-in-out infinite; filter: drop-shadow(0 20px 25px rgba(0,0,0,0.9)); }
-        @keyframes floatItem { 0%, 100% { transform: translateY(0); filter: drop-shadow(0 20px 25px rgba(0,0,0,0.9)); } 50% { transform: translateY(-12px); filter: drop-shadow(0 30px 25px rgba(66, 245, 227, 0.4)); } }
+        .floating-weapon { animation: floatItem 4s ease-in-out infinite; filter: drop-shadow(0 18px 20px rgba(20,24,28,0.18)); }
+        @keyframes floatItem { 0%, 100% { transform: translateY(0); filter: drop-shadow(0 18px 20px rgba(20,24,28,0.18)); } 50% { transform: translateY(-12px); filter: drop-shadow(0 26px 20px rgba(20,24,28,0.14)); } }
         
-        .holo-base { position: absolute; bottom: 10px; width: 60%; height: 15px; background: radial-gradient(ellipse at center, var(--primary) 0%, transparent 70%); filter: blur(3px); z-index: 1; opacity: 0.8; box-shadow: 0 0 20px var(--primary); animation: pulseBase 4s ease-in-out infinite; }
-        .holo-rays { position: absolute; bottom: 17px; width: 90%; height: 120%; background: linear-gradient(to top, rgba(66,245,227,0.2) 0%, transparent 80%); clip-path: polygon(30% 100%, 70% 100%, 100% 0, 0 0); z-index: 2; opacity: 0.6; animation: holoFlicker 2.5s infinite alternate; pointer-events: none; }
-        .holo-scanline { position: absolute; width: 100%; height: 2px; background: #fff; box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary); z-index: 4; opacity: 0.5; animation: holoScan 3s linear infinite; }
+        .holo-base { position: absolute; bottom: 10px; width: 60%; height: 15px; background: radial-gradient(ellipse at center, rgba(20,24,28,0.14) 0%, transparent 70%); filter: blur(3px); z-index: 1; opacity: 0.8; animation: pulseBase 4s ease-in-out infinite; }
+        .holo-rays { position: absolute; bottom: 17px; width: 90%; height: 120%; background: linear-gradient(to top, rgba(20,24,28,0.05) 0%, transparent 80%); clip-path: polygon(30% 100%, 70% 100%, 100% 0, 0 0); z-index: 2; opacity: 0.6; animation: holoFlicker 2.5s infinite alternate; pointer-events: none; }
+        .holo-scanline { position: absolute; width: 100%; height: 1px; background: rgba(20,24,28,0.25); z-index: 4; opacity: 0.5; animation: holoScan 3s linear infinite; }
         
-        @keyframes pulseBase { 0%, 100% { transform: scaleX(1); opacity: 0.5; } 50% { transform: scaleX(0.8); opacity: 1; background: radial-gradient(ellipse at center, rgba(66,245,227,0.6) 0%, transparent 70%);} }
+        @keyframes pulseBase { 0%, 100% { transform: scaleX(1); opacity: 0.5; } 50% { transform: scaleX(0.8); opacity: 1; } }
         @keyframes holoFlicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } 20% { opacity: 0.4; } 80% { opacity: 0.7; } }
         @keyframes holoScan { 0% { top: 10%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 90%; opacity: 0; } }
 
-        .item-title { color: #fff; font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: 1px; margin-bottom: 25px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 15px; text-align: center;}
+        .item-title { color: var(--text-main); font-size: 1.3rem; font-family: 'Inter'; font-weight: 900; letter-spacing: -0.3px; margin-bottom: 25px; border-bottom: 1px solid var(--line); padding-bottom: 15px; text-align: center;}
 
         /* --- ANALYTICS CORE --- */
-        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); width: 100%; position: relative; z-index: 5;}
+        .analytics-core { padding: 40px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--line); width: 100%; position: relative; z-index: 5;}
         
-        .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -2px; margin-bottom: -10px; line-height: 1; text-shadow: var(--hud-glow); text-align: center;}
-        .center-subtitle { font-family: 'Share Tech Mono'; color: #fff; letter-spacing: 5px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.7; text-align: center;}
+        .center-logo { font-family: 'Inter'; font-weight: 900; font-size: 4rem; color: var(--primary); letter-spacing: -3px; margin-bottom: -10px; line-height: 1; text-align: center;}
+        .center-subtitle { font-family: 'Inter'; color: var(--text-muted); font-weight: 700; letter-spacing: 3px; font-size: 0.75rem; margin-bottom: 30px; text-transform: uppercase; text-align: center;}
 
         .analysis-cols { display: flex; gap: 20px; width: 100%; margin-bottom: 20px; }
-        .analysis-col { flex: 1; padding: 15px; border-left: 2px solid var(--primary-dim); }
-        .col-title { font-family: 'Inter'; font-weight: 700; color: #fff; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; text-align: center;}
+        .analysis-col { flex: 1; padding: 15px; border-left: 2px solid var(--line); }
+        .col-title { font-family: 'Inter'; font-weight: 700; color: var(--text-main); margin-bottom: 15px; font-size: 0.85rem; text-transform: uppercase; text-align: center;}
         
-        .pro-item { color: var(--text-main); font-family: 'Jura'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
-        .pro-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: var(--hud-glow); }
+        .pro-item { color: var(--text-main); font-family: 'Inter'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
+        .pro-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
         
-        .con-item { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
+        .con-item { color: var(--text-muted); font-family: 'Inter'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
         .con-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 2px; background: var(--secondary); }
 
-        .final-summary-block { width: 100%; margin-top: auto; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
-        .radar-container { width: 100%; max-width: 400px; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(66,245,227,0.1)); }
+        .final-summary-block { width: 100%; margin-top: auto; padding: 20px; background: #f4f5f7; border-radius: 16px; border: 1px solid var(--line); text-align: center; }
+        .radar-container { width: 100%; max-width: 400px; margin: 0 auto; }
 
-        .meta-legend { margin-top: 15px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px; font-family: 'Jura'; line-height: 1.5;}
+        .meta-legend { margin-top: 15px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--line); padding-top: 10px; font-family: 'Inter'; line-height: 1.5;}
 
         /* --- BUILDER & EXPORT --- */
         .build-columns { display: flex; gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto 30px auto; flex-wrap: wrap; }
@@ -269,69 +271,100 @@
         /* --- КАСТОМНЫЙ СЕЛЕКТ (С ИКОНКАМИ) --- */
         .custom-select-wrapper { position: relative; width: 100%; max-width: 280px; flex-grow: 1; }
         .custom-select-trigger {
-            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff;
-            padding: 8px 15px; width: 100%; border-radius: 8px; cursor: pointer;
+            background: #f4f5f7; border: 1px solid var(--line); color: var(--text-main);
+            padding: 8px 15px; width: 100%; border-radius: 10px; cursor: pointer;
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            font-family: 'Jura'; font-size: 0.9rem; transition: 0.3s;
+            font-family: 'Inter'; font-size: 0.9rem; transition: 0.3s;
         }
-        .custom-select-trigger:hover { border-color: var(--primary); box-shadow: 0 0 10px rgba(66,245,227,0.2); }
+        .custom-select-trigger:hover { border-color: var(--primary); }
         .trigger-left { display: flex; align-items: center; gap: 10px; flex-grow: 1; min-width: 0; }
-        .trigger-img { width: 28px; height: 28px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));}
+        .trigger-img { width: 28px; height: 28px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(20,24,28,0.15));}
         .trigger-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
         
         .custom-select-dropdown {
-            position: absolute; top: calc(100% + 5px); left: 0; width: 320px; background: rgba(11,22,36,0.95);
-            border: 1px solid var(--primary); border-radius: 8px; z-index: 9999;
-            display: flex; flex-direction: column; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.9); overflow: hidden;
+            position: absolute; top: calc(100% + 5px); left: 0; width: 320px; background: #ffffff;
+            border: 1px solid var(--line); border-radius: 12px; z-index: 9999;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 45px rgba(20,24,28,0.16); overflow: hidden;
             visibility: hidden; opacity: 0; transform: translateY(-10px); transition: 0.2s ease;
         }
         .custom-select-dropdown.active { visibility: visible; opacity: 1; transform: translateY(0); }
-        .dropdown-filter { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
-        .dropdown-filter select, .dropdown-filter input { width: 100%; background: rgba(0,0,0,0.6); color: var(--primary); border: 1px solid rgba(66,245,227,0.3); padding: 8px; border-radius: 4px; font-family: 'Jura'; font-weight: bold; outline: none; transition: 0.3s; }
+        .dropdown-filter { padding: 10px; border-bottom: 1px solid var(--line); background: #f7f8fa; display: flex; flex-direction: column; gap: 8px; }
+        .dropdown-filter select, .dropdown-filter input { width: 100%; background: #ffffff; color: var(--text-main); border: 1px solid var(--line); padding: 8px; border-radius: 6px; font-family: 'Inter'; font-weight: bold; outline: none; transition: 0.3s; }
         .dropdown-filter input::placeholder { color: var(--text-muted); }
-        .dropdown-filter input:focus, .dropdown-filter select:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(66,245,227,0.2); }
-        .dropdown-filter select option { background: #071017; color: #fff; }
+        .dropdown-filter input:focus, .dropdown-filter select:focus { border-color: var(--primary); }
+        .dropdown-filter select option { background: #fff; color: var(--text-main); }
         
-        .dropdown-list { max-height: 280px; overflow-y: auto; padding: 5px; scrollbar-width: thin; scrollbar-color: var(--primary) rgba(0,0,0,0.2); }
+        .dropdown-list { max-height: 280px; overflow-y: auto; padding: 5px; scrollbar-width: thin; scrollbar-color: var(--text-muted) transparent; }
         .dropdown-list::-webkit-scrollbar { width: 4px; }
         .dropdown-option {
             display: flex; align-items: center; gap: 12px; padding: 8px 10px; cursor: pointer;
             border-radius: 6px; transition: 0.2s; border-left: 3px solid transparent;
         }
         .dropdown-option:hover { background: var(--primary-dim); border-left-color: var(--primary); }
-        .dropdown-option-img { width: 35px; height: 35px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8));}
-        .dropdown-option-text { font-family: 'Inter'; font-size: 0.85rem; font-weight: 700; color: #fff; display: flex; flex-direction: column; line-height: 1.2; }
-        .dropdown-option-sub { font-size: 0.65rem; font-weight: 400; color: var(--text-muted); font-family: 'Jura'; margin-top: 2px; text-transform: uppercase;}
-        .dropdown-category-title { padding: 8px 10px; color: var(--primary); font-family: 'Orbitron'; font-size: 0.75rem; letter-spacing: 2px; background: rgba(0,0,0,0.6); margin: 5px 0; border-radius: 4px; text-align: center; border-bottom: 1px dashed rgba(66,245,227,0.2);}
+        .dropdown-option-img { width: 35px; height: 35px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(20,24,28,0.2));}
+        .dropdown-option-text { font-family: 'Inter'; font-size: 0.85rem; font-weight: 700; color: var(--text-main); display: flex; flex-direction: column; line-height: 1.2; }
+        .dropdown-option-sub { font-size: 0.65rem; font-weight: 400; color: var(--text-muted); font-family: 'Inter'; margin-top: 2px; text-transform: uppercase;}
+        .dropdown-category-title { padding: 8px 10px; color: var(--text-muted); font-family: 'Inter'; font-weight: 800; font-size: 0.7rem; letter-spacing: 2px; background: #f4f5f7; margin: 5px 0; border-radius: 6px; text-align: center; text-transform: uppercase;}
 
         @keyframes itemFadeIn {
             0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(3px); }
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
-        /* --- CATALOG --- */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; width: 100%;}
-        .catalog-item { 
-            padding: 30px 20px 20px 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-            opacity: 0; animation: itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        /* --- ROSTER CLASS TABS (S / A / B) --- */
+        .roster-classes { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; width: 100%; }
+        .roster-class-line { flex: 1; height: 1px; background: var(--line); }
+        .roster-class-tab { background: none; border: none; color: var(--text-muted); font-family: 'Inter'; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; padding: 6px 4px; cursor: pointer; transition: 0.25s; border-bottom: 2px solid transparent; }
+        .roster-class-tab:hover { color: var(--text-main); }
+        .roster-class-tab.active { color: var(--text-main); border-bottom-color: var(--primary); }
+
+        /* --- ROSTER LAYOUT (list + stage + detail) --- */
+        .roster-layout { display: grid; grid-template-columns: 280px 1fr 320px; gap: 22px; align-items: stretch; width: 100%; min-height: 60vh; }
+
+        .roster-list { display: flex; flex-direction: column; gap: 10px; max-height: 74vh; overflow-y: auto; padding-right: 6px; }
+        .catalog-item {
+            display: flex; align-items: center; gap: 14px; text-align: left;
+            padding: 10px 14px; cursor: pointer; border-radius: 16px; position: relative;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0; animation: itemFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            background: var(--surface); border: 1px solid var(--glass-border);
         }
-        .catalog-item:hover { border-color: var(--primary); transform: translateY(-8px) !important; box-shadow: 0 15px 30px rgba(0,0,0,0.6), var(--hud-glow); }
-        .catalog-item.selected { border-color: var(--primary); background: var(--primary-dim); box-shadow: var(--hud-glow); }
-        .catalog-item.selected::after { content: "ВЫБРАНО"; position: absolute; top: 15px; right: 15px; background: var(--primary); color: #000; font-family: 'Inter'; font-size: 0.7rem; font-weight: 900; padding: 4px 10px; border-radius: 20px; }
-        .catalog-item-img { width: 100%; height: 120px; margin-bottom: 25px; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: transparent; border: none; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.7)); transition: 0.3s; }
-        .catalog-item:hover .catalog-item-img { transform: scale(1.05); filter: drop-shadow(0 15px 15px rgba(66,245,227,0.3));}
-        .cat-item-name { color: #fff; font-size: 1.1rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 10px; width: 100%;}
-        .cat-item-meta { color: var(--text-muted); font-family: 'Jura'; font-size: 0.85rem; display: flex; flex-direction: column; gap: 5px; width: 100%;}
-        .cat-meta-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px;}
+        .catalog-item:hover { border-color: var(--primary); transform: translateX(3px); }
+        .catalog-item.active { border-color: var(--primary); background: var(--bg-base); box-shadow: var(--hud-glow); }
+        .catalog-item.queued { border-color: var(--accent); }
+        .catalog-item.queued::after { content: "✓"; position: absolute; top: 8px; right: 10px; color: var(--accent); font-weight: 900; font-size: 0.85rem; }
+        .catalog-item-img { width: 52px; height: 52px; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 4px 6px rgba(20,24,28,0.18)); }
+        .cat-item-name { color: var(--text-main); font-size: 0.92rem; font-weight: 800; font-family: 'Inter'; line-height: 1.25; }
+        .cat-item-meta { color: var(--text-muted); font-family: 'Inter'; font-size: 0.72rem; font-weight: 600; margin-top: 3px; }
+
+        .roster-stage { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: var(--glass-radius); background: linear-gradient(180deg, rgba(20,24,28,0.03) 0%, rgba(20,24,28,0.01) 100%); min-height: 320px; }
+        .roster-stage-glow { position: absolute; width: 70%; height: 70%; background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%); filter: blur(30px); z-index: 1; }
+        .roster-portrait { position: relative; z-index: 2; width: 80%; height: 85%; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 25px 30px rgba(20,24,28,0.18)); transition: 0.4s ease; }
+        .roster-empty { position: absolute; z-index: 2; color: var(--text-muted); font-family: 'Inter'; font-weight: 700; letter-spacing: 1px; font-size: 0.9rem; }
+
+        .roster-detail { display: flex; flex-direction: column; padding: 28px 26px; }
+        .roster-top-row { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 22px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+        .roster-level-num { font-family: 'Inter'; font-weight: 900; font-size: 2.6rem; line-height: 1; color: var(--text-main); }
+        .roster-level-label { font-size: 0.62rem; letter-spacing: 2.5px; color: var(--text-muted); font-weight: 800; margin-top: 4px; }
+        .roster-heading h2 { font-size: 1.15rem; font-weight: 900; font-family: 'Inter'; margin-bottom: 4px; line-height: 1.25; }
+        .roster-classtext { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
+        .roster-stats { display: flex; flex-direction: column; gap: 12px; flex-grow: 1; overflow-y: auto; max-height: 32vh; padding-right: 4px; }
+        .roster-skills-label { font-size: 0.65rem; letter-spacing: 2.5px; color: var(--text-muted); font-weight: 800; margin: 20px 0 10px 0; }
+        .roster-skills { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+        .roster-skill-chip { width: 48px; height: 48px; border-radius: 13px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; position: relative; cursor: default; }
+        .roster-skills-empty { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
+        .roster-start-btn { margin-top: auto; background: var(--primary); color: #fff; border: none; padding: 17px; border-radius: 15px; font-family: 'Inter'; font-weight: 800; letter-spacing: 1.5px; font-size: 0.9rem; cursor: pointer; transition: 0.25s; text-transform: uppercase; }
+        .roster-start-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-2px); }
+        .roster-start-btn:disabled { background: var(--primary-dim); color: var(--text-muted); cursor: not-allowed; }
+        .roster-start-btn.in-queue { background: var(--secondary); }
 
         /* --- MODALS & TOASTS --- */
         #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
-        .toast { background: rgba(11, 22, 36, 0.95); border: 1px solid var(--primary); border-radius: 8px; color: var(--primary); padding: 15px 25px; font-family: 'Jura'; font-weight: 600; font-size: 0.95rem; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        .toast { background: #ffffff; border: 1px solid var(--line); border-radius: 12px; color: var(--text-main); padding: 15px 25px; font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; box-shadow: 0 14px 30px rgba(20,24,28,0.14); }
         .toast.error { border-color: var(--secondary); color: var(--secondary); }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 10, 16, 0.85); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s ease; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(20, 24, 28, 0.45); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s ease; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);}
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-content { padding: 40px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border-top: 3px solid var(--primary); }
         .modal-close { position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--text-muted); font-size: 2.5rem; line-height: 1; cursor: pointer; transition: 0.3s; padding: 0;}
@@ -373,6 +406,10 @@
             .analytics-core { grid-column: 1 / -1; order: 3; }
             #card-equip-1 { order: 1; }
             #card-equip-2 { order: 2; }
+
+            .roster-layout { grid-template-columns: 220px 1fr; grid-template-rows: auto auto; }
+            .roster-detail { grid-column: 1 / -1; }
+            .roster-list { max-height: 40vh; }
             
             #page-home { overflow: hidden; }
             #page-home.active { flex-direction: column; justify-content: center; text-align: center; overflow: hidden;}
@@ -415,12 +452,14 @@
             .cat-btn-main { width: 100%; font-size: 0.9rem; padding: 12px; border-radius: 8px;}
             .categories-bar { flex-direction: column; width: 100%; gap: 10px;}
 
-            .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-            .catalog-item { padding: 15px 10px 10px 10px; border-radius: 12px;}
-            .catalog-item-img { height: 80px; margin-bottom: 15px; }
-            .cat-item-name { font-size: 0.85rem; margin-bottom: 10px; line-height: 1.2;}
-            .cat-meta-row { flex-direction: column; font-size: 0.7rem; gap: 2px; text-align: center; border-bottom: none;}
-            .catalog-item.selected::after { font-size: 0.5rem; padding: 3px 6px; top: 10px; right: 10px; }
+            .roster-layout { grid-template-columns: 1fr; }
+            .roster-list { flex-direction: row; overflow-x: auto; overflow-y: hidden; max-height: none; gap: 8px; padding-bottom: 6px; }
+            .catalog-item { flex-direction: column; text-align: center; min-width: 110px; padding: 12px 8px; gap: 8px; }
+            .catalog-item-img { width: 100%; height: 60px; }
+            .cat-item-name { font-size: 0.75rem; }
+            .cat-item-meta { font-size: 0.65rem; }
+            .roster-stage { min-height: 220px; }
+            .roster-detail { padding: 20px 16px; }
 
             .build-columns { flex-direction: column; gap: 10px; }
             .build-slot-container { flex-direction: column; gap: 10px; padding: 15px; border-left: none; border-top: 3px solid var(--primary); border-radius: 12px;}
@@ -482,7 +521,7 @@
                 </div>
                 <div class="home-image-side" id="home-image-side">
                     <div class="home-image-glow"></div>
-                    <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 0 20px rgba(66, 245, 227, 0.3));" onerror="this.style.display='none'">
+                    <img src="img/hero.png" alt="" id="home-hero-image" style="max-height:80vh; z-index:5; filter:drop-shadow(0 20px 30px rgba(20,24,28,0.2));" onerror="this.style.display='none'">
                 </div>
             </div>
         </main>
@@ -508,7 +547,7 @@
                         <div class="center-logo">MWLAB</div>
                         <div class="center-subtitle">TACTICAL ANALYSIS</div>
                         <div id="verdict-screen" style="width: 100%; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; align-items: center; color: var(--text-muted);">
-                            <p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
+                            <p style="font-family:'Inter'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
                         </div>
                     </div>
 
@@ -546,24 +585,24 @@
             </div>
 
             <div id="build-export-wrapper" class="export-wrapper glass-panel" style="display:none; max-width: 1000px; margin: 0 auto; width:100%;">
-                <h2 style="text-align: center; color: #fff; font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 20px;">СРАВНИТЕЛЬНЫЙ АНАЛИЗ СБОРОК</h2>
+                <h2 style="text-align: center; color: var(--text-main); font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 20px;">СРАВНИТЕЛЬНЫЙ АНАЛИЗ СБОРОК</h2>
                 <div class="analysis-cols" style="flex-wrap: wrap;" id="build-stats-container"></div>
                 <div class="radar-container" style="position: relative; height: 350px; margin-top: 20px; max-width: 600px;">
                     <canvas id="buildRadarChart"></canvas>
                 </div>
-                <div id="build-tactics" style="margin-top: 20px; font-family: 'Jura'; display:flex; flex-wrap:wrap; gap:20px;"></div>
+                <div id="build-tactics" style="margin-top: 20px; font-family: 'Inter'; display:flex; flex-wrap:wrap; gap:20px;"></div>
             </div>
 
             <!-- СИМУЛЯТОР ПРОРЫВА ПВО -->
             <div class="glass-panel" style="margin: 40px auto 0 auto; padding: 30px; max-width: 1200px; width: 100%;">
-                <h2 style="text-align:center; color:#fff; font-family:'Inter'; font-size: 1.5rem; margin-bottom: 25px;">СИМУЛЯТОР ПРОРЫВА ПВО</h2>
+                <h2 style="text-align:center; color:var(--text-main); font-family:'Inter'; font-size: 1.5rem; margin-bottom: 25px;">СИМУЛЯТОР ПРОРЫВА ПВО</h2>
 
                 <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
                     <!-- ПВО -->
-                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                    <div style="flex: 1; min-width: 250px; background: #f4f5f7; padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
                         <h3 style="color:var(--primary); margin-bottom: 15px; font-family:'Inter';">СИСТЕМА ПВО</h3>
                         <select id="sim-aa-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
-                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Jura';">Количество модулей ПВО:</label>
+                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';">Количество модулей ПВО:</label>
                         <select id="sim-aa-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
                             <option value="1">1 слот</option><option value="2">2 слота</option>
                             <option value="3">3 слота</option><option value="4" selected>4 слота</option>
@@ -573,10 +612,10 @@
                     </div>
 
                     <!-- Ракеты -->
-                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
+                    <div style="flex: 1; min-width: 250px; background: #f4f5f7; padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
                         <h3 style="color:var(--secondary); margin-bottom: 15px; font-family:'Inter';">РАКЕТНЫЙ ЗАЛП</h3>
                         <select id="sim-missile-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
-                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Jura';">Количество пусковых установок:</label>
+                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';">Количество пусковых установок:</label>
                         <select id="sim-missile-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
                             <option value="1">1 слот</option><option value="2" selected>2 слота</option>
                             <option value="3">3 слота</option><option value="4">4 слота</option>
@@ -586,14 +625,14 @@
 
                 <!-- Дистанция и кнопка запуска -->
                 <div style="text-align: center; margin-bottom: 25px;">
-                    <label style="color: #fff; font-family:'Jura'; font-size: 1.1rem;">Дистанция пуска: <span id="sim-dist-val" style="color:var(--primary); font-weight:bold;">7.0</span> км</label><br>
+                    <label style="color: var(--text-main); font-family:'Inter'; font-size: 1.1rem;">Дистанция пуска: <span id="sim-dist-val" style="color:var(--primary); font-weight:bold;">7.0</span> км</label><br>
                     <input type="range" id="sim-dist" min="1" max="15" step="0.5" value="7" style="width: 100%; max-width: 500px; margin-top: 15px; accent-color: var(--primary);" oninput="document.getElementById('sim-dist-val').innerText = this.value">
                 </div>
 
                 <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto; display: block; border:none; padding: 15px;" onclick="simulateAA()">РАССЧИТАТЬ ВЕРОЯТНОСТЬ</button>
 
                 <!-- Вывод результата -->
-                <div id="sim-result" style="margin-top: 30px; display: none; padding: 20px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; text-align: center; background: rgba(0,0,0,0.4);"></div>
+                <div id="sim-result" style="margin-top: 30px; display: none; padding: 20px; border: 1px solid var(--line); border-radius: 12px; text-align: center; background: #f4f5f7;"></div>
             </div>
         </main>
 
@@ -621,12 +660,6 @@
                     <option value="Южная Корея">Южная Корея</option>
                     <option value="Япония">Япония</option>
                 </select>
-                <select class="filter-select glass-panel" id="filter-rarity-catalog" onchange="handleFilter()">
-                    <option value="">ЛЮБЫЕ КЛАССЫ</option>
-                    <option value="Легендарный">Легендарный</option>
-                    <option value="Эпический">Эпический</option>
-                    <option value="Редкий">Редкий</option>
-                </select>
                 <select class="filter-select glass-panel" id="sort-catalog" onchange="handleFilter()">
                     <option value="none" selected>СОРТИРОВКА: ОТКЛ.</option>
                     <option value="rating">ТОП: РЕЙТИНГ МЕТЫ</option>
@@ -636,14 +669,51 @@
                 </select>
             </div>
 
+            <input type="hidden" id="filter-rarity-catalog" value="">
+            <div class="roster-classes" id="roster-classes">
+                <button class="roster-class-tab active" data-rarity="" onclick="setRarityTab('', this)">ВСЕ</button>
+                <span class="roster-class-line"></span>
+                <button class="roster-class-tab" data-rarity="Легендарный" onclick="setRarityTab('Легендарный', this)">S</button>
+                <button class="roster-class-tab" data-rarity="Эпический" onclick="setRarityTab('Эпический', this)">A</button>
+                <button class="roster-class-tab" data-rarity="Редкий" onclick="setRarityTab('Редкий', this)">B</button>
+            </div>
+
             <div class="mechanics-filters" id="dynamic-mechanics-filters"></div>
 
-            <div class="catalog-grid" id="catalog-content"></div>
+            <div class="roster-layout">
+                <div class="roster-list" id="catalog-content"></div>
+
+                <div class="roster-stage">
+                    <div class="roster-stage-glow"></div>
+                    <div class="roster-portrait" id="roster-portrait"></div>
+                    <div class="roster-empty" id="roster-empty">ВЫБЕРИТЕ ЕДИНИЦУ ИЗ СПИСКА</div>
+                </div>
+
+                <div class="roster-detail glass-panel" id="roster-detail">
+                    <div class="roster-top-row">
+                        <div class="roster-level">
+                            <div class="roster-level-num" id="roster-rating-num">--</div>
+                            <div class="roster-level-label">РЕЙТИНГ</div>
+                        </div>
+                        <div class="roster-heading">
+                            <h2 id="roster-name">—</h2>
+                            <div class="roster-classtext" id="roster-classtext">Категория —</div>
+                        </div>
+                    </div>
+
+                    <div class="roster-stats" id="roster-stats"></div>
+
+                    <div class="roster-skills-label">ОСОБЕННОСТИ</div>
+                    <div class="roster-skills" id="roster-skills"></div>
+
+                    <button class="roster-start-btn" id="roster-start-btn" onclick="addRosterToCompare()" disabled>ВЫБЕРИТЕ ЕДИНИЦУ</button>
+                </div>
+            </div>
         </main>
 
         <main id="page-admin" class="page">
             <div class="glass-panel" style="max-width: 400px; margin: 0 auto; padding: 40px; text-align: center; width: 100%;">
-                <h2 style="color:#fff; font-family:'Inter'; margin-bottom: 10px; font-size:1.5rem;" id="auth-title">АВТОРИЗАЦИЯ</h2>
+                <h2 style="color:var(--text-main); font-family:'Inter'; margin-bottom: 10px; font-size:1.5rem;" id="auth-title">АВТОРИЗАЦИЯ</h2>
                 <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 25px;" id="auth-subtitle">Войдите для доступа к диаграммам, индексу меты и конструктору сборок.</p>
                 
                 <div id="admin-auth">
@@ -653,10 +723,10 @@
                 </div>
 
                 <div id="admin-dashboard" style="display: none;">
-                    <div style="width: 80px; height: 80px; background: rgba(66, 245, 227, 0.1); border: 2px solid var(--primary); border-radius: 50%; margin: 0 auto 20px auto; display:flex; align-items:center; justify-content:center; font-size: 2.5rem; text-shadow: var(--hud-glow);">👑</div>
+                    <div style="width: 80px; height: 80px; background: var(--primary-dim); border: 2px solid var(--primary); border-radius: 50%; margin: 0 auto 20px auto; display:flex; align-items:center; justify-content:center; font-size: 2.5rem;">👑</div>
                     <h3 style="color: var(--primary); font-family: 'Inter'; font-weight: 900; margin-bottom: 25px;">PRO ДОСТУП АКТИВЕН</h3>
                     <p style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 10px;">ПОСЕЩЕНИЯ САЙТА</p>
-                    <div style="font-size: 3rem; color: #fff; font-family: 'Share Tech Mono'; font-weight: bold; margin-bottom: 30px;" id="visit-counter">0</div>
+                    <div style="font-size: 3rem; color: var(--text-main); font-family: 'Inter'; font-weight: 900; margin-bottom: 30px;" id="visit-counter">0</div>
                     <button class="cat-btn-main" style="width:100%; color:var(--secondary); border-color:var(--secondary);" onclick="logout()">ВЫЙТИ ИЗ АККАУНТА</button>
                 </div>
             </div>
@@ -667,7 +737,7 @@
     <div id="ibe-modal" class="modal-overlay">
         <div class="modal-content glass-panel">
             <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
-            <h2 style="color: #fff; font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 15px;">БАЗА ЗНАНИЙ MWLAB</h2>
+            <h2 style="color: var(--text-main); font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 15px;">БАЗА ЗНАНИЙ MWLAB</h2>
             
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
                 <b>Анализатор:</b> Сравнивает вооружение в мете 5-10 км.<br>
@@ -681,8 +751,8 @@
 
             <div id="info-cannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон с учетом крита.</li>
                 </ul>
@@ -691,8 +761,8 @@
             <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
                 <ul style="margin-left: 20px; color: var(--text-muted);">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
-                    <li style="margin-bottom: 8px;"><b style="color: #fff;">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
                 </ul>
             </div>
@@ -1725,7 +1795,7 @@
                     currentCategory = cat; compareQueue = []; 
                     document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
                     document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
-                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Jura'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
+                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Inter'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
                     renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
                     switchMainPage('page-catalog', document.getElementById('nav-catalog'));
                 };
@@ -1869,7 +1939,7 @@
             }
             
             if(pageId === 'page-catalog') { 
-                compareQueue = []; handleFilter(); 
+                compareQueue = []; currentPreviewId = null; handleFilter(); 
             }
 
             const mwlBg = document.getElementById('global-mwl-wrapper');
@@ -1879,102 +1949,183 @@
             }
         }
 
-        function handleCatalogClick(itemId) {
-            const item = DB[itemId];
-            if (compareQueue.length === 0) {
-                compareQueue.push(itemId); 
-                document.querySelectorAll('.catalog-item').forEach(el => {
-                    if(el.dataset.id === itemId) el.classList.add('selected');
-                    else el.classList.remove('selected');
-                });
-                showToast(`ЗАХВАТ СЛОТА 1: ${item.name}`);
-            } else if (compareQueue.length === 1) {
-                if (compareQueue[0] === itemId) { 
-                    compareQueue = []; 
-                    document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('selected'));
-                    return; 
+        let currentPreviewId = null;
+
+        function runCompareFlow(id1, id2) {
+            updateEquipView(1, id1); updateEquipView(2, id2);
+            switchMainPage('page-compare', document.getElementById('nav-compare'));
+
+            const card1 = document.getElementById('card-equip-1');
+            const card2 = document.getElementById('card-equip-2');
+            const verdictScreen = document.getElementById('verdict-screen');
+
+            card1.className = 'equip-card glass-panel';
+            card2.className = 'equip-card glass-panel';
+
+            card1.style.animation = 'none'; card2.style.animation = 'none';
+            void card1.offsetWidth; void card2.offsetWidth;
+            card1.style.animation = 'flyInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+            card2.style.animation = 'flyInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+
+            verdictScreen.style.animation = 'none';
+            verdictScreen.innerHTML = `<div class="vs-badge">VS</div>`;
+            showToast("СИМУЛЯЦИЯ БОЯ...");
+
+            setTimeout(() => {
+                const vsBadge = verdictScreen.querySelector('.vs-badge');
+                if (vsBadge) {
+                    vsBadge.style.animation = 'fadeOutVs 0.4s ease forwards';
+                    setTimeout(() => {
+                        card1.style.animation = ''; card2.style.animation = '';
+                        runAnalysis(id1, id2);
+
+                        verdictScreen.style.animation = 'none';
+                        void verdictScreen.offsetWidth;
+                        verdictScreen.style.animation = 'itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+
+                        showToast("АНАЛИЗ ЗАВЕРШЕН");
+                    }, 400);
                 }
-                const id1 = compareQueue[0]; const id2 = itemId;
-                
-                updateEquipView(1, id1); updateEquipView(2, id2);
-                switchMainPage('page-compare', document.getElementById('nav-compare'));
-                
-                const card1 = document.getElementById('card-equip-1');
-                const card2 = document.getElementById('card-equip-2');
-                const verdictScreen = document.getElementById('verdict-screen');
-                
-                card1.className = 'equip-card glass-panel';
-                card2.className = 'equip-card glass-panel';
-                
-                card1.style.animation = 'none'; card2.style.animation = 'none';
-                void card1.offsetWidth; void card2.offsetWidth; 
-                card1.style.animation = 'flyInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                card2.style.animation = 'flyInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                
-                verdictScreen.style.animation = 'none';
-                verdictScreen.innerHTML = `<div class="vs-badge">VS</div>`;
-                showToast("СИМУЛЯЦИЯ БОЯ...");
-                
-                compareQueue = []; 
-                document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('selected'));
-                
-                setTimeout(() => {
-                    const vsBadge = verdictScreen.querySelector('.vs-badge');
-                    if (vsBadge) {
-                        vsBadge.style.animation = 'fadeOutVs 0.4s ease forwards';
-                        setTimeout(() => {
-                            card1.style.animation = ''; card2.style.animation = '';
-                            runAnalysis(id1, id2);
-                            
-                            verdictScreen.style.animation = 'none';
-                            void verdictScreen.offsetWidth;
-                            verdictScreen.style.animation = 'itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                            
-                            showToast("АНАЛИЗ ЗАВЕРШЕН");
-                        }, 400);
-                    }
-                }, 1400);
+            }, 1400);
+        }
+
+        // Иконки-«особенности» для панели SKILLS — подбираются из реальных флагов предмета
+        function getSkillChips(item) {
+            const chips = [];
+            if (item.crit_chance > 0) chips.push({ icon: '⚡', title: `Крит. шанс ${item.crit_chance}%` });
+            if ((item.splash_damage > 0) || (item.splash_radius > 0)) chips.push({ icon: '💥', title: 'Осколочное поражение' });
+            if (item.detonation_radius > 0) chips.push({ icon: '🎯', title: `Радиус детонации ${item.detonation_radius}м` });
+            if (item.cluster === 1 || (item.fragmentation_damage > 0)) chips.push({ icon: '🧨', title: 'Кластерная БЧ' });
+            if (item.anti_jamming === 1) chips.push({ icon: '📡', title: 'Помехозащита' });
+            if (item.air_target === 1) chips.push({ icon: '🛩', title: 'Поражает воздушные цели' });
+            if (item.sub_launch === 1 || item.can_hit_subs === 1) chips.push({ icon: '🌊', title: 'Подводная угроза' });
+            if (item.ammo_clip > 1) chips.push({ icon: '🔁', title: `Магазин ${item.ammo_clip}` });
+            return chips.slice(0, 4);
+        }
+
+        function previewRosterItem(itemId) {
+            currentPreviewId = itemId;
+            const item = DB[itemId];
+
+            document.querySelectorAll('.catalog-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.id === itemId);
+            });
+
+            document.getElementById('roster-empty').style.display = 'none';
+            const portrait = document.getElementById('roster-portrait');
+            portrait.style.opacity = 0;
+            setTimeout(() => {
+                portrait.style.backgroundImage = `url('${item.img}')`;
+                portrait.style.opacity = 1;
+            }, 120);
+
+            document.getElementById('roster-name').innerText = item.name;
+            document.getElementById('roster-classtext').innerText = `${item.category} · Класс ${item.rarity === 'Легендарный' ? 'S' : item.rarity === 'Эпический' ? 'A' : 'B'}`;
+            document.getElementById('roster-rating-num').innerText = isAuth ? item.rating : '🔒';
+            document.getElementById('roster-stats').innerHTML = generateStatsHtml(item, 'roster');
+
+            const chips = getSkillChips(item);
+            document.getElementById('roster-skills').innerHTML = chips.length
+                ? chips.map(c => `<div class="roster-skill-chip" title="${c.title}">${c.icon}</div>`).join('')
+                : `<div class="roster-skills-empty">Нет особых модификаторов</div>`;
+
+            updateRosterStartButton();
+        }
+
+        function updateRosterStartButton() {
+            const btn = document.getElementById('roster-start-btn');
+            if (!currentPreviewId) { btn.disabled = true; btn.textContent = 'ВЫБЕРИТЕ ЕДИНИЦУ'; btn.classList.remove('in-queue'); return; }
+            btn.disabled = false;
+            if (compareQueue.includes(currentPreviewId)) {
+                btn.textContent = 'УБРАТЬ ИЗ СРАВНЕНИЯ';
+                btn.classList.add('in-queue');
+            } else if (compareQueue.length === 1) {
+                btn.textContent = 'ДОБАВИТЬ В СЛОТ 2';
+                btn.classList.remove('in-queue');
+            } else {
+                btn.textContent = 'В СРАВНЕНИЕ';
+                btn.classList.remove('in-queue');
             }
         }
 
+        function addRosterToCompare() {
+            if (!currentPreviewId) return;
+            const item = DB[currentPreviewId];
+
+            if (compareQueue.includes(currentPreviewId)) {
+                compareQueue = compareQueue.filter(id => id !== currentPreviewId);
+                document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+                compareQueue.forEach(id => { const el = document.querySelector(`.catalog-item[data-id="${id}"]`); if (el) el.classList.add('queued'); });
+                showToast(`СЛОТ ОСВОБОЖДЕН: ${item.name}`);
+                updateRosterStartButton();
+                return;
+            }
+
+            compareQueue.push(currentPreviewId);
+            document.querySelectorAll('.catalog-item').forEach(el => { if (compareQueue.includes(el.dataset.id)) el.classList.add('queued'); });
+
+            if (compareQueue.length === 1) {
+                showToast(`ЗАХВАТ СЛОТА 1: ${item.name}`);
+                updateRosterStartButton();
+            } else if (compareQueue.length === 2) {
+                const id1 = compareQueue[0]; const id2 = compareQueue[1];
+                runCompareFlow(id1, id2);
+                compareQueue = [];
+                document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+                updateRosterStartButton();
+            }
+        }
+
+        function setRarityTab(rarity, btnEl) {
+            document.getElementById('filter-rarity-catalog').value = rarity;
+            document.querySelectorAll('.roster-class-tab').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            handleFilter();
+        }
+
         function renderCatalogUI(filteredItems) {
-            const c = document.getElementById('catalog-content'); c.innerHTML = ''; 
+            const c = document.getElementById('catalog-content'); c.innerHTML = '';
             filteredItems.forEach((s, index) => {
-                const sel = compareQueue.includes(s.id) ? 'selected' : '';
-                const delay = index * 0.03; 
-                const ratingText = isAuth ? `${s.rating}/1000` : `🔒 PRO`;
-                const ratingColor = isAuth ? `var(--primary)` : `var(--secondary)`;
+                const queued = compareQueue.includes(s.id) ? 'queued' : '';
+                const active = s.id === currentPreviewId ? 'active' : '';
+                const delay = index * 0.03;
 
                 c.innerHTML += `
-                    <div class="catalog-item glass-panel ${sel}" data-id="${s.id}" style="animation-delay: ${delay}s" onclick="handleCatalogClick('${s.id}')">
+                    <div class="catalog-item ${queued} ${active}" data-id="${s.id}" style="animation-delay: ${delay}s" onclick="previewRosterItem('${s.id}')">
                         <div class="catalog-item-img" style="background-image: url('${s.img}')"></div>
-                        <div class="cat-item-name">${s.name}</div>
-                        <div class="cat-item-meta">
-                            <div class="cat-meta-row"><span>ФРАКЦИЯ</span> <span style="color:#fff">${s.country}</span></div>
-                            <div class="cat-meta-row"><span>ИНДЕКС МЕТЫ</span> <span style="color:${ratingColor}; font-weight:bold;">${ratingText}</span></div>
+                        <div>
+                            <div class="cat-item-name">${s.name}</div>
+                            <div class="cat-item-meta">${s.country} · ${isAuth ? s.rating : '🔒 PRO'}</div>
                         </div>
                     </div>`;
             });
+
+            if (filteredItems.length && !filteredItems.some(i => i.id === currentPreviewId)) {
+                previewRosterItem(filteredItems[0].id);
+            } else if (!filteredItems.length) {
+                currentPreviewId = null;
+                document.getElementById('roster-empty').style.display = 'block';
+                document.getElementById('roster-portrait').style.backgroundImage = '';
+                document.getElementById('roster-name').innerText = '—';
+                document.getElementById('roster-classtext').innerText = 'Категория —';
+                document.getElementById('roster-rating-num').innerText = '--';
+                document.getElementById('roster-stats').innerHTML = '';
+                document.getElementById('roster-skills').innerHTML = '';
+                updateRosterStartButton();
+            } else if (currentPreviewId) {
+                previewRosterItem(currentPreviewId);
+            }
         }
 
-        function updateEquipView(side, itemId) {
-            const item = DB[itemId];
-            document.getElementById(`name-equip-${side}`).innerText = item.name;
-            const imgEl = document.getElementById(`img-equip-${side}`);
-            imgEl.style.backgroundImage = `url('${item.img}')`;
-            
-            document.getElementById(`holo-${side}`).style.display = 'block';
-            document.getElementById(`holo-rays-${side}`).style.display = 'block';
-            document.getElementById(`holo-scan-${side}`).style.display = 'block';
-            
+        function generateStatsHtml(item, side) {
             let catMax = CATEGORY_MAX_STATS[item.category] || CATEGORY_MAX_STATS["Пушки"];
-            
+
             let html = '';
             for (let key in STATS_LOGIC) {
                 let val = item[key];
                 if (val === undefined) continue;
                 if (item.category === 'Пушки' && key === 'start_speed') continue;
-                
+
                 let rawVal = val;
                 if (key === 'dpm' || key === 'damage_burst' || key === 'splash_damage' || key === 'fragmentation_damage' || key === 'damage') val = val.toLocaleString('ru');
                 if (key === 'anti_jamming') val = val === 1 ? "АКТИВНО" : "НЕТ";
@@ -2008,7 +2159,20 @@
                     ${!STATS_LOGIC[key].isBool && !STATS_LOGIC[key].isString ? `<div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-${side}-${key}" style="width: ${pct}%"></div></div>` : ''}
                 </div>`;
             }
-            document.getElementById(`stats-equip-${side}`).innerHTML = html;
+            return html;
+        }
+
+        function updateEquipView(side, itemId) {
+            const item = DB[itemId];
+            document.getElementById(`name-equip-${side}`).innerText = item.name;
+            const imgEl = document.getElementById(`img-equip-${side}`);
+            imgEl.style.backgroundImage = `url('${item.img}')`;
+            
+            document.getElementById(`holo-${side}`).style.display = 'block';
+            document.getElementById(`holo-rays-${side}`).style.display = 'block';
+            document.getElementById(`holo-scan-${side}`).style.display = 'block';
+
+            document.getElementById(`stats-equip-${side}`).innerHTML = generateStatsHtml(item, side);
         }
 
        function drawRadarChart(e1, e2) {
@@ -2085,25 +2249,25 @@
                 d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), e2.accuracyScore || 100, pct(dens2, 175), pct(spd2, cMax2.max_speed), pct(aoe2, 333), pct(e2.range, cMax2.range) ];
             }
 
-            Chart.defaults.color = '#7890a8';
-            Chart.defaults.font.family = 'Share Tech Mono';
+            Chart.defaults.color = '#838b96';
+            Chart.defaults.font.family = 'Inter';
 
             window.radarChartInstance = new Chart(ctx, {
                 type: 'radar',
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: e1.name, data: d1, backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 3 },
-                        { label: e2.name, data: d2, backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 3 }
+                        { label: e1.name, data: d1, backgroundColor: 'rgba(63, 217, 199, 0.18)', borderColor: '#3fd9c7', pointBackgroundColor: '#3fd9c7', borderWidth: 2, pointRadius: 3 },
+                        { label: e2.name, data: d2, backgroundColor: 'rgba(232, 72, 63, 0.14)', borderColor: '#e8483f', pointBackgroundColor: '#e8483f', borderWidth: 2, pointRadius: 3 }
                     ]
                 },
                 options: {
                     scales: { 
                         r: { 
                             min: 0, max: 100, 
-                            angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, 
-                            grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, 
-                            pointLabels: { color: '#e2f1f8', font: { family: 'Inter', size: 11 } }, 
+                            angleLines: { color: 'rgba(20, 24, 28, 0.08)' }, 
+                            grid: { color: 'rgba(20, 24, 28, 0.08)', circular: true }, 
+                            pointLabels: { color: '#14181c', font: { family: 'Inter', size: 11, weight: '600' } }, 
                             ticks: { display: false } 
                         } 
                     },
@@ -2111,7 +2275,7 @@
                         legend: { 
                             display: true, 
                             position: 'bottom', 
-                            labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 12 }, padding: 15 } 
+                            labels: { color: '#14181c', font: { family: 'Inter', size: 12 }, padding: 15 } 
                         } 
                     }, 
                     responsive: true, maintainAspectRatio: false
@@ -2298,18 +2462,18 @@
                 // ключевой показатель с наибольшим относительным превосходством по этой категории.
                 if (!reason) reason = getKeyFactorReason(winner, loser, e1.category);
 
-                summaryText = `<span style="color:var(--primary); font-size: 1.4rem; display:block; margin-bottom: 15px; font-family:'Orbitron'; letter-spacing:1px; text-transform: uppercase;">ПОБЕДИТЕЛЬ: ${winner.name}</span>
+                summaryText = `<span style="color:var(--primary); font-size: 1.4rem; display:block; margin-bottom: 15px; font-family:'Inter'; letter-spacing:1px; text-transform: uppercase;">ПОБЕДИТЕЛЬ: ${winner.name}</span>
                 <span style="color:var(--text-main); font-size: 1rem; line-height: 1.6;">
                     В актуальной мете ближнего боя (5-10 км) это оружие эффективнее на <b style="color:var(--secondary); font-size:1.2rem;">${percentDiff}%</b>.<br><br>
                     <span style="color:var(--text-muted); font-size:0.85rem; letter-spacing:1px; text-transform:uppercase;">Ключевой фактор:</span><br>
-                    <b style="color:#fff; font-size: 1.05rem;">Победа достигается благодаря ${reason}.</b>
+                    <b style="color:var(--text-main); font-size: 1.05rem;">Победа достигается благодаря ${reason}.</b>
                 </span>`;
             }
 
             let metaLegend = `
                 <div class="meta-legend" style="margin-top: 25px;">
-                    <b style="color:#fff;">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
-                    <span style="color:#fff;">0-5%</span>: ПАРИТЕТ | 
+                    <b style="color:var(--text-main);">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
+                    <span style="color:var(--text-main);">0-5%</span>: ПАРИТЕТ | 
                     <span style="color:var(--primary);">5-15%</span>: НЕБОЛЬШОЕ ПРЕИМУЩЕСТВО | 
                     <span style="color:var(--secondary);">>15%</span>: АБСОЛЮТНАЯ ДОМИНАЦИЯ
                 </div>
@@ -2317,10 +2481,10 @@
 
             let visualsHTML = isAuth 
                 ? `<div class="radar-container" style="position: relative; height: 250px; margin-top:20px;"><canvas id="radarChart"></canvas></div>` 
-                : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Jura'; font-weight:bold; border: 1px dashed rgba(255,60,90,0.3); margin-top:15px; border-radius:12px; background:rgba(255,60,90,0.05);">🔒 ДИАГРАММА АНАЛИЗА ДОСТУПНА В PRO ВЕРСИИ</div>`;
+                : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Inter'; font-weight:bold; border: 1px dashed rgba(232,72,63,0.3); margin-top:15px; border-radius:12px; background:rgba(232,72,63,0.06);">🔒 ДИАГРАММА АНАЛИЗА ДОСТУПНА В PRO ВЕРСИИ</div>`;
 
             let finalVerdictHTML = `<div class="final-summary-block glass-panel" style="padding:30px; width:100%;">
-                <div style="font-family:'Jura'; text-transform: none;">${summaryText}</div>
+                <div style="font-family:'Inter'; text-transform: none;">${summaryText}</div>
                 ${metaLegend}
                 ${visualsHTML}
             </div>`;
@@ -2390,7 +2554,7 @@
             });
             
             if (html === '') {
-                html = `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Jura'; font-weight:bold;">Оружие не найдено</div>`;
+                html = `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Inter'; font-weight:bold;">Оружие не найдено</div>`;
             }
             
             list.innerHTML = html;
@@ -2420,7 +2584,7 @@
 
             const slotHtml = `
                 <div class="build-slot-container glass-panel ${colorClass}" id="${slotId}">
-                    <div style="color: ${colorStyle}; font-family: 'Share Tech Mono';">СЛОТ:</div>
+                    <div style="color: ${colorStyle}; font-family: 'Inter';">СЛОТ:</div>
                     
                     <div class="custom-select-wrapper" id="wrapper-${slotId}" data-value="${defaultItemKey}">
                         <div class="custom-select-trigger" onclick="toggleBuildDropdown('${slotId}')">
@@ -2474,7 +2638,7 @@
                         <option value="5">x5</option><option value="6">x6</option>
                         <option value="7">x7</option><option value="8">x8</option>
                     </select>
-                    <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--text-muted); font-size:1.8rem; cursor:pointer; font-family:'Jura'; font-weight:bold; transition:0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
+                    <button onclick="document.getElementById('${slotId}').remove()" style="background:none; border:none; color:var(--text-muted); font-size:1.8rem; cursor:pointer; font-family:'Inter'; font-weight:bold; transition:0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', slotHtml);
@@ -2513,12 +2677,12 @@
             return `
                 <div class="analysis-col glass-panel" style="border-left-color:${color};">
                     <div class="col-title" style="color:${color};">КОРАБЛЬ ${shipNum}</div>
-                    <div style="font-family:'Share Tech Mono'; color:var(--text-main); font-size:0.95rem; line-height:1.6; text-transform:none;">
-                        Урон в минуту: <b style="color:#fff;">${Math.round(stats.totalDpm).toLocaleString('ru')}</b><br>
+                    <div style="font-family:'Inter'; color:var(--text-main); font-size:0.95rem; line-height:1.6; text-transform:none;">
+                        Урон в минуту: <b style="color:var(--text-main);">${Math.round(stats.totalDpm).toLocaleString('ru')}</b><br>
                         Эффект. DPM: <b style="color:#ffaa00">${Math.round(stats.totalEffDpm).toLocaleString('ru')}</b><br>
-                        Альфа-страйк: <b style="color:#fff">${Math.round(stats.totalBurst).toLocaleString('ru')}</b><br>
-                        Дальность: <b style="color:#fff">${stats.maxRange} км</b><br>
-                        Баллистика: <b style="color:#fff">${Math.round(stats.avgSpeed)} уз.</b><br>
+                        Альфа-страйк: <b style="color:var(--text-main)">${Math.round(stats.totalBurst).toLocaleString('ru')}</b><br>
+                        Дальность: <b style="color:var(--text-main)">${stats.maxRange} км</b><br>
+                        Баллистика: <b style="color:var(--text-main)">${Math.round(stats.avgSpeed)} уз.</b><br>
                         ПВО: ${stats.hasAir ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}<br>
                         Атака ПЛ: ${stats.hasSub ? '<b style="color:var(--primary)">АКТИВНО</b>' : '<b style="color:var(--text-muted)">ОТСУТСТВУЕТ</b>'}
                     </div>
@@ -2532,7 +2696,7 @@
             if (stats.itemsCount === 0) return tacticsText + `<span style="color:var(--text-muted)">Слоты пусты</span></div>`;
             
             if (stats.hasAntiJamming) tacticsText += `<span style="color:${color}">[+]</span> Защита от ловушек (часть урона неотводима).<br>`;
-            if (stats.totalBurst > 100000) tacticsText += `<span style="color:#fff">[!]</span> Разрушительный Альфа-страйк! Идеально от укрытий.<br>`;
+            if (stats.totalBurst > 100000) tacticsText += `<span style="color:var(--text-main)">[!]</span> Разрушительный Альфа-страйк! Идеально от укрытий.<br>`;
             if (stats.totalEffDpm > 500000) tacticsText += `<span style="color:#ffaa00">[!]</span> Колоссальный DPM. Распилит любого в открытом бою.<br>`;
             if (!stats.hasAir) tacticsText += `<span style="color:var(--secondary)">[-]</span> Уязвимость с воздуха (требуется сильное ПВО).<br>`;
             tacticsText += `</div>`;
@@ -2556,8 +2720,8 @@
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
             
-            Chart.defaults.color = '#7890a8';
-            Chart.defaults.font.family = 'Share Tech Mono';
+            Chart.defaults.color = '#838b96';
+            Chart.defaults.font.family = 'Inter';
 
             const datasets = [];
             
@@ -2571,7 +2735,7 @@
                         Math.min(100, (s1.avgSpeed / 1000) * 100),
                         ((s1.hasAir ? 50 : 0) + (s1.hasSub ? 30 : 0) + (s1.hasAntiJamming ? 20 : 0))
                     ],
-                    backgroundColor: 'rgba(66, 245, 227, 0.2)', borderColor: '#42f5e3', pointBackgroundColor: '#42f5e3', borderWidth: 2, pointRadius: 4
+                    backgroundColor: 'rgba(63, 217, 199, 0.18)', borderColor: '#3fd9c7', pointBackgroundColor: '#3fd9c7', borderWidth: 2, pointRadius: 4
                 });
             }
             if(s2.itemsCount > 0) {
@@ -2584,7 +2748,7 @@
                         Math.min(100, (s2.avgSpeed / 1000) * 100),
                         ((s2.hasAir ? 50 : 0) + (s2.hasSub ? 30 : 0) + (s2.hasAntiJamming ? 20 : 0))
                     ],
-                    backgroundColor: 'rgba(255, 60, 90, 0.2)', borderColor: '#ff3c5a', pointBackgroundColor: '#ff3c5a', borderWidth: 2, pointRadius: 4
+                    backgroundColor: 'rgba(232, 72, 63, 0.14)', borderColor: '#e8483f', pointBackgroundColor: '#e8483f', borderWidth: 2, pointRadius: 4
                 });
             }
 
@@ -2595,8 +2759,8 @@
                     datasets: datasets
                 },
                 options: {
-                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, grid: { color: 'rgba(255, 255, 255, 0.05)', circular: true }, pointLabels: { color: '#e2f1f8', font: { family: 'Share Tech Mono', size: 12 } }, ticks: { display: false } } },
-                    plugins: { legend: { display: true, position: 'bottom', labels: { color: '#fff', font: { family: 'Share Tech Mono', size: 12 }, padding: 15 } } }, responsive: true, maintainAspectRatio: false
+                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(20, 24, 28, 0.08)' }, grid: { color: 'rgba(20, 24, 28, 0.08)', circular: true }, pointLabels: { color: '#14181c', font: { family: 'Inter', size: 12, weight: '600' } }, ticks: { display: false } } },
+                    plugins: { legend: { display: true, position: 'bottom', labels: { color: '#14181c', font: { family: 'Inter', size: 12 }, padding: 15 } } }, responsive: true, maintainAspectRatio: false
                 }
             });
             showToast("СИСТЕМЫ РАССЧИТАНЫ");
@@ -2617,12 +2781,12 @@
             glassPanels.forEach(p => { 
                 p.style.backdropFilter = 'none'; 
                 p.style.webkitBackdropFilter = 'none'; 
-                p.style.background = 'rgba(11, 22, 36, 0.95)';
+                p.style.background = '#ffffff';
             });
             
             setTimeout(() => {
                 html2canvas(el, {
-                    backgroundColor: '#071017',
+                    backgroundColor: '#eef0f2',
                     scale: window.devicePixelRatio > 1 ? window.devicePixelRatio : 2,
                     useCORS: true,
                     allowTaint: true,
@@ -2829,15 +2993,15 @@
             const resDiv = document.getElementById('sim-result');
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
-                <div style="font-family:'Share Tech Mono'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
-                    Время реакции ПВО: <b style="color:#fff;">${engageTime.toFixed(2)} сек.</b><br>
-                    ${aaHasMissileProfile ? `Фактор скорости перехвата: <b style="color:#fff;">${(speedFactor*100).toFixed(0)}%</b> (долетело пусков: ${shotsLanded}/${shotsFired})<br>` : ''}
-                    Точность системы: <b style="color:#fff;">${(accuracy*100).toFixed(0)}%</b><br>
+                <div style="font-family:'Inter'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
+                    Время реакции ПВО: <b style="color:var(--text-main);">${engageTime.toFixed(2)} сек.</b><br>
+                    ${aaHasMissileProfile ? `Фактор скорости перехвата: <b style="color:var(--text-main);">${(speedFactor*100).toFixed(0)}%</b> (долетело пусков: ${shotsLanded}/${shotsFired})<br>` : ''}
+                    Точность системы: <b style="color:var(--text-main);">${(accuracy*100).toFixed(0)}%</b><br>
                     Математический урон ПВО: <b style="color:var(--primary);">${Math.round(totalAADamage).toLocaleString('ru')} HP</b><br>
                     Прочность роя ракет (${totalMissiles} шт.): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString('ru')} HP</b><br>
-                    <div style="margin: 15px 0; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
+                    <div style="margin: 15px 0; border-top: 1px solid var(--line); padding-top: 15px;">
                         <span style="font-family:'Inter'; font-weight:900; font-size:1.4rem; color:${resColor};">${verdict}</span><br>
-                        Сбито ракет: <b style="color:#fff; font-size:1.2rem;">${destroyedMissiles}</b> из <b style="color:#fff; font-size:1.2rem;">${totalMissiles}</b><br>
+                        Сбито ракет: <b style="color:var(--text-main); font-size:1.2rem;">${destroyedMissiles}</b> из <b style="color:var(--text-main); font-size:1.2rem;">${totalMissiles}</b><br>
                         Проходимость урона: <b style="font-size:1.8rem; color:${resColor};">${survivalProbability.toFixed(1)}%</b>
                     </div>
                     ${speedWarning}
