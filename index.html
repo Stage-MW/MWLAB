@@ -351,13 +351,10 @@
         .roster-classtext { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
         .roster-stats { display: flex; flex-direction: column; gap: 12px; flex-grow: 1; overflow-y: auto; max-height: 32vh; padding-right: 4px; }
         .roster-skills-label { font-size: 0.65rem; letter-spacing: 2.5px; color: var(--text-muted); font-weight: 800; margin: 20px 0 10px 0; }
-        .roster-skills { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
-        .roster-skill-chip { width: 48px; height: 48px; border-radius: 13px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; position: relative; cursor: default; }
+        .roster-skills { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+        .roster-skill-chip { width: 100%; border-radius: 10px; background: var(--primary-dim); color: var(--text-main); border-left: 3px solid var(--primary); display: flex; align-items: center; padding: 9px 12px; font-size: 0.78rem; font-weight: 600; line-height: 1.35; position: relative; cursor: default; }
         .roster-skills-empty { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
-        .roster-start-btn { margin-top: auto; background: var(--primary); color: #fff; border: none; padding: 17px; border-radius: 15px; font-family: 'Inter'; font-weight: 800; letter-spacing: 1.5px; font-size: 0.9rem; cursor: pointer; transition: 0.25s; text-transform: uppercase; }
-        .roster-start-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-2px); }
-        .roster-start-btn:disabled { background: var(--primary-dim); color: var(--text-muted); cursor: not-allowed; }
-        .roster-start-btn.in-queue { background: var(--secondary); }
+        .roster-compare-hint { margin-top: auto; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; text-align: center; line-height: 1.4; padding: 12px; background: #f4f5f7; border-radius: 12px; }
 
         /* --- MODALS & TOASTS --- */
         #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
@@ -601,7 +598,23 @@
                     <!-- ПВО -->
                     <div style="flex: 1; min-width: 250px; background: #f4f5f7; padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
                         <h3 style="color:var(--primary); margin-bottom: 15px; font-family:'Inter';">СИСТЕМА ПВО</h3>
-                        <select id="sim-aa-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
+                        <div id="sim-aa" style="position:relative; margin-bottom: 10px;">
+                            <div class="custom-select-wrapper" id="wrapper-sim-aa" data-value="" style="max-width:100%;">
+                                <div class="custom-select-trigger" onclick="toggleBuildDropdown('sim-aa')">
+                                    <div class="trigger-left">
+                                        <div class="trigger-img" id="img-sim-aa"></div>
+                                        <div class="trigger-text" id="text-sim-aa">ВЫБЕРИТЕ ПВО</div>
+                                    </div>
+                                    <div>▼</div>
+                                </div>
+                                <div class="custom-select-dropdown" id="dropdown-sim-aa">
+                                    <div class="dropdown-filter">
+                                        <input type="text" id="search-sim-aa" placeholder="ПОИСК ПВО..." oninput="renderSimAAOptions()" onclick="event.stopPropagation()">
+                                    </div>
+                                    <div class="dropdown-list" id="list-sim-aa"></div>
+                                </div>
+                            </div>
+                        </div>
                         <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';">Количество модулей ПВО:</label>
                         <select id="sim-aa-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
                             <option value="1">1 слот</option><option value="2">2 слота</option>
@@ -614,7 +627,28 @@
                     <!-- Ракеты -->
                     <div style="flex: 1; min-width: 250px; background: #f4f5f7; padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
                         <h3 style="color:var(--secondary); margin-bottom: 15px; font-family:'Inter';">РАКЕТНЫЙ ЗАЛП</h3>
-                        <select id="sim-missile-select" class="filter-select" style="width: 100%; margin-bottom: 10px;"></select>
+                        <div id="sim-missile" style="position:relative; margin-bottom: 10px;">
+                            <div class="custom-select-wrapper" id="wrapper-sim-missile" data-value="" style="max-width:100%;">
+                                <div class="custom-select-trigger" onclick="toggleBuildDropdown('sim-missile')">
+                                    <div class="trigger-left">
+                                        <div class="trigger-img" id="img-sim-missile"></div>
+                                        <div class="trigger-text" id="text-sim-missile">ВЫБЕРИТЕ РАКЕТУ</div>
+                                    </div>
+                                    <div>▼</div>
+                                </div>
+                                <div class="custom-select-dropdown" id="dropdown-sim-missile">
+                                    <div class="dropdown-filter">
+                                        <input type="text" id="search-sim-missile" placeholder="ПОИСК..." oninput="renderSimMissileOptions()" onclick="event.stopPropagation()">
+                                        <select id="cat-sim-missile" onchange="renderSimMissileOptions()" onclick="event.stopPropagation()">
+                                            <option value="">ВСЕ ТИПЫ</option>
+                                            <option value="Ракеты">Ракеты</option>
+                                            <option value="Гранатометы">Ракетные гранатометы</option>
+                                        </select>
+                                    </div>
+                                    <div class="dropdown-list" id="list-sim-missile"></div>
+                                </div>
+                            </div>
+                        </div>
                         <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';">Количество пусковых установок:</label>
                         <select id="sim-missile-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
                             <option value="1">1 слот</option><option value="2" selected>2 слота</option>
@@ -671,7 +705,7 @@
 
             <input type="hidden" id="filter-rarity-catalog" value="">
             <div class="roster-classes" id="roster-classes">
-                <button class="roster-class-tab active" data-rarity="" onclick="setRarityTab('', this)">ВСЕ</button>
+                <button class="roster-class-tab active" data-rarity="" onclick="setRarityTab('', this)">ALL</button>
                 <span class="roster-class-line"></span>
                 <button class="roster-class-tab" data-rarity="Легендарный" onclick="setRarityTab('Легендарный', this)">S</button>
                 <button class="roster-class-tab" data-rarity="Эпический" onclick="setRarityTab('Эпический', this)">A</button>
@@ -706,7 +740,7 @@
                     <div class="roster-skills-label">ОСОБЕННОСТИ</div>
                     <div class="roster-skills" id="roster-skills"></div>
 
-                    <button class="roster-start-btn" id="roster-start-btn" onclick="addRosterToCompare()" disabled>ВЫБЕРИТЕ ЕДИНИЦУ</button>
+                    <div class="roster-compare-hint" id="roster-compare-hint">Нажмите на 1-й, затем на 2-й объект в списке — сравнение запустится автоматически</div>
                 </div>
             </div>
         </main>
@@ -744,9 +778,14 @@
                 <b>Конструктор:</b> Симулирует реальную сборку корабля.
             </p>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none; flex-grow:1;" onclick="switchModalTab('cannons')">ПУШКИ</button>
-                <button class="cat-btn-main" id="btn-modal-missiles" style="border:none; flex-grow:1;" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+                <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('cannons')">ПУШКИ</button>
+                <button class="cat-btn-main" id="btn-modal-missiles" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
+                <button class="cat-btn-main" id="btn-modal-aamissiles" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('aamissiles')">РАКЕТЫ А/А</button>
+                <button class="cat-btn-main" id="btn-modal-torpedoes" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('torpedoes')">ТОРПЕДЫ</button>
+                <button class="cat-btn-main" id="btn-modal-launchers" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('launchers')">ГРАНАТОМЕТЫ</button>
+                <button class="cat-btn-main" id="btn-modal-autocannons" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('autocannons')">АВТОПУШКИ</button>
+                <button class="cat-btn-main" id="btn-modal-aa" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('aa')">ПВО</button>
             </div>
 
             <div id="info-cannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5;">
@@ -764,6 +803,52 @@
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
+                </ul>
+            </div>
+
+            <div id="info-aamissiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
+                <ul style="margin-left: 20px; color: var(--text-muted);">
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Та же формула, что у ракет:</b> Зенитные ракеты считаются по модели обычных ракет, но с упором на стрельбу по авиации.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Многозарядность:</b> Каждая дополнительная ракета в пуске даёт заметный бонус к рейтингу.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Сплэш/АОЕ:</b> Даёт огромный бонус — одна ракета может задеть сразу всё звено авиации.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Прочность и скорость:</b> HP ракеты, стартовая/макс. скорость и разгон напрямую влияют на шанс долететь до цели.</li>
+                </ul>
+            </div>
+
+            <div id="info-torpedoes" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
+                <ul style="margin-left: 20px; color: var(--text-muted);">
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Обход ловушек:</b> Без помехозащиты эффективный урон в минуту снижается по циклу отвода (29 сек) и зависит от скорости торпеды.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Скорость и разгон:</b> Чем быстрее торпеда и короче время разгона — тем выше итоговый рейтинг.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Обойма и залп:</b> Бонус за количество торпед в обойме и в одном пуске.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Спец. возможности:</b> Радиус детонации и сплэш-урон повышают шанс поражения даже при неточном попадании.</li>
+                </ul>
+            </div>
+
+            <div id="info-launchers" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
+                <ul style="margin-left: 20px; color: var(--text-muted);">
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Тип определяет формулу:</b> Пушечные (снарядные), Ракетные, Лазерные и Смешанные гранатометы оцениваются по-разному.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Пушечные / Смешанные:</b> Штраф за отдачу и разброс на дистанции — как у обычных пушек.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Ракетные:</b> Учитывается HP снаряда и цикл обхода ловушек — как у ракет.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерные:</b> Мгновенное наведение без времени захвата, но сниженный эффективный урон.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Спец. модификаторы:</b> Поражение торпед/подлодок, залповый режим (burst) и атака авиации дают дополнительные очки.</li>
+                </ul>
+            </div>
+
+            <div id="info-autocannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
+                <ul style="margin-left: 20px; color: var(--text-muted);">
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Базовый DPM и альфа-страйк:</b> Основной вклад в итоговую оценку.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">ПВО / ПЛО:</b> Крупный бонус за возможность бить авиацию и подлодки.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Дальность и скорость снаряда:</b> Чем выше показатели — тем лучше рейтинг.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Крит и сплэш:</b> Дают дополнительные очки к общей оценке.</li>
+                </ul>
+            </div>
+
+            <div id="info-aa" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
+                <ul style="margin-left: 20px; color: var(--text-muted);">
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Реальная угроза, а не вакуум:</b> ПВО оценивается против усреднённого профиля боевых ракет из базы — считается «окно перехвата» и реальный шанс сбить типичную ракету.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность по типу:</b> Лазерное ПВО точнее Гибридного, Ракетного и Пулемётного — у каждого свой индекс разброса.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Скорость перехвата:</b> У Ракетного/Гибридного ПВО скорость и разгон собственной ракеты сравниваются со скоростью цели — медленный интерцептор резко теряет эффективность.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">АОЕ и плотность огня:</b> Сплэш, радиус детонации и размер обоймы дают бонус против роя ракет.</li>
                 </ul>
             </div>
         </div>
@@ -1756,18 +1841,12 @@
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
 
         function switchModalTab(tab) {
-            document.getElementById('info-cannons').style.display = 'none';
-            document.getElementById('info-missiles').style.display = 'none';
-            document.getElementById('btn-modal-cannons').classList.remove('active');
-            document.getElementById('btn-modal-missiles').classList.remove('active');
-            
-            if(tab === 'cannons') {
-                document.getElementById('info-cannons').style.display = 'block';
-                document.getElementById('btn-modal-cannons').classList.add('active');
-            } else {
-                document.getElementById('info-missiles').style.display = 'block';
-                document.getElementById('btn-modal-missiles').classList.add('active');
-            }
+            document.querySelectorAll('#ibe-modal [id^="info-"]').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('#ibe-modal [id^="btn-modal-"]').forEach(el => el.classList.remove('active'));
+            const info = document.getElementById('info-' + tab);
+            const btn = document.getElementById('btn-modal-' + tab);
+            if (info) info.style.display = 'block';
+            if (btn) btn.classList.add('active');
         }
 
         function showToast(msg, isErr = false) {
@@ -1989,18 +2068,21 @@
             }, 1400);
         }
 
-        // Иконки-«особенности» для панели SKILLS — подбираются из реальных флагов предмета
+        // Особенности предмета — короткие текстовые пояснения вместо иконок,
+        // подбираются из реальных флагов/статов предмета
         function getSkillChips(item) {
             const chips = [];
-            if (item.crit_chance > 0) chips.push({ icon: '⚡', title: `Крит. шанс ${item.crit_chance}%` });
-            if ((item.splash_damage > 0) || (item.splash_radius > 0)) chips.push({ icon: '💥', title: 'Осколочное поражение' });
-            if (item.detonation_radius > 0) chips.push({ icon: '🎯', title: `Радиус детонации ${item.detonation_radius}м` });
-            if (item.cluster === 1 || (item.fragmentation_damage > 0)) chips.push({ icon: '🧨', title: 'Кластерная БЧ' });
-            if (item.anti_jamming === 1) chips.push({ icon: '📡', title: 'Помехозащита' });
-            if (item.air_target === 1) chips.push({ icon: '🛩', title: 'Поражает воздушные цели' });
-            if (item.sub_launch === 1 || item.can_hit_subs === 1) chips.push({ icon: '🌊', title: 'Подводная угроза' });
-            if (item.ammo_clip > 1) chips.push({ icon: '🔁', title: `Магазин ${item.ammo_clip}` });
-            return chips.slice(0, 4);
+            if (item.crit_chance > 0) chips.push(`Крит. шанс ${item.crit_chance}% — доп. урон при удачном попадании`);
+            if ((item.splash_damage > 0) || (item.splash_radius > 0)) chips.push(`Осколочное поражение — задевает цели рядом с точкой взрыва`);
+            if (item.detonation_radius > 0) chips.push(`Радиус детонации ${item.detonation_radius}м — взрывается раньше прямого попадания`);
+            if (item.cluster === 1 || (item.fragmentation_damage > 0)) chips.push(`Кластерная БЧ — обходит ловушки/ПВО осколочным полем`);
+            if (item.anti_jamming === 1) chips.push(`Помехозащита — не сбивается ловушками (флэрами)`);
+            if (item.air_target === 1) chips.push(`Атака авиации — поражает воздушные цели`);
+            if (item.sub_launch === 1) chips.push(`Подводный пуск — стартует из-под воды`);
+            if (item.can_hit_subs === 1) chips.push(`Бьёт подлодки — эффективно против подводных целей`);
+            if (item.ammo_clip > 1) chips.push(`Обойма ${item.ammo_clip} — несколько выстрелов без перезарядки`);
+            if (item.projectiles > 1) chips.push(`${item.projectiles} снаряда в залпе — урон делится на несколько попаданий`);
+            return chips.slice(0, 6);
         }
 
         function previewRosterItem(itemId) {
@@ -2026,53 +2108,39 @@
 
             const chips = getSkillChips(item);
             document.getElementById('roster-skills').innerHTML = chips.length
-                ? chips.map(c => `<div class="roster-skill-chip" title="${c.title}">${c.icon}</div>`).join('')
+                ? chips.map(c => `<div class="roster-skill-chip">${c}</div>`).join('')
                 : `<div class="roster-skills-empty">Нет особых модификаторов</div>`;
-
-            updateRosterStartButton();
         }
 
-        function updateRosterStartButton() {
-            const btn = document.getElementById('roster-start-btn');
-            if (!currentPreviewId) { btn.disabled = true; btn.textContent = 'ВЫБЕРИТЕ ЕДИНИЦУ'; btn.classList.remove('in-queue'); return; }
-            btn.disabled = false;
-            if (compareQueue.includes(currentPreviewId)) {
-                btn.textContent = 'УБРАТЬ ИЗ СРАВНЕНИЯ';
-                btn.classList.add('in-queue');
-            } else if (compareQueue.length === 1) {
-                btn.textContent = 'ДОБАВИТЬ В СЛОТ 2';
-                btn.classList.remove('in-queue');
-            } else {
-                btn.textContent = 'В СРАВНЕНИЕ';
-                btn.classList.remove('in-queue');
-            }
+        // Клик по объекту в списке: сначала показывает превью, затем сам добавляет
+        // объект в очередь сравнения. Как только набралось 2 объекта — сравнение
+        // запускается автоматически, без отдельной кнопки.
+        function selectCatalogItem(itemId) {
+            previewRosterItem(itemId);
+            toggleCompareQueue(itemId);
         }
 
-        function addRosterToCompare() {
-            if (!currentPreviewId) return;
-            const item = DB[currentPreviewId];
+        function toggleCompareQueue(itemId) {
+            const item = DB[itemId];
 
-            if (compareQueue.includes(currentPreviewId)) {
-                compareQueue = compareQueue.filter(id => id !== currentPreviewId);
+            if (compareQueue.includes(itemId)) {
+                compareQueue = compareQueue.filter(id => id !== itemId);
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
                 compareQueue.forEach(id => { const el = document.querySelector(`.catalog-item[data-id="${id}"]`); if (el) el.classList.add('queued'); });
                 showToast(`СЛОТ ОСВОБОЖДЕН: ${item.name}`);
-                updateRosterStartButton();
                 return;
             }
 
-            compareQueue.push(currentPreviewId);
+            compareQueue.push(itemId);
             document.querySelectorAll('.catalog-item').forEach(el => { if (compareQueue.includes(el.dataset.id)) el.classList.add('queued'); });
 
             if (compareQueue.length === 1) {
-                showToast(`ЗАХВАТ СЛОТА 1: ${item.name}`);
-                updateRosterStartButton();
+                showToast(`СЛОТ 1: ${item.name}`);
             } else if (compareQueue.length === 2) {
                 const id1 = compareQueue[0]; const id2 = compareQueue[1];
                 runCompareFlow(id1, id2);
                 compareQueue = [];
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
-                updateRosterStartButton();
             }
         }
 
@@ -2091,7 +2159,7 @@
                 const delay = index * 0.03;
 
                 c.innerHTML += `
-                    <div class="catalog-item ${queued} ${active}" data-id="${s.id}" style="animation-delay: ${delay}s" onclick="previewRosterItem('${s.id}')">
+                    <div class="catalog-item ${queued} ${active}" data-id="${s.id}" style="animation-delay: ${delay}s" onclick="selectCatalogItem('${s.id}')">
                         <div class="catalog-item-img" style="background-image: url('${s.img}')"></div>
                         <div>
                             <div class="cat-item-name">${s.name}</div>
@@ -2111,7 +2179,6 @@
                 document.getElementById('roster-rating-num').innerText = '--';
                 document.getElementById('roster-stats').innerHTML = '';
                 document.getElementById('roster-skills').innerHTML = '';
-                updateRosterStartButton();
             } else if (currentPreviewId) {
                 previewRosterItem(currentPreviewId);
             }
@@ -2820,27 +2887,78 @@
 
         // --- СИМУЛЯТОР ПВО И РАКЕТ ---
 
+        // ПВО: системы ПВО + автопушки, способные бить по воздуху
+        function getSimAAOptions() {
+            let opts = Object.keys(DB).filter(k => DB[k].category === "ПВО" || (DB[k].category === "Автопушки" && DB[k].air_target === 1));
+            opts.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
+            return opts;
+        }
+
+        // Ракетный залп: только ракеты и РАКЕТНЫЕ гранатометы (gl_type === "missile")
+        function getSimMissileOptions() {
+            let opts = Object.keys(DB).filter(k => DB[k].category === "Ракеты" || (DB[k].category === "Гранатометы" && DB[k].gl_type === "missile"));
+            opts.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
+            return opts;
+        }
+
+        function renderSimAAOptions() {
+            const list = document.getElementById('list-sim-aa');
+            const searchVal = document.getElementById('search-sim-aa').value.toLowerCase();
+            let html = '';
+            getSimAAOptions().forEach(key => {
+                const item = DB[key];
+                if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
+                html += `
+                <div class="dropdown-option" onclick="selectSimOption('sim-aa', '${key}', event)">
+                    <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
+                    <div class="dropdown-option-text">
+                        ${item.name}
+                        <span class="dropdown-option-sub">${item.country}</span>
+                    </div>
+                </div>`;
+            });
+            list.innerHTML = html || `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Inter'; font-weight:bold;">Не найдено</div>`;
+        }
+
+        function renderSimMissileOptions() {
+            const list = document.getElementById('list-sim-missile');
+            const searchVal = document.getElementById('search-sim-missile').value.toLowerCase();
+            const catFilter = document.getElementById('cat-sim-missile').value;
+            let html = '';
+            getSimMissileOptions().forEach(key => {
+                const item = DB[key];
+                if (catFilter && item.category !== catFilter) return;
+                if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
+                html += `
+                <div class="dropdown-option" onclick="selectSimOption('sim-missile', '${key}', event)">
+                    <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
+                    <div class="dropdown-option-text">
+                        ${item.name}
+                        <span class="dropdown-option-sub">${item.category === "Гранатометы" ? "Ракетный гранатомет" : item.country}</span>
+                    </div>
+                </div>`;
+            });
+            list.innerHTML = html || `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Inter'; font-weight:bold;">Не найдено</div>`;
+        }
+
+        function selectSimOption(prefix, itemKey, event) {
+            if (event) event.stopPropagation();
+            const wrapper = document.getElementById('wrapper-' + prefix);
+            wrapper.dataset.value = itemKey;
+            document.getElementById('img-' + prefix).style.backgroundImage = `url('${DB[itemKey].img}')`;
+            document.getElementById('text-' + prefix).innerText = DB[itemKey].name;
+            closeAllBuildDropdowns();
+        }
+
         function initAASimulator() {
-            const aaSelect = document.getElementById('sim-aa-select');
-            const misSelect = document.getElementById('sim-missile-select');
+            const aaOptions = getSimAAOptions();
+            const misOptions = getSimMissileOptions();
 
-            let aaOptions = Object.keys(DB).filter(k => DB[k].category === "ПВО" || (DB[k].category === "Автопушки" && DB[k].air_target === 1));
-            let misOptions = Object.keys(DB).filter(k => DB[k].category === "Ракеты" || DB[k].category === "Гранатометы" || DB[k].category === "Ракеты А/А");
+            if (aaOptions.length) selectSimOption('sim-aa', aaOptions[0]);
+            if (misOptions.length) selectSimOption('sim-missile', misOptions[0]);
 
-            aaOptions.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
-            misOptions.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
-
-            aaOptions.forEach(k => {
-                let opt = document.createElement('option');
-                opt.value = k; opt.innerText = DB[k].name;
-                aaSelect.appendChild(opt);
-            });
-
-            misOptions.forEach(k => {
-                let opt = document.createElement('option');
-                opt.value = k; opt.innerText = DB[k].name;
-                misSelect.appendChild(opt);
-            });
+            renderSimAAOptions();
+            renderSimMissileOptions();
         }
 
         // Время полета снаряда/ракеты с разгоном (v0 -> vmax за accelTime) на дистанцию distance
@@ -2876,8 +2994,8 @@
         }
 
         function simulateAA() {
-            const aaKey = document.getElementById('sim-aa-select').value;
-            const misKey = document.getElementById('sim-missile-select').value;
+            const aaKey = document.getElementById('wrapper-sim-aa').dataset.value;
+            const misKey = document.getElementById('wrapper-sim-missile').dataset.value;
             const aaQty = parseInt(document.getElementById('sim-aa-qty').value);
             const misQty = parseInt(document.getElementById('sim-missile-qty').value);
             const distance = parseFloat(document.getElementById('sim-dist').value);
