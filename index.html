@@ -483,6 +483,199 @@
             .modal-content { padding: 25px 15px; }
             .modal-close { top: 5px; right: 15px; font-size: 2.5rem; }
         }
+
+        /* =========================================
+           НОВЫЕ ФУНКЦИИ: разбор рейтинга, сравнение 3+, тир-лист, контры, дуэль
+           ========================================= */
+        .why-btn { width: 100%; margin: -8px 0 18px 0; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: #f4f5f7; color: var(--text-main); font-family: 'Inter'; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.25s; text-align: center; }
+        .why-btn:hover { border-color: var(--primary); background: var(--primary); color: #fff; }
+        .why-btn:focus-visible, .tier-tile:focus-visible, .cf-row:focus-visible, .sweep-cell:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+        /* --- Разбор рейтинга --- */
+        .bd-modal { max-width: 720px; }
+        .bd-head { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; padding-right: 30px; }
+        .bd-img { width: 76px; height: 76px; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 4px 6px rgba(20,24,28,0.18)); }
+        .bd-title { min-width: 0; }
+        .bd-title h2 { font-size: 1.15rem; font-weight: 900; line-height: 1.25; }
+        .bd-sub { color: var(--text-muted); font-size: 0.78rem; font-weight: 600; margin-top: 3px; }
+        .bd-final { margin-left: auto; text-align: right; font-size: 2.6rem; font-weight: 900; line-height: 1; }
+        .bd-final small { display: block; font-size: 0.6rem; letter-spacing: 2.5px; color: var(--text-muted); font-weight: 800; margin-top: 4px; }
+        .bd-lead { color: var(--text-muted); font-size: 0.86rem; line-height: 1.55; margin: 14px 0 16px 0; user-select: text; }
+        .bd-eff { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .bd-chip { background: #f4f5f7; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+        .bd-chip b { display: block; color: var(--text-main); font-size: 0.98rem; font-weight: 800; }
+        .bd-insight { background: var(--accent-dim); border-radius: 12px; padding: 12px 14px; font-size: 0.82rem; line-height: 1.5; margin-bottom: 10px; }
+        .bd-insight div + div { margin-top: 4px; }
+        .bd-row { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; row-gap: 3px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+        .bd-label { font-weight: 800; font-size: 0.88rem; }
+        .bd-val { font-weight: 900; font-size: 0.95rem; text-align: right; }
+        .bd-val.neg { color: var(--secondary); }
+        .bd-hint { grid-column: 1 / -1; color: var(--text-muted); font-size: 0.72rem; line-height: 1.4; }
+        .bd-avg { opacity: 0.85; }
+        .bd-bar-bg { grid-column: 1 / -1; height: 5px; background: var(--primary-dim); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+        .bd-bar { height: 100%; border-radius: 3px; }
+        .bd-bar.pos { background: var(--accent); }
+        .bd-bar.neg { background: var(--secondary); }
+        .bd-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding: 14px 16px; background: #f4f5f7; border-radius: 12px; font-weight: 900; font-size: 1rem; }
+        .bd-note { margin-top: 10px; color: var(--text-muted); font-size: 0.75rem; line-height: 1.45; }
+
+        /* --- Трей сравнения (Арсенал) --- */
+        .compare-tray { position: sticky; bottom: 12px; z-index: 40; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 16px; margin-top: 20px; border-radius: 16px; box-shadow: 0 12px 30px rgba(20,24,28,0.16); overflow: visible; }
+        .multi-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: 'Inter'; font-weight: 700; font-size: 0.8rem; white-space: nowrap; }
+        .multi-switch input { position: absolute; opacity: 0; pointer-events: none; }
+        .multi-switch-ui { width: 36px; height: 20px; border-radius: 10px; background: rgba(20,24,28,0.16); position: relative; transition: 0.25s; flex-shrink: 0; }
+        .multi-switch-ui::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: 0.25s; box-shadow: 0 1px 3px rgba(20,24,28,0.3); }
+        .multi-switch input:checked + .multi-switch-ui { background: var(--primary); }
+        .multi-switch input:checked + .multi-switch-ui::after { transform: translateX(16px); }
+        .multi-switch input:focus-visible + .multi-switch-ui { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .tray-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 160px; }
+        .tray-chip { display: inline-flex; align-items: center; gap: 6px; background: #f4f5f7; border: 1px solid var(--line); border-radius: 20px; padding: 5px 10px 5px 12px; font-family: 'Inter'; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        .tray-chip b { color: var(--text-muted); font-size: 0.95rem; line-height: 1; }
+        .tray-chip:hover { border-color: var(--secondary); }
+        .tray-empty { color: var(--text-muted); font-size: 0.78rem; font-weight: 600; }
+        .tray-go { border: none !important; padding: 10px 22px !important; }
+        .tray-clear { background: none; border: none; color: var(--text-muted); font-family: 'Inter'; font-weight: 700; font-size: 0.78rem; cursor: pointer; }
+        .tray-clear:hover { color: var(--secondary); }
+
+        /* --- Сравнение 3+ --- */
+        #multi-compare-wrapper { padding: 30px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: var(--glass-radius); box-shadow: var(--hud-glow); }
+        .mc-title h2 { font-size: 1.5rem; font-weight: 900; }
+        .mc-sub2 { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+        .mc-verdict { margin: 18px 0; padding: 16px 18px; background: #f4f5f7; border-radius: 14px; font-size: 0.9rem; line-height: 1.5; }
+        .mc-wins { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); font-weight: 700; }
+        .mc-wins i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+        .multi-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+        .multi-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 520px; font-family: 'Inter'; }
+        .multi-table th, .multi-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: center; font-size: 0.85rem; font-weight: 700; }
+        .multi-table th { vertical-align: top; background: #fff; font-weight: 700; padding-top: 14px; }
+        .multi-table th:first-child, .multi-table td:first-child { text-align: left; position: sticky; left: 0; background: #fff; color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.4px; text-transform: uppercase; z-index: 2; min-width: 130px; }
+        .multi-table tbody tr:last-child td { border-bottom: none; }
+        .multi-table td.best { background: var(--accent-dim); font-weight: 900; }
+        .mc-img { width: 100%; height: 56px; background-size: contain; background-repeat: no-repeat; background-position: center; margin-bottom: 6px; filter: drop-shadow(0 4px 6px rgba(20,24,28,0.16)); }
+        .mc-name { font-weight: 900; font-size: 0.85rem; line-height: 1.25; }
+        .mc-sub { color: var(--text-muted); font-size: 0.68rem; font-weight: 600; margin-top: 3px; }
+        .mc-rating { font-weight: 900; font-size: 1.3rem; margin-top: 6px; }
+        .mc-section-title { margin: 26px 0 10px 0; font-weight: 900; font-size: 1rem; }
+        .mc-rank { display: flex; flex-wrap: wrap; gap: 8px; }
+        .mc-rank-item { display: inline-flex; align-items: center; gap: 8px; background: #f4f5f7; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 0.82rem; font-weight: 700; }
+        .mc-rank-item span { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center; background: var(--primary-dim); font-size: 0.72rem; font-weight: 900; }
+        .mc-rank-item.first { border-color: var(--primary); }
+        .mc-rank-item.first span { background: var(--primary); color: #fff; }
+        .mc-locked { padding: 18px; text-align: center; color: var(--secondary); font-weight: 700; border: 1px dashed rgba(232,72,63,0.35); border-radius: 12px; }
+
+        /* --- Тир-лист --- */
+        .tier-head { max-width: 1200px; margin: 0 auto 20px auto; }
+        .tier-head h2 { font-size: 1.6rem; font-weight: 900; }
+        #tier-note { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-top: 6px; }
+        .tier-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 16px 0 0 0; }
+        .tier-toolbar .filter-select { max-width: 220px; }
+        .tier-toolbar .cat-btn-main { padding: 10px 22px; }
+        .tier-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .tier-jump-btn { cursor: pointer; }
+        .tier-jump-btn:hover { border-color: var(--primary); color: #fff; background: var(--primary); }
+        #tier-export-wrapper { max-width: 1200px; margin: 0 auto; }
+        .tier-cat { margin-bottom: 34px; scroll-margin-top: 90px; }
+        .tier-cat-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 12px; display: flex; align-items: baseline; gap: 10px; }
+        .tier-cat-title small { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; }
+        .tier-row { display: flex; margin-bottom: 10px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 18px; overflow: hidden; }
+        .tier-badge { flex: 0 0 64px; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; font-weight: 900; color: #fff; }
+        .tier-S { background: var(--primary); }
+        .tier-A { background: #4a5563; }
+        .tier-B { background: #98a0ab; }
+        .tier-items { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; }
+        .tier-tile { width: 94px; border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 6px 4px 8px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; font-family: 'Inter'; color: var(--text-main); }
+        .tier-tile:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .tier-img { width: 100%; height: 48px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 3px 4px rgba(20,24,28,0.16)); }
+        .tier-name { font-size: 0.66rem; font-weight: 700; line-height: 1.2; text-align: center; max-height: 2.4em; overflow: hidden; word-break: break-word; }
+        .tier-rating { font-size: 0.74rem; font-weight: 900; }
+        .tier-empty { text-align: center; color: var(--text-muted); padding: 40px 0; font-weight: 700; }
+
+        /* --- Контры --- */
+        .cf-panel { max-width: 1000px; margin: 0 auto 20px auto; padding: 28px; }
+        .cf-panel h2 { font-size: 1.5rem; font-weight: 900; }
+        .cf-panel > p { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 6px 0 20px 0; }
+        .cf-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+        .cf-field { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+        .cf-field.grow { flex: 1; min-width: 260px; }
+        .cf-field label { color: var(--text-muted); font-size: 0.72rem; font-weight: 700; }
+        .cf-field .search-input { max-width: 100%; }
+        #cf-result { max-width: 1000px; margin: 0 auto; }
+        .cf-enemy-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+        .cf-enemy-name { font-weight: 900; font-size: 1.15rem; }
+        .cf-img { width: 52px; height: 52px; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 4px 6px rgba(20,24,28,0.16)); }
+        .cf-img.big { width: 76px; height: 76px; }
+        .cf-summary { padding: 14px 16px; border-radius: 14px; background: #f4f5f7; font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; }
+        .cf-summary.good { background: var(--accent-dim); }
+        .cf-summary.warn { background: rgba(232,72,63,0.09); }
+        .cf-h { font-size: 0.95rem; font-weight: 900; margin: 22px 0 10px 0; }
+        .cf-list { display: flex; flex-direction: column; gap: 8px; }
+        .cf-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 16px; padding: 10px 14px; cursor: pointer; transition: 0.2s; }
+        .cf-row:hover { border-color: var(--primary); transform: translateX(3px); }
+        .cf-rank { width: 24px; text-align: center; font-weight: 900; color: var(--text-muted); font-size: 0.9rem; flex-shrink: 0; }
+        .cf-main { flex: 1; min-width: 0; }
+        .cf-name { font-weight: 800; font-size: 0.92rem; }
+        .cf-sub { color: var(--text-muted); font-size: 0.72rem; font-weight: 600; margin-top: 2px; }
+        .cf-bar { height: 5px; background: var(--primary-dim); border-radius: 3px; margin-top: 7px; overflow: hidden; }
+        .cf-bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+        .cf-warn { color: var(--secondary); font-size: 0.72rem; font-weight: 700; margin-top: 5px; }
+        .cf-metric { text-align: right; flex-shrink: 0; }
+        .cf-metric b { display: block; font-size: 1.05rem; font-weight: 900; }
+        .cf-metric span { color: var(--text-muted); font-size: 0.68rem; font-weight: 700; }
+        .cf-worst { margin-top: 12px; color: var(--text-muted); font-size: 0.8rem; line-height: 1.5; }
+        .cf-tips { margin: 16px 0 0 0; padding-left: 18px; color: var(--text-muted); font-size: 0.82rem; line-height: 1.55; }
+        .cf-empty { text-align: center; color: var(--text-muted); padding: 34px 10px; font-weight: 700; }
+        .cf-empty.small { padding: 14px 0; text-align: left; font-weight: 600; font-size: 0.85rem; }
+
+        /* --- Дуэль кораблей --- */
+        .duel-controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; justify-content: center; margin-bottom: 20px; }
+        .duel-controls .cf-field { min-width: 170px; }
+        .duel-verdict { padding: 16px 18px; border-radius: 14px; font-weight: 800; font-size: 1rem; line-height: 1.45; background: #f4f5f7; margin-bottom: 18px; border-left: 4px solid var(--line); }
+        .duel-verdict.w1 { border-left-color: var(--primary); }
+        .duel-verdict.w2 { border-left-color: var(--secondary); background: rgba(232,72,63,0.06); }
+        .duel-chart-wrap { position: relative; height: 260px; margin-bottom: 8px; }
+        .sweep-strip { display: grid; grid-template-columns: repeat(19, minmax(0, 1fr)); gap: 4px; }
+        .sweep-cell { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 6px 0; cursor: pointer; font-family: 'Inter'; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: 0.15s; }
+        .sweep-cell i { font-style: normal; font-size: 0.68rem; font-weight: 800; color: var(--text-muted); }
+        .sweep-cell span { font-size: 0.66rem; font-weight: 900; color: var(--text-main); }
+        .sweep-cell.w1 { background: var(--primary); border-color: var(--primary); } .sweep-cell.w1 i, .sweep-cell.w1 span { color: #fff; }
+        .sweep-cell.w2 { background: var(--secondary); border-color: var(--secondary); } .sweep-cell.w2 i, .sweep-cell.w2 span { color: #fff; }
+        .sweep-cell.draw { background: #d7dbe0; }
+        .sweep-cell.to1 { background: rgba(20,24,28,0.16); } .sweep-cell.to2 { background: rgba(232,72,63,0.2); }
+        .sweep-cell.cur { outline: 2px solid var(--text-main); outline-offset: 1px; }
+        .sweep-cell:hover { transform: translateY(-2px); }
+        .sweep-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; color: var(--text-muted); font-size: 0.72rem; font-weight: 700; }
+        .sweep-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--line); }
+        .sweep-legend i.w1 { background: var(--primary); } .sweep-legend i.w2 { background: var(--secondary); } .sweep-legend i.draw { background: #d7dbe0; } .sweep-legend i.to { background: rgba(20,24,28,0.16); } .sweep-legend i.none { background: #fff; }
+        .duel-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 22px; }
+        .duel-ship-title { font-weight: 900; font-size: 0.85rem; margin-bottom: 8px; }
+        .duel-slot { padding: 10px 0; border-bottom: 1px solid var(--line); }
+        .duel-slot.off { opacity: 0.6; }
+        .duel-slot-head { display: flex; justify-content: space-between; gap: 10px; font-size: 0.85rem; font-weight: 800; }
+        .duel-slot-note { color: var(--text-muted); font-size: 0.72rem; font-weight: 600; margin-top: 2px; line-height: 1.4; }
+        .duel-note { margin-top: 18px; color: var(--text-muted); font-size: 0.75rem; line-height: 1.5; }
+
+        @media (max-width: 768px) {
+            .tier-badge { flex-basis: 44px; font-size: 1.4rem; }
+            .tier-tile { width: 80px; }
+            .tier-toolbar .filter-select { max-width: 100%; }
+            .compare-tray { bottom: 8px; padding: 10px 12px; }
+            .tray-go { width: auto !important; }
+            #multi-compare-wrapper { padding: 18px 12px; }
+            .bd-head { flex-wrap: wrap; }
+            .bd-final { font-size: 2.1rem; }
+            .cf-panel { padding: 20px 16px; }
+            .cf-field { min-width: 100%; }
+            .cf-row { padding: 10px; gap: 10px; }
+            .cf-img { width: 42px; height: 42px; }
+            .duel-slots { grid-template-columns: 1fr; }
+            .sweep-strip { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+            .duel-controls .cf-field { min-width: 100%; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .tier-tile, .cf-row, .sweep-cell { transition: none; }
+        }
+
+        .cf-panel { overflow: visible; }
     </style>
 </head>
 <body>
@@ -498,6 +691,8 @@
             <button class="nav-btn" id="nav-compare" onclick="switchMainPage('page-compare', this)">Анализатор</button>
             <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast('ТРЕБУЕТСЯ PRO ДОСТУП', true); }">Конструктор <span id="builder-lock">🔒</span></button>
             <button class="nav-btn" id="nav-catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
+            <button class="nav-btn" id="nav-tiers" onclick="switchMainPage('page-tiers', this)">Тир-лист</button>
+            <button class="nav-btn" id="nav-counters" onclick="switchMainPage('page-counters', this)">Контры</button>
             <button class="info-btn" id="nav-admin" onclick="switchMainPage('page-admin')" title="Профиль">👤</button>
             <button class="info-btn" id="effects-toggle" onclick="toggleEffects()" title="Выключить эффекты">✨</button>
             <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
@@ -525,7 +720,7 @@
 
         <main id="page-compare" class="page">
             <div class="controls-container">
-                <button class="cat-btn-main btn-export" onclick="exportToImage('compare-export-wrapper', 'MWLAB_Анализ')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ ОТЧЕТ</button>
+                <button class="cat-btn-main btn-export" onclick="exportCompareReport()" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ ОТЧЕТ</button>
             </div>
             <div id="compare-export-wrapper" class="export-wrapper">
                 <div class="compare-grid">
@@ -560,6 +755,7 @@
                     </div>
                 </div>
             </div>
+            <div id="multi-compare-wrapper" style="display:none;"></div>
         </main>
 
         <main id="page-builder" class="page">
@@ -668,6 +864,19 @@
                 <!-- Вывод результата -->
                 <div id="sim-result" style="margin-top: 30px; display: none; padding: 20px; border: 1px solid var(--line); border-radius: 12px; text-align: center; background: #f4f5f7;"></div>
             </div>
+
+            <!-- ДУЭЛЬ КОРАБЛЕЙ -->
+            <div class="glass-panel" id="duel-panel" style="margin: 40px auto 0 auto; padding: 30px; max-width: 1200px; width: 100%;">
+                <h2 style="text-align:center; color:var(--text-main); font-family:'Inter'; font-size: 1.5rem; margin-bottom: 8px;">ДУЭЛЬ КОРАБЛЕЙ</h2>
+                <p style="text-align:center; color:var(--text-muted); font-size:0.85rem; line-height:1.5; margin-bottom: 24px;">Бой двух сборок из конструктора выше: кто первым уничтожит противника на выбранной дистанции.</p>
+                <div class="duel-controls">
+                    <div class="cf-field"><label for="duel-hp1">HP корабля 1</label><input type="number" id="duel-hp1" class="search-input" value="300000" min="1000" step="10000" inputmode="numeric"></div>
+                    <div class="cf-field"><label for="duel-hp2">HP корабля 2</label><input type="number" id="duel-hp2" class="search-input" value="300000" min="1000" step="10000" inputmode="numeric"></div>
+                    <div class="cf-field" style="min-width:260px;"><label for="duel-dist">Дистанция боя: <b id="duel-dist-val">7.0</b> км</label><input type="range" id="duel-dist" min="2" max="20" step="0.5" value="7" style="accent-color: var(--primary); width:100%;" oninput="document.getElementById('duel-dist-val').textContent = parseFloat(this.value).toFixed(1)"></div>
+                </div>
+                <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto 26px auto; display: block; border:none; padding: 15px;" onclick="runDuelUI()">НАЧАТЬ ДУЭЛЬ</button>
+                <div id="duel-result" style="display:none;"></div>
+            </div>
         </main>
 
         <main id="page-catalog" class="page">
@@ -735,14 +944,97 @@
                         </div>
                     </div>
 
+                    <button class="why-btn" id="roster-why-btn" onclick="openRatingBreakdown(currentPreviewId)">Почему такой рейтинг?</button>
+
                     <div class="roster-stats" id="roster-stats"></div>
 
                     <div class="roster-skills-label">ОСОБЕННОСТИ</div>
                     <div class="roster-skills" id="roster-skills"></div>
 
-                    <div class="roster-compare-hint" id="roster-compare-hint">Нажмите на 1-й, затем на 2-й объект в списке — сравнение запустится автоматически</div>
+                    <div class="roster-compare-hint" id="roster-compare-hint">Нажмите на 1-й, затем на 2-й объект в списке — сравнение запустится автоматически. Для 3 и более объектов включите «Сравнить 3+» внизу.</div>
                 </div>
             </div>
+
+                <div class="compare-tray glass-panel" id="compare-tray">
+                    <label class="multi-switch"><input type="checkbox" id="multi-mode-cb" onchange="setMultiMode(this.checked)"><span class="multi-switch-ui"></span>Сравнить 3+</label>
+                    <div class="tray-chips" id="tray-chips"></div>
+                    <button class="tray-clear" id="tray-clear" onclick="clearCompareQueue()" style="display:none;">Очистить</button>
+                    <button class="cat-btn-main active tray-go" id="tray-go" onclick="runMultiCompare()" style="display:none;">СРАВНИТЬ</button>
+                </div>
+        </main>
+
+        <main id="page-tiers" class="page">
+            <div class="tier-head">
+                <h2>Тир-лист</h2>
+                <p id="tier-note"></p>
+                <div class="tier-toolbar">
+                    <select class="filter-select glass-panel" id="tier-country" onchange="renderTierList()" aria-label="Фракция">
+                    <option value="" selected>ВСЕ ФРАКЦИИ</option>
+                    <option value="Бразилия">Бразилия</option>
+                    <option value="Великобритания">Великобритания</option>
+                    <option value="Германия">Германия</option>
+                    <option value="Европейский Союз">Европейский Союз</option>
+                    <option value="Израиль">Израиль</option>
+                    <option value="Индия">Индия</option>
+                    <option value="Индонезия">Индонезия</option>
+                    <option value="Иран">Иран</option>
+                    <option value="Италия">Италия</option>
+                    <option value="Китай">Китай</option>
+                    <option value="Россия">Россия</option>
+                    <option value="США">США</option>
+                    <option value="Турция">Турция</option>
+                    <option value="Франция">Франция</option>
+                    <option value="Швеция">Швеция</option>
+                    <option value="ЮАР">ЮАР</option>
+                    <option value="Южная Корея">Южная Корея</option>
+                    <option value="Япония">Япония</option>
+                </select>
+                    <button class="cat-btn-main btn-export" onclick="exportToImage('tier-export-wrapper', 'MWLAB_Тирлист')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ ТИР-ЛИСТ</button>
+                </div>
+                <div class="tier-jump" id="tier-jump"></div>
+            </div>
+            <div id="tier-export-wrapper"><div id="tier-root"></div></div>
+        </main>
+
+        <main id="page-counters" class="page">
+            <div class="cf-panel glass-panel" style="overflow: visible;">
+                <h2>Контры</h2>
+                <p>Выберите оружие врага. Для ракеты сайт подберёт лучшее ПВО, для ПВО ракеты, которые его прорывают, для торпеды перехватчики, для пушки оружие, которое её переигрывает.</p>
+                <div class="cf-controls">
+                    <div class="cf-field grow">
+                        <label>Оружие врага</label>
+                        <div id="cf-enemy" style="position:relative;">
+                            <div class="custom-select-wrapper" id="wrapper-cf-enemy" data-value="" style="max-width:100%;">
+                                <div class="custom-select-trigger" onclick="toggleBuildDropdown('cf-enemy')">
+                                    <div class="trigger-left">
+                                        <div class="trigger-img" id="img-cf-enemy"></div>
+                                        <div class="trigger-text" id="text-cf-enemy">ВЫБЕРИТЕ ОРУЖИЕ</div>
+                                    </div>
+                                    <div>▼</div>
+                                </div>
+                                <div class="custom-select-dropdown" id="dropdown-cf-enemy">
+                                    <div class="dropdown-filter">
+                                        <input type="text" id="search-cf-enemy" placeholder="ПОИСК..." oninput="renderCfEnemyOptions()" onclick="event.stopPropagation()">
+                                        <select id="cat-cf-enemy" onchange="renderCfEnemyOptions()" onclick="event.stopPropagation()">
+                                            <option value="">ВСЕ ТИПЫ</option>
+                                            <option value="Ракеты">Ракеты</option>
+                                            <option value="Гранатометы">Гранатометы</option>
+                                            <option value="Торпеды">Торпеды</option>
+                                            <option value="Пушки">Пушки</option>
+                                            <option value="ПВО">ПВО</option>
+                                        </select>
+                                    </div>
+                                    <div class="dropdown-list" id="list-cf-enemy"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cf-field" id="cf-wrap-you" style="display:none;"><label for="cf-qty-you" id="cf-label-you">Ваших слотов ПВО</label><select id="cf-qty-you" class="search-input" onchange="runCounterFinder()"><option value="1">1 слот</option><option value="2">2 слота</option><option value="3">3 слота</option><option value="4" selected>4 слота</option><option value="5">5 слотов</option><option value="6">6 слотов</option><option value="7">7 слотов</option><option value="8">8 слотов</option></select></div>
+                    <div class="cf-field" id="cf-wrap-enemy" style="display:none;"><label for="cf-qty-enemy" id="cf-label-enemy">Слотов с ракетами у врага</label><select id="cf-qty-enemy" class="search-input" onchange="runCounterFinder()"><option value="1">1 слот</option><option value="2" selected>2 слота</option><option value="3">3 слота</option><option value="4">4 слота</option><option value="5">5 слотов</option><option value="6">6 слотов</option><option value="7">7 слотов</option><option value="8">8 слотов</option></select></div>
+                    <div class="cf-field" id="cf-wrap-dist" style="display:none;"><label for="cf-dist">Дистанция: <b id="cf-dist-val">7.0</b> км</label><input type="range" id="cf-dist" min="1" max="15" step="0.5" value="7" style="accent-color: var(--primary); width:100%;" oninput="runCounterFinder()"></div>
+                </div>
+            </div>
+            <div id="cf-result"></div>
         </main>
 
         <main id="page-admin" class="page">
@@ -765,6 +1057,14 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- РАЗБОР РЕЙТИНГА -->
+    <div id="breakdown-modal" class="modal-overlay">
+        <div class="modal-content glass-panel bd-modal" role="dialog" aria-modal="true" aria-label="Разбор рейтинга">
+            <button class="modal-close" onclick="closeModal('breakdown-modal')" aria-label="Закрыть">×</button>
+            <div id="breakdown-body"></div>
+        </div>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО СПРАВКИ -->
@@ -888,6 +1188,7 @@
                 sortOpts.forEach(opt => opt.disabled = true);
             }
             
+            refreshProGatedViews();
             if(document.getElementById('page-catalog').classList.contains('active')) {
                 handleFilter();
             }
@@ -1093,7 +1394,7 @@
             "sahi209": { name: "SAHI-209 BLOCK-II", category: "Пушки", country: "Турция", rarity: "Эпический", dpm: 298424, damage_burst: 28599, damage: 14299, accuracy: 100, reload: 4.55, detonation_radius: 26, splash_damage: 25, splash_radius: 66, projectiles: 2, range: 17.33, max_speed: 894, fire_penalty: 35, img: "img/Sahi209.png" },
             "sh16": { name: "SH-16 (155 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 301241, damage_burst: 36400, damage: 18200, accuracy: 100, reload: 7.00, projectiles: 2, range: 11.27, max_speed: 933, fire_penalty: 40, img: "img/SH16.png" },
             "denshogun_alt": { name: "DEN SHO GUN (203 MM)", category: "Пушки", country: "Япония", rarity: "Легендарный", dpm: 299104, damage_burst: 50100, damage: 24050, accuracy: 100, reload: 9.10, detonation_radius: 13, splash_damage: 1000, splash_radius: 200, projectiles: 2, range: 17.33, max_speed: 855, fire_penalty: 35, img: "img/Shogun.png" },
-            "spgheva": { name: "SPGH EVA (155 MM)", category: "Европейский Союз", country: "Европейский Союз", rarity: "Эпический", dpm: 343363, damage_burst: 46068, damage: 40950, accuracy: 100, reload: 8.05, crit_chance: 25, detonation_radius: 20, projectiles: 1, range: 13.00, max_speed: 923, fire_penalty: 40, img: "img/SPGH155EVA.png" },
+            "spgheva": { name: "SPGH EVA (155 MM)", category: "Пушки", country: "Европейский Союз", rarity: "Эпический", dpm: 343363, damage_burst: 46068, damage: 40950, accuracy: 100, reload: 8.05, crit_chance: 25, detonation_radius: 20, projectiles: 1, range: 13.00, max_speed: 923, fire_penalty: 40, img: "img/SPGH155EVA.png" },
             "xm1203": { name: "XM1203 NLOS-C (155 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330925, damage_burst: 19304, damage: 14299, accuracy: 100, reload: 3.50, crit_chance: 70, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/XM1203.png" },
             "xm2001": { name: "XM2001 CRUSADER", category: "Пушки", country: "США", rarity: "Эпический", dpm: 348036, damage_burst: 38400, damage: 19200, accuracy: 100, reload: 6.44, splash_damage: 1000, splash_radius: 133, projectiles: 2, range: 13.00, max_speed: 1069, fire_penalty: 25, img: "img/XM2001Crusader.png" },
             "hpj33b": { name: "H/PJ-33B (100 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 326181, damage_burst: 35880, damage: 5980, accuracy: 100, reload: 5.60, projectiles: 6, range: 10.40, max_speed: 777, fire_penalty: 35, img: "img/hpj33b.png" },
@@ -1147,7 +1448,7 @@
             "gabrielv": { name: "GABRIEL V", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 52650, dpm: 280002, reload: 9.80, lock_time: 1.50, projectiles: 3, anti_jamming: 0, hp: 90, start_speed: 58, max_speed: 485, accel_time: 3.14, range: 10.83, fire_penalty: 40, img: "img/GabrielV.png" },
             "navalspikeer": { name: "NAVAL SPIKE ER", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27300, dpm: 266175, reload: 5.60, lock_time: 1.50, projectiles: 3, anti_jamming: 1, hp: 75, start_speed: 29, max_speed: 349, accel_time: 4.71, range: 6.93, fire_penalty: 32, img: "img/NavalSpikeER.png" },
             "stratus": { name: "STRATUS RS", category: "Ракеты", country: "Европейский Союз", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27000, dpm: 282053, reload: 5.60, lock_time: 1.50, splash_damage: 1000, splash_radius: 133, projectiles: 1, anti_jamming: 0, hp: 260, start_speed: 38, max_speed: 583, accel_time: 2.24, range: 12.13, fire_penalty: 40, img: "img/Stratus.png" },
-            "mansuper": { name: "MANSUP-ER", category: "Бразилия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 28899, dpm: 257025, reload: 6.30, lock_time: 1.30, splash_damage: 150, splash_radius: 500, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 437, accel_time: 2.58, range: 11.27, fire_penalty: 40, img: "img/MANSUPER.png" },
+            "mansuper": { name: "MANSUP-ER", category: "Ракеты", country: "Бразилия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 28899, dpm: 257025, reload: 6.30, lock_time: 1.30, splash_damage: 150, splash_radius: 500, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 437, accel_time: 2.58, range: 11.27, fire_penalty: 40, img: "img/MANSUPER.png" },
             "s10granat": { name: "S-10 GRANAT", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 30000, dpm: 162272, reload: 11.00, lock_time: 0.50, detonation_radius: 33, splash_damage: 7500, splash_radius: 500, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 29, max_speed: 485, accel_time: 2.76, range: 10.00, fire_penalty: 40, sub_launch: 1, img: "img/S10Granat.png" },
             "nasir": { name: "NASIR", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 22100, dpm: 257833, reload: 4.90, lock_time: 0.50, detonation_radius: 10, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 116, max_speed: 466, accel_time: 1.80, range: 8.67, fire_penalty: 40, img: "img/Nasir.png" },
             "hyfly2": { name: "HYFLY-2", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 38200, dpm: 133644, reload: 17.15, lock_time: 0, splash_damage: 500, splash_radius: 133, projectiles: 1, anti_jamming: 1, hp: 110, start_speed: 272, max_speed: 515, accel_time: 1.79, range: 13.87, fire_penalty: 42, img: "img/Hyfly2.png" },
@@ -1364,6 +1665,12 @@
             return _threatMissileProfileCache;
         }
 
+        // --- Трекер очков рейтинга: каждая надбавка/штраф в формулах ниже записывается с названием,
+        //     чтобы кнопка "Почему такой рейтинг?" могла показать, из чего он сложился.
+        let _bdLog = null;
+        function _T(label, v) { if (_bdLog) _bdLog.push({ label: label, value: +v }); return v; }
+        function _N(label, v) { if (_bdLog) _bdLog.push({ label: label, value: -v }); return v; }
+
         const RATING_CALCULATORS = {
             "Пушки": function(item) {
                 let score = 100;
@@ -1379,8 +1686,8 @@
                 item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty); 
                 item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
                 
-                score += (item.dpm / 400000) * 120; 
-                score += (item.effectiveDpm / 400000) * 180; 
+                score += _T("DPM (паспортный)", ((item.dpm / 400000) * 120)); 
+                score += _T("Эффективный DPM", ((item.effectiveDpm / 400000) * 180)); 
                 
                 let alphaMultiplier = 1;
                 if (hasClip) {
@@ -1394,30 +1701,30 @@
                 }
                 
                 item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
-                score += (item.effectiveBurst / 50000) * 180;
+                score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 180));
 
-                score += (item.max_speed / 1200) * 130; 
+                score += _T("Скорость снаряда", ((item.max_speed / 1200) * 130)); 
                 
                 let cappedRange = Math.min(item.range, 11);
-                score += (cappedRange / 11) * 20; 
+                score += _T("Дальность", ((cappedRange / 11) * 20)); 
                 if (item.range < 11.0) {
-                    score -= ((11.0 - item.range) * 15);
+                    score -= _N("Штраф: дальность ниже 11 км", (((11.0 - item.range) * 15)));
                 }
                 
-                if (item.crit_chance > 0) score += (item.crit_chance / 10) * 5;
-                if (item.reload < 3.0) score += 20;
+                if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 10) * 5));
+                if (item.reload < 3.0) score += _T("Быстрая перезарядка", (20));
                 
                 if (hasClip) {
-                    score -= Math.min(40, item.ammo_clip * 1.5); 
+                    score -= _N("Штраф: большая обойма", (Math.min(40, item.ammo_clip * 1.5))); 
                 } else {
-                    score += (40 - ((pCount - 1) * 5));
+                    score += _T("Залповая схема (без обоймы)", ((40 - ((pCount - 1) * 5))));
                 }
                 
-                if (item.air_target === 1) score += 40;
-                if (item.splash_damage > 0) { score += 5; score += (item.splash_damage / 1000) * 5; }
-                if (item.splash_radius > 0) { score += (item.splash_radius / 50) * 3.75; }
-                if (item.detonation_radius > 0) score += 10;
-                score -= (item.fire_penalty * 0.5);
+                if (item.air_target === 1) score += _T("Атака авиации", (40));
+                if (item.splash_damage > 0) { score += _T("Сплэш и взрыв", (5)); score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 5)); }
+                if (item.splash_radius > 0) { score += _T("Сплэш и взрыв", ((item.splash_radius / 50) * 3.75)); }
+                if (item.detonation_radius > 0) score += _T("Сплэш и взрыв", (10));
+                score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
                 return score;
             },
            "Ракеты": function(item) {
@@ -1449,73 +1756,73 @@
                     item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
                 }
 
-                score += 150; 
-                score += (item.effectiveDpm / 300000) * 250; 
-                score += (item.effectiveBurst / 60000) * 100; 
+                score += _T("Базовый бонус класса", (150)); 
+                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250)); 
+                score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 60000) * 100)); 
                 
                 if (item.anti_jamming === 1) {
-                    score += 200; 
+                    score += _T("Помехозащита (РЭБ)", (200)); 
                 } else {
                     let safe_dist = getSafeDistance(item);
                     if (safe_dist < item.range) {
-                        score -= ((item.range - safe_dist) * 15);
+                        score -= _N("Штраф: уязвимость к ловушкам", (((item.range - safe_dist) * 15)));
                     }
                 }
                 
                 let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
                 if (hasCluster) { 
-                    if (item.anti_jamming === 1) score += 20; else score += 10;
+                    if (item.anti_jamming === 1) score += _T("Кластерная БЧ", (20)); else score += _T("Кластерная БЧ", (10));
                 }
                 
                 let isAA = (item.air_target === 1 || item.dedicated_aa === 1);
                 
                 if (isAA) {
-                    score += 45; 
+                    score += _T("Зенитная специализация", (45)); 
                     
                     if (item.projectiles > 1) {
-                        score += (item.projectiles - 1) * 20; 
+                        score += _T("Зенитная специализация", ((item.projectiles - 1) * 20)); 
                     }
                     
                     if (item.splash_damage > 0 && item.splash_radius > 0) {
-                        score += 60; 
-                        score += (item.splash_radius / 50) * 15; 
-                        score += (item.splash_damage / 1000) * 10; 
+                        score += _T("Зенитный сплэш", (60)); 
+                        score += _T("Зенитный сплэш", ((item.splash_radius / 50) * 15)); 
+                        score += _T("Зенитный сплэш", ((item.splash_damage / 1000) * 10)); 
                     } else if (item.detonation_radius > 0) {
-                        score += 20; 
+                        score += _T("Зенитный сплэш", (20)); 
                     }
                 } else {
-                    score += (item.projectiles * 45);
-                    if (item.splash_damage) score += (item.splash_damage / 5000) * 30; 
-                    if (item.splash_radius) score += (item.splash_radius / 300) * 20; 
-                    if (item.detonation_radius) score += (item.detonation_radius / 20) * 15;
+                    score += _T("Боеголовки в залпе", ((item.projectiles * 45)));
+                    if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 5000) * 30)); 
+                    if (item.splash_radius) score += _T("Сплэш и взрыв", ((item.splash_radius / 300) * 20)); 
+                    if (item.detonation_radius) score += _T("Сплэш и взрыв", ((item.detonation_radius / 20) * 15));
                 }
 
                 let effectiveHp = item.hp;
                 if (item.lock_time === 0) {
                     effectiveHp *= 0.6; 
                 }
-                score += (effectiveHp / 400) * 160;   
+                score += _T("Живучесть (HP)", ((effectiveHp / 400) * 160));   
 
-                score += (item.start_speed / 400) * 120; 
-                score -= (item.accel_time * 25);  
-                score += (item.max_speed / 600) * 100; 
+                score += _T("Стартовая скорость", ((item.start_speed / 400) * 120)); 
+                score -= _N("Штраф: время разгона", ((item.accel_time * 25)));  
+                score += _T("Максимальная скорость", ((item.max_speed / 600) * 100)); 
                 
                 let cappedRange = Math.min(item.range, 10);
-                score += (cappedRange / 10) * 20;
+                score += _T("Дальность", ((cappedRange / 10) * 20));
                 if (item.range < 11.5) {
-                    score -= ((11.5 - item.range) * 20);
+                    score -= _N("Штраф: дальность ниже 11.5 км", (((11.5 - item.range) * 20)));
                 }
 
-                if (item.reload <= 8.0) score += (8.0 - item.reload) * 15;
-                if (item.fragmentation_damage) score += (item.fragmentation_damage / 25000) * 40;
+                if (item.reload <= 8.0) score += _T("Быстрая перезарядка", ((8.0 - item.reload) * 15));
+                if (item.fragmentation_damage) score += _T("Осколочный урон", ((item.fragmentation_damage / 25000) * 40));
                 
-                if (item.air_target === 1 && !item.dedicated_aa) score += 50;
-                if (item.sub_launch === 1) score += 50;
+                if (item.air_target === 1 && !item.dedicated_aa) score += _T("Атака авиации", (50));
+                if (item.sub_launch === 1) score += _T("Подводный пуск", (50));
                 
-                score += (50 - (item.lock_time * 10)); 
+                score += _T("Время захвата цели", ((50 - (item.lock_time * 10)))); 
                 
-                if (item.fire_penalty) score -= (item.fire_penalty * 0.8);
-                if (item.min_range > 0) score -= (item.min_range * 30); 
+                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.8)));
+                if (item.min_range > 0) score -= _N("Штраф: мёртвая зона", ((item.min_range * 30))); 
                 return score;
             },
             "Торпеды": function(item) {
@@ -1543,30 +1850,30 @@
                     item.effectiveBurst = item.damage_burst; 
                 }
 
-                score += 100; 
-                score += (item.effectiveDpm / 300000) * 250; 
-                score += (item.damage_burst / 70000) * 150; 
-                score += (item.max_speed / 160) * 120; 
+                score += _T("Базовый бонус класса", (100)); 
+                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250)); 
+                score += _T("Эффективный альфа-страйк", ((item.damage_burst / 70000) * 150)); 
+                score += _T("Скорость", ((item.max_speed / 160) * 120)); 
                 
-                if (item.accel_time <= 5) score += 40;
-                else score -= (item.accel_time * 5);  
+                if (item.accel_time <= 5) score += _T("Быстрый разгон", (40));
+                else score -= _N("Штраф: время разгона", ((item.accel_time * 5)));  
 
-                if (item.anti_jamming === 1) score += 150; 
-                if (item.ammo_clip && item.ammo_clip > 1) score += (item.ammo_clip * 10);
+                if (item.anti_jamming === 1) score += _T("Помехозащита (РЭБ)", (150)); 
+                if (item.ammo_clip && item.ammo_clip > 1) score += _T("Обойма", ((item.ammo_clip * 10)));
                 
                 if (item.projectiles) {
-                    score += (item.projectiles * 25); 
+                    score += _T("Торпеды в залпе", ((item.projectiles * 25))); 
                 }
                 
                 let cappedRange = Math.min(item.range, 12);
-                score += (cappedRange / 12) * 30;
+                score += _T("Дальность", ((cappedRange / 12) * 30));
 
-                if (item.splash_damage) score += (item.splash_damage / 6000) * 20; 
-                if (item.detonation_radius) score += (item.detonation_radius / 40) * 20;
+                if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 6000) * 20)); 
+                if (item.detonation_radius) score += _T("Сплэш и взрыв", ((item.detonation_radius / 40) * 20));
                 
-                score += (50 - (item.lock_time * 10));
+                score += _T("Время захвата цели", ((50 - (item.lock_time * 10))));
                 
-                if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
+                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
                 return score;
             },
           "Гранатометы": function(item) {
@@ -1575,7 +1882,7 @@
                 // 1. Штраф за отдачу
                 let recoil = item.recoil !== undefined ? item.recoil : 15; 
                 let recoilPenalty = (recoil - 11) * 5; 
-                score -= Math.max(0, recoilPenalty);
+                score -= _N("Штраф: отдача", (Math.max(0, recoilPenalty)));
 
                 if (item.gl_type === "gun" || item.gl_type === "mixed") {
                     let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
@@ -1592,37 +1899,37 @@
                     item.effectiveDpm = item.dpm * hitRatio;
                     item.effectiveBurst = item.damage_burst * hitRatio;
 
-                    score += (item.effectiveDpm / 300000) * 220; 
-                    score += (item.effectiveBurst / 50000) * 200; 
-                    score += (item.max_speed / 600) * 80;
+                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220)); 
+                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200)); 
+                    score += _T("Скорость", ((item.max_speed / 600) * 80));
                     
-                    score += (item.gl_type === "mixed") ? 60 : 120; 
+                    score += _T("Тип гранатомёта", ((item.gl_type === "mixed") ? 60 : 120)); 
                     
                     if (item.lock_time > 0) {
-                        score -= (item.lock_time * 50); 
+                        score -= _N("Штраф: время захвата", ((item.lock_time * 50))); 
                     }
                     
                 } else if (item.gl_type === "missile") {
                     item.accuracyScore = 100; 
                     let effectiveHp = item.hp || 100;
-                    score += (effectiveHp / 200) * 120;
+                    score += _T("Живучесть (HP)", ((effectiveHp / 200) * 120));
                     
                     let isFlarable = (item.anti_jamming === 0);
                     item.effectiveDpm = item.dpm * (isFlarable ? 0.6 : 0.85); 
                     item.effectiveBurst = item.damage_burst * (isFlarable ? 0.4 : 0.85); 
                     
-                    score += (item.effectiveDpm / 300000) * 220; 
-                    score += (item.effectiveBurst / 50000) * 200; 
+                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220)); 
+                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200)); 
                     
-                    if (item.start_speed) score += (item.start_speed / 300) * 50;
-                    if (item.max_speed) score += (item.max_speed / 600) * 60;
+                    if (item.start_speed) score += _T("Стартовая скорость", ((item.start_speed / 300) * 50));
+                    if (item.max_speed) score += _T("Скорость", ((item.max_speed / 600) * 60));
                     
                     if (item.lock_time > 0) {
-                        score -= (item.lock_time * 50); 
+                        score -= _N("Штраф: время захвата", ((item.lock_time * 50))); 
                     }
                     
                     if (!isFlarable) {
-                        score += 100; 
+                        score += _T("Помехозащита (РЭБ)", (100)); 
                     } else {
                         let flareCycle = 11.0; 
                         let hitRatio = 0;
@@ -1633,73 +1940,73 @@
                         } else {
                             hitRatio = 0.40; 
                         }
-                        score += 80 * hitRatio; 
+                        score += _T("Проходимость через ловушки", (80 * hitRatio)); 
                     }
 
-                    if (item.projectiles > 3) score += 30; 
+                    if (item.projectiles > 3) score += _T("Залповая плотность", (30)); 
                 } else if (item.gl_type === "laser") {
                     item.accuracyScore = 100;
                     let effectiveHp = (item.hp || 100) * 0.6;
-                    score += (effectiveHp / 200) * 100;
+                    score += _T("Живучесть (HP)", ((effectiveHp / 200) * 100));
                     
                     item.effectiveDpm = item.dpm * 0.6; 
                     item.effectiveBurst = item.damage_burst * 0.6;
                     
-                    score += (item.effectiveDpm / 300000) * 220; 
-                    score += (item.effectiveBurst / 50000) * 200; 
+                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220)); 
+                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200)); 
                     
                     if (item.lock_time > 0) {
-                        score -= (item.lock_time * 50);
+                        score -= _N("Штраф: время захвата", ((item.lock_time * 50)));
                     }
-                    score += 80; 
+                    score += _T("Лазерное наведение", (80)); 
                 }
 
                 if (item.crit_chance > 0) {
-                    score += (item.crit_chance / 30) * 25; 
+                    score += _T("Шанс крита", ((item.crit_chance / 30) * 25)); 
                 }
 
                 if (item.can_hit_torpedoes === 1) {
                     let splashFactor = (item.splash_radius || 0) / 50;
-                    score += 30 + (splashFactor * 10); 
-                    if (item.projectiles) score += Math.min(40, item.projectiles * 5); 
+                    score += _T("Перехват торпед", (30 + (splashFactor * 10))); 
+                    if (item.projectiles) score += _T("Перехват торпед", (Math.min(40, item.projectiles * 5))); 
                 }
-                if (item.can_hit_subs === 1) score += 40; 
-                if (item.only_torpedoes === 1) score += 200;
+                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (40)); 
+                if (item.only_torpedoes === 1) score += _T("Перехват торпед", (200));
 
-                if (item.splash_damage > 0) score += (item.splash_damage / 1000) * 35; 
-                if (item.splash_radius > 0) score += (item.splash_radius / 50) * 10; 
-                if (item.detonation_radius > 0) score += (item.detonation_radius / 30) * 10;
+                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 35)); 
+                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 50) * 10)); 
+                if (item.detonation_radius > 0) score += _T("Сплэш и взрыв", ((item.detonation_radius / 30) * 10));
 
                 if (item.fire_mode === "burst") {
-                    score += 40; 
+                    score += _T("Режим залпа", (40)); 
                 } else if (item.fire_mode === "manual") {
-                    score -= 40; 
+                    score -= _N("Штраф: ручной режим", (40)); 
                 }
 
-                if (item.air_target === 1) score += 60;
-                score += (item.range * 2);
+                if (item.air_target === 1) score += _T("Атака авиации", (60));
+                score += _T("Дальность", ((item.range * 2)));
                 let cappedRange = Math.min(item.range, 12);
-                score += (cappedRange / 12) * 20;
+                score += _T("Дальность", ((cappedRange / 12) * 20));
 
                 return score;
             },
             "Автопушки": function(item) {
                 let score = 100;
                 
-                score += (item.dpm / 250000) * 300;
-                score += (item.damage_burst / 30000) * 150;
+                score += _T("DPM (паспортный)", ((item.dpm / 250000) * 300));
+                score += _T("Альфа-страйк", ((item.damage_burst / 30000) * 150));
                 
-                if (item.air_target === 1) score += 150; 
-                if (item.can_hit_subs === 1) score += 250; 
+                if (item.air_target === 1) score += _T("Атака авиации", (150)); 
+                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (250)); 
                 
-                score += (item.range / 10) * 60;
-                score += (item.max_speed / 1000) * 50;
+                score += _T("Дальность", ((item.range / 10) * 60));
+                score += _T("Скорость снаряда", ((item.max_speed / 1000) * 50));
                 
-                if (item.crit_chance > 0) score += (item.crit_chance / 30) * 30;
-                if (item.splash_radius > 0) score += (item.splash_radius / 100) * 20;
-                if (item.splash_damage > 0) score += (item.splash_damage / 1000) * 10;
+                if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 30) * 30));
+                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 100) * 20));
+                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 10));
                 
-                if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
+                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
                 
                 return score;
             },
@@ -1786,19 +2093,19 @@
                 item.effectiveBurst = effectiveBurst;
 
                 // 4. Фундаментальный урон с учетом точности + реальный шанс сбить ракету
-                score += (item.effectiveDpm / 200000) * 180; 
-                score += (effectiveBurst / 20000) * 60; 
-                score += killChanceVsMissile * 250; // главный вклад: реально ли собьет типичную ракету
+                score += _T("Эффективный DPM", ((item.effectiveDpm / 200000) * 180)); 
+                score += _T("Эффективный альфа-страйк", ((effectiveBurst / 20000) * 60)); 
+                score += _T("Шанс сбить ракету", (killChanceVsMissile * 250)); // главный вклад: реально ли собьет типичную ракету
 
                 // 5. Оценка дальности и чистоты попаданий
-                score += ((item.range || 3) / 6) * 80; 
+                score += _T("Дальность", (((item.range || 3) / 6) * 80)); 
                 // Чем МЕНЬШЕ разброс (ближе к 11), тем БОЛЬШЕ бонус к очкам рейтинга
                 let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
-                score += dispersionBonus; 
+                score += _T("Чистота попаданий", (dispersionBonus)); 
 
                 // 6. Баллистика и скорость перехвата — теперь относительно скорости РЕАЛЬНОЙ
                 //    атакующей ракеты, а не абсолютной шкалы "чем быстрее, тем лучше"
-                score += vsMissileSpeedFactor * 130;
+                score += _T("Скорость перехвата", (vsMissileSpeedFactor * 130));
 
                 // 7. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || item.detonation_radius > 0) {
@@ -1806,20 +2113,20 @@
                     if (item.splash_damage > 0) {
                         aoeValue += (item.splash_damage / 1000) * 15;
                     }
-                    score += Math.min(200, aoeValue); 
+                    score += _T("Сплэш и радиус взрыва", (Math.min(200, aoeValue))); 
                 }
 
                 // 8. Плотность огня (Боезапас)
                 if (item.ammo_clip > 1) {
-                    score += Math.min(100, (item.ammo_clip / 150) * 80);
+                    score += _T("Плотность огня", (Math.min(100, (item.ammo_clip / 150) * 80)));
                 }
                 
                 // 9. Критический урон
                 if (item.crit_chance > 0) {
-                    score += (item.crit_chance / 40) * 30;
+                    score += _T("Шанс крита", ((item.crit_chance / 40) * 30));
                 }
 
-                if (item.fire_penalty) score -= (item.fire_penalty * 0.5);
+                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
 
                 return Math.round(score);
             }
@@ -1835,6 +2142,115 @@
         }
 
         for (let key in DB) { DB[key].rating = calculateRating(DB[key]); }
+
+        // =========================================================
+        // РАЗБОР РЕЙТИНГА (score breakdown)
+        // =========================================================
+        const RATING_HINTS = {
+            "DPM (паспортный)": "Урон в минуту из таблицы, без поправки на промахи",
+            "Эффективный DPM": "Урон в минуту с поправкой на промахи и ловушки врага",
+            "Эффективный альфа-страйк": "Урон одного залпа с поправкой на попадания",
+            "Альфа-страйк": "Урон одного залпа",
+            "Скорость снаряда": "Чем быстрее снаряд, тем сложнее уклониться",
+            "Скорость": "Максимальная скорость снаряда, ракеты или торпеды",
+            "Стартовая скорость": "Быстрый старт оставляет ПВО меньше времени",
+            "Максимальная скорость": "Разгонная скорость ракеты",
+            "Дальность": "Бонус за дальность, у каждой категории своя планка",
+            "Штраф: дальность ниже 11 км": "Снимает очки за каждый километр ниже 11",
+            "Штраф: дальность ниже 11.5 км": "Снимает очки за каждый километр ниже 11.5",
+            "Шанс крита": "Бонус за вероятность критического попадания",
+            "Быстрая перезарядка": "Бонус за короткую перезарядку",
+            "Штраф: большая обойма": "Длинная обойма забирает очки: залп получается растянутым",
+            "Залповая схема (без обоймы)": "Бонус за оружие без обоймы: весь урон приходит сразу",
+            "Атака авиации": "Оружие умеет бить по воздушным целям",
+            "Атака подлодок": "Оружие умеет бить по подлодкам",
+            "Сплэш и взрыв": "Урон и радиус взрыва, радиус детонации",
+            "Штраф маскировки": "Выстрел демаскирует корабль: чем сильнее штраф, тем меньше очков",
+            "Базовый бонус класса": "Фиксированный бонус категории",
+            "Помехозащита (РЭБ)": "Ловушки не отводят оружие, поэтому самый большой бонус в категории",
+            "Штраф: уязвимость к ловушкам": "Ракета не успевает пролететь безопасную дистанцию до срабатывания ловушек",
+            "Кластерная БЧ": "Осколочная боевая часть частично обходит ловушки и ПВО",
+            "Зенитная специализация": "Бонус за ракеты, заточенные под воздушные цели",
+            "Зенитный сплэш": "Сплэш и радиус детонации у зенитных ракет",
+            "Боеголовки в залпе": "Число ракет в одном пуске",
+            "Живучесть (HP)": "Прочность ракеты: чем выше, тем труднее сбить",
+            "Штраф: время разгона": "Долгий разгон даёт цели время на реакцию",
+            "Осколочный урон": "Урон осколками кластерной боевой части",
+            "Подводный пуск": "Можно стартовать из-под воды",
+            "Время захвата цели": "Меньше время захвата, больше очков (может уйти в минус)",
+            "Штраф: время захвата": "Долгий захват цели снимает очки",
+            "Штраф: мёртвая зона": "Внутри мёртвой зоны ракета не стартует",
+            "Быстрый разгон": "Торпеда быстро набирает скорость",
+            "Обойма": "Число торпед в обойме",
+            "Торпеды в залпе": "Число торпед в одном залпе",
+            "Штраф: отдача": "Сильная отдача ухудшает стрельбу гранатомёта",
+            "Тип гранатомёта": "Пушечный тип надёжнее ракетного, смешанный ниже",
+            "Проходимость через ловушки": "Насколько ракетные гранаты пробиваются сквозь ловушки",
+            "Залповая плотность": "Много ракет в залпе",
+            "Лазерное наведение": "Лазерный тип наведения",
+            "Перехват торпед": "Гранатомёт может сбивать вражеские торпеды",
+            "Режим залпа": "Залповая стрельба удобнее ручной",
+            "Штраф: ручной режим": "Ручной режим стрельбы снимает очки",
+            "Шанс сбить ракету": "Главный вклад ПВО: реально ли оно собьёт типичную ракету",
+            "Чистота попаданий": "Чем меньше разброс, тем выше бонус",
+            "Скорость перехвата": "Успевает ли перехватчик догнать типичную ракету",
+            "Сплэш и радиус взрыва": "Эффективность против роя ракет",
+            "Плотность огня": "Размер обоймы ПВО"
+        };
+
+        function computeBreakdownForItem(item) {
+            const calc = RATING_CALCULATORS[item.category];
+            if (!calc) return null;
+            const copy = Object.assign({}, item); // калькуляторы дописывают в объект effectiveDpm и т.п.
+            _bdLog = [];
+            let raw, log;
+            try { raw = calc(copy); } finally { log = _bdLog; _bdLog = null; }
+            const map = {};
+            log.forEach(e => { const v = isFinite(e.value) ? e.value : 0; map[e.label] = (map[e.label] || 0) + v; });
+            return { map: map, raw: raw, copy: copy };
+        }
+
+        const _bdAvgCache = {};
+        function getCategoryBreakdownAvg(category) {
+            if (_bdAvgCache[category]) return _bdAvgCache[category];
+            const keys = Object.keys(DB).filter(k => DB[k].category === category);
+            const sums = {};
+            keys.forEach(k => {
+                const r = computeBreakdownForItem(DB[k]);
+                if (!r) return;
+                Object.keys(r.map).forEach(l => { sums[l] = (sums[l] || 0) + r.map[l]; });
+            });
+            const avg = {};
+            Object.keys(sums).forEach(l => { avg[l] = sums[l] / (keys.length || 1); });
+            _bdAvgCache[category] = avg;
+            return avg;
+        }
+
+        function getRatingBreakdown(itemId) {
+            const item = DB[itemId];
+            const r = computeBreakdownForItem(item);
+            if (!r) return null;
+            const avg = getCategoryBreakdownAvg(item.category);
+            const labels = Object.keys(r.map);
+            Object.keys(avg).forEach(l => { if (labels.indexOf(l) < 0) labels.push(l); });
+            const parts = labels.map(l => ({
+                label: l,
+                value: r.map[l] || 0,
+                avg: avg[l] || 0,
+                hint: RATING_HINTS[l] || ''
+            }));
+            const sum = parts.reduce((a, p) => a + p.value, 0);
+            return {
+                item: item, base: 100, parts: parts, sum: sum,
+                raw: 100 + sum, final: item.rating,
+                clamped: (Math.round(r.raw) !== item.rating),
+                eff: {
+                    dpm: r.copy.effectiveDpm, burst: r.copy.effectiveBurst,
+                    accuracy: r.copy.accuracyScore, kill: r.copy.killChanceVsMissile
+                }
+            };
+        }
+
 
         let compareQueue = [];
         function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
@@ -2031,6 +2447,7 @@
         let currentPreviewId = null;
 
         function runCompareFlow(id1, id2) {
+            showDuoView();
             updateEquipView(1, id1); updateEquipView(2, id2);
             switchMainPage('page-compare', document.getElementById('nav-compare'));
 
@@ -2104,6 +2521,7 @@
             document.getElementById('roster-name').innerText = item.name;
             document.getElementById('roster-classtext').innerText = `${item.category} · Класс ${item.rarity === 'Легендарный' ? 'S' : item.rarity === 'Эпический' ? 'A' : 'B'}`;
             document.getElementById('roster-rating-num').innerText = isAuth ? item.rating : '🔒';
+            const whyBtn = document.getElementById('roster-why-btn'); if (whyBtn) whyBtn.textContent = (isAuth ? '' : '🔒 ') + 'Почему такой рейтинг?';
             document.getElementById('roster-stats').innerHTML = generateStatsHtml(item, 'roster');
 
             const chips = getSkillChips(item);
@@ -2128,13 +2546,21 @@
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
                 compareQueue.forEach(id => { const el = document.querySelector(`.catalog-item[data-id="${id}"]`); if (el) el.classList.add('queued'); });
                 showToast(`СЛОТ ОСВОБОЖДЕН: ${item.name}`);
+                updateCompareTray();
+                return;
+            }
+
+            if (multiMode && compareQueue.length >= MAX_COMPARE) {
+                showToast('МАКСИМУМ ' + MAX_COMPARE + ' ОБЪЕКТОВ', true);
                 return;
             }
 
             compareQueue.push(itemId);
             document.querySelectorAll('.catalog-item').forEach(el => { if (compareQueue.includes(el.dataset.id)) el.classList.add('queued'); });
 
-            if (compareQueue.length === 1) {
+            if (multiMode) {
+                showToast(`В СРАВНЕНИИ (${compareQueue.length}): ${item.name}`);
+            } else if (compareQueue.length === 1) {
                 showToast(`СЛОТ 1: ${item.name}`);
             } else if (compareQueue.length === 2) {
                 const id1 = compareQueue[0]; const id2 = compareQueue[1];
@@ -2142,6 +2568,7 @@
                 compareQueue = [];
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
             }
+            updateCompareTray();
         }
 
         function setRarityTab(rarity, btnEl) {
@@ -2182,6 +2609,7 @@
             } else if (currentPreviewId) {
                 previewRosterItem(currentPreviewId);
             }
+            updateCompareTray();
         }
 
         function generateStatsHtml(item, side) {
@@ -2242,113 +2670,7 @@
             document.getElementById(`stats-equip-${side}`).innerHTML = generateStatsHtml(item, side);
         }
 
-       function drawRadarChart(e1, e2) {
-            let canvas = document.getElementById('radarChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') {
-                canvas.parentElement.innerHTML = `<div style="color:var(--secondary); font-family:Inter; padding:20px; text-align:center;">[ RADAR OFFLINE ]</div>`; return;
-            }
-            let ctx = canvas.getContext('2d');
-            if(window.radarChartInstance) window.radarChartInstance.destroy();
-            
-            let labels = [], d1 = [], d2 = [];
-
-            // Вспомогательные функции для чистоты кода (считают проценты от максимума в категории)
-            const pct = (val, max) => Math.min(100, Math.max(0, ((val || 0) / (max || 1)) * 100));
-            const invPct = (val, max) => Math.max(0, 100 - pct(val, max));
-
-            let cMax1 = CATEGORY_MAX_STATS[e1.category] || CATEGORY_MAX_STATS["Пушки"];
-            let cMax2 = CATEGORY_MAX_STATS[e2.category] || CATEGORY_MAX_STATS["Пушки"];
-
-            // 1. ПУШКИ
-            if (e1.category === "Пушки") {
-                labels = ['Эффект. DPM', 'Эффект. Альфа', 'Баллистика (Скор.)', 'Точность', 'Скорострельность', 'Дальность'];
-                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), e1.accuracyScore || 100, invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), e2.accuracyScore || 100, invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
-            } 
-            // 2. РАКЕТЫ
-            else if (e1.category === "Ракеты") {
-                labels = ['Эффект. DPM', 'Альфа-страйк', 'Живучесть (HP)', 'Макс. Скорость', 'Стартовый рывок', 'Дальность'];
-                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.hp, cMax1.hp), pct(e1.max_speed, cMax1.max_speed), pct(e1.start_speed, cMax1.start_speed), pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.hp, cMax2.hp), pct(e2.max_speed, cMax2.max_speed), pct(e2.start_speed, cMax2.start_speed), pct(e2.range, cMax2.range) ];
-            }
-            // 3. ЗЕНИТНЫЕ РАКЕТЫ (А/А)
-            else if (e1.category === "Ракеты А/А") {
-                labels = ['Урон по авиации', 'Урон по кораблям', 'Скорость перехвата', 'Сплэш / АОЕ', 'Скорострельность', 'Дальность'];
-                let aoe1 = (e1.splash_radius || 0) + (e1.detonation_radius || 0);
-                let aoe2 = (e2.splash_radius || 0) + (e2.detonation_radius || 0);
-                d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.max_speed, cMax1.max_speed), pct(aoe1, 700), invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.max_speed, cMax2.max_speed), pct(aoe2, 700), invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
-            }
-            // 4. ТОРПЕДЫ
-            else if (e1.category === "Торпеды") {
-                labels = ['Эффект. DPM', 'Альфа-страйк', 'Скрытность (Разгон)', 'Макс. Скорость', 'Скорострельность', 'Дальность'];
-                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), invPct(e1.accel_time, cMax1.accel_time), pct(e1.max_speed, cMax1.max_speed), invPct(e1.reload, cMax1.reload), pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), invPct(e2.accel_time, cMax2.accel_time), pct(e2.max_speed, cMax2.max_speed), invPct(e2.reload, cMax2.reload), pct(e2.range, cMax2.range) ];
-            }
-            // 5. ГРАНАТОМЕТЫ
-            else if (e1.category === "Гранатометы") {
-                labels = ['Эффект. DPM', 'Эффект. Альфа', 'ПТЗ (Радиус сплэша)', 'Скорость снаряда', 'Плотность огня', 'Дальность'];
-                let dens1 = (e1.projectiles || 1) * (e1.ammo_clip || 1);
-                let dens2 = (e2.projectiles || 1) * (e2.ammo_clip || 1);
-                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), pct(e1.effectiveBurst || e1.damage_burst, cMax1.damage_burst), pct(e1.splash_radius || e1.detonation_radius, Math.max(cMax1.splash_radius, cMax1.detonation_radius)), pct(e1.max_speed, cMax1.max_speed), pct(dens1, 20), pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), pct(e2.effectiveBurst || e2.damage_burst, cMax2.damage_burst), pct(e2.splash_radius || e2.detonation_radius, Math.max(cMax2.splash_radius, cMax2.detonation_radius)), pct(e2.max_speed, cMax2.max_speed), pct(dens2, 20), pct(e2.range, cMax2.range) ];
-            }
-            // 6. АВТОПУШКИ
-            else if (e1.category === "Автопушки") {
-                labels = ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'];
-                let util1 = ((e1.air_target ? 50 : 0) + (e1.can_hit_subs ? 50 : 0));
-                let util2 = ((e2.air_target ? 50 : 0) + (e2.can_hit_subs ? 50 : 0));
-                d1 = [ pct(e1.dpm, cMax1.dpm), pct(e1.damage_burst, cMax1.damage_burst), pct(e1.max_speed, cMax1.max_speed), pct(e1.ammo_clip || 1, cMax1.ammo_clip), util1, pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.dpm, cMax2.dpm), pct(e2.damage_burst, cMax2.damage_burst), pct(e2.max_speed, cMax2.max_speed), pct(e2.ammo_clip || 1, cMax2.ammo_clip), util2, pct(e2.range, cMax2.range) ];
-            }
-            // 7. ПВО
-            else if (e1.category === "ПВО") {
-                labels = ['Эффект. DPM', 'Точность перехвата', 'Плотность огня', 'Скорость снаряда', 'Сплэш / АОЕ', 'Дальность'];
-                let dens1 = (e1.ammo_clip || 1) * (e1.projectiles || 1);
-                let dens2 = (e2.ammo_clip || 1) * (e2.projectiles || 1);
-                let aoe1 = (e1.splash_radius || 0) + (e1.detonation_radius || 0);
-                let aoe2 = (e2.splash_radius || 0) + (e2.detonation_radius || 0);
-                let spd1 = e1.start_speed || e1.max_speed || 0;
-                let spd2 = e2.start_speed || e2.max_speed || 0;
-                
-                d1 = [ pct(e1.effectiveDpm || e1.dpm, cMax1.dpm), e1.accuracyScore || 100, pct(dens1, 175), pct(spd1, cMax1.max_speed), pct(aoe1, 333), pct(e1.range, cMax1.range) ];
-                d2 = [ pct(e2.effectiveDpm || e2.dpm, cMax2.dpm), e2.accuracyScore || 100, pct(dens2, 175), pct(spd2, cMax2.max_speed), pct(aoe2, 333), pct(e2.range, cMax2.range) ];
-            }
-
-            Chart.defaults.color = '#838b96';
-            Chart.defaults.font.family = 'Inter';
-
-            window.radarChartInstance = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: e1.name, data: d1, backgroundColor: 'rgba(63, 217, 199, 0.18)', borderColor: '#3fd9c7', pointBackgroundColor: '#3fd9c7', borderWidth: 2, pointRadius: 3 },
-                        { label: e2.name, data: d2, backgroundColor: 'rgba(232, 72, 63, 0.14)', borderColor: '#e8483f', pointBackgroundColor: '#e8483f', borderWidth: 2, pointRadius: 3 }
-                    ]
-                },
-                options: {
-                    scales: { 
-                        r: { 
-                            min: 0, max: 100, 
-                            angleLines: { color: 'rgba(20, 24, 28, 0.08)' }, 
-                            grid: { color: 'rgba(20, 24, 28, 0.08)', circular: true }, 
-                            pointLabels: { color: '#14181c', font: { family: 'Inter', size: 11, weight: '600' } }, 
-                            ticks: { display: false } 
-                        } 
-                    },
-                    plugins: { 
-                        legend: { 
-                            display: true, 
-                            position: 'bottom', 
-                            labels: { color: '#14181c', font: { family: 'Inter', size: 12 }, padding: 15 } 
-                        } 
-                    }, 
-                    responsive: true, maintainAspectRatio: false
-                }
-            });
-        }
+        // drawRadarChart(e1, e2) определён ниже вместе с getRadarProfile / drawRadarMulti
 
         // Приоритетные показатели по категориям для АВТОМАТИЧЕСКОГО объяснения "ключевого фактора",
         // если ни одно из специальных условий выше не сработало. Гарантирует, что для ЛЮБОЙ пары
@@ -2948,6 +3270,7 @@
             document.getElementById('img-' + prefix).style.backgroundImage = `url('${DB[itemKey].img}')`;
             document.getElementById('text-' + prefix).innerText = DB[itemKey].name;
             closeAllBuildDropdowns();
+            if (prefix === 'cf-enemy') runCounterFinder();
         }
 
         function initAASimulator() {
@@ -2993,18 +3316,7 @@
             return 1;
         }
 
-        function simulateAA() {
-            const aaKey = document.getElementById('wrapper-sim-aa').dataset.value;
-            const misKey = document.getElementById('wrapper-sim-missile').dataset.value;
-            const aaQty = parseInt(document.getElementById('sim-aa-qty').value);
-            const misQty = parseInt(document.getElementById('sim-missile-qty').value);
-            const distance = parseFloat(document.getElementById('sim-dist').value);
-
-            if (!aaKey || !misKey) return showToast("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО", true);
-
-            const aa = DB[aaKey];
-            const mis = DB[misKey];
-
+        function computeAAEngagement(aa, aaQty, mis, misQty, distance) {
             const MW_COEF = 0.00278;
 
             // 1. Физика полета АТАКУЮЩЕЙ ракеты (нач. скорость -> макс. скорость за accel_time)
@@ -3099,7 +3411,29 @@
 
             let survivedMissiles = totalMissiles - destroyedMissiles;
             let survivalProbability = (survivedMissiles / totalMissiles) * 100;
-            
+
+            return { engageTime: engageTime, speedFactor: speedFactor, accuracy: accuracy, totalAADamage: totalAADamage,
+                     shotsFired: shotsFired, shotsLanded: shotsLanded, totalMissiles: totalMissiles, totalMissileHP: totalMissileHP,
+                     singleMissileHP: singleMissileHP, destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
+                     survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile };
+        }
+
+        function simulateAA() {
+            const aaKey = document.getElementById('wrapper-sim-aa').dataset.value;
+            const misKey = document.getElementById('wrapper-sim-missile').dataset.value;
+            const aaQty = parseInt(document.getElementById('sim-aa-qty').value);
+            const misQty = parseInt(document.getElementById('sim-missile-qty').value);
+            const distance = parseFloat(document.getElementById('sim-dist').value);
+
+            if (!aaKey || !misKey) return showToast("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО", true);
+
+            const aa = DB[aaKey];
+            const mis = DB[misKey];
+
+            const R = computeAAEngagement(aa, aaQty, mis, misQty, distance);
+            const { engageTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
+                    destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
+
             let resColor = survivalProbability > 0 ? 'var(--primary)' : 'var(--secondary)';
             let verdict = survivalProbability === 0 ? "ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА" : "ПРОРЫВ ПВО УСПЕШЕН!";
 
@@ -3129,8 +3463,819 @@
             showToast("СИМУЛЯЦИЯ ЗАВЕРШЕНА");
         }
 
+
+        // =========================================================
+        // ОБЩИЕ ХЕЛПЕРЫ НОВЫХ ФУНКЦИЙ
+        // =========================================================
+        const MW_K = 0.00278; // тот же коэффициент узлы -> км/с, что и в симуляторе ПВО
+
+        function rarityLetter(r) { return r === 'Легендарный' ? 'S' : (r === 'Эпический' ? 'A' : 'B'); }
+
+        function isHigherBetterFor(key, item) {
+            let hb = STATS_LOGIC[key].higherIsBetter;
+            if (key === 'projectiles') {
+                hb = ['Ракеты', 'Ракеты А/А', 'Торпеды', 'Гранатометы', 'Автопушки', 'ПВО'].indexOf(item.category) >= 0;
+            }
+            return hb;
+        }
+
+        function formatStatValue(key, val) {
+            if (val === undefined || val === null) return '—';
+            if (['dpm', 'damage_burst', 'splash_damage', 'fragmentation_damage', 'damage'].indexOf(key) >= 0) return Number(val).toLocaleString('ru');
+            if (key === 'anti_jamming') return val === 1 ? 'АКТИВНО' : 'НЕТ';
+            if (['cluster', 'air_target', 'sub_launch', 'can_hit_subs'].indexOf(key) >= 0) return val === 1 ? 'ДА' : 'НЕТ';
+            if (['fire_penalty', 'accuracy', 'dispersion'].indexOf(key) >= 0) return val + '%';
+            if (key === 'killChanceVsMissile') return Math.round((val || 0) * 100) + '%';
+            return val;
+        }
+
+        function needPro(msg) {
+            if (isAuth) return true;
+            showToast(msg || 'ТРЕБУЕТСЯ PRO ДОСТУП', true);
+            return false;
+        }
+
+        // Открыть единицу в Арсенале: сбрасывает фильтры, выбирает категорию и показывает карточку
+        function openInArsenal(itemId) {
+            const item = DB[itemId];
+            if (!item) return;
+            closeModal('breakdown-modal');
+            currentCategory = item.category;
+            searchQuery = '';
+            const si = document.getElementById('search-input-catalog'); if (si) si.value = '';
+            document.getElementById('filter-country-catalog').value = '';
+            document.getElementById('filter-rarity-catalog').value = '';
+            document.querySelectorAll('.roster-class-tab').forEach(b => b.classList.toggle('active', b.dataset.rarity === ''));
+            compareQueue = [];
+            renderCategoryBar(); renderDynamicFilters();
+            switchMainPage('page-catalog', document.getElementById('nav-catalog'));
+            previewRosterItem(itemId);
+            const el = document.querySelector('.catalog-item[data-id="' + itemId + '"]');
+            if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest', inline: 'center' });
+        }
+
+        // Обновить всё, что зависит от PRO-доступа
+        function refreshProGatedViews() {
+            renderTierList();
+            const btn = document.getElementById('roster-why-btn');
+            if (btn) btn.textContent = (isAuth ? '' : '🔒 ') + 'Почему такой рейтинг?';
+            closeModal('breakdown-modal');
+        }
+
+        function openRatingBreakdown(itemId) {
+            if (!itemId || !DB[itemId]) return;
+            if (!needPro('РАЗБОР РЕЙТИНГА ДОСТУПЕН В PRO')) { switchMainPage('page-admin', document.getElementById('nav-admin')); return; }
+            const bd = getRatingBreakdown(itemId);
+            if (!bd) return;
+            const item = bd.item;
+            const fmt = v => (v > 0 ? '+' : (v < 0 ? '−' : '')) + Math.abs(Math.round(v)).toLocaleString('ru');
+
+            const visible = bd.parts.filter(p => Math.abs(p.value) >= 0.5).sort((a, b) => b.value - a.value);
+            const maxAbs = Math.max(1, ...visible.map(p => Math.abs(p.value)));
+
+            const rows = visible.map(p => {
+                const w = Math.max(2, Math.round(Math.abs(p.value) / maxAbs * 100));
+                const avgTxt = 'среднее по категории: ' + (Math.abs(p.avg) < 0.5 ? '0' : fmt(p.avg));
+                return `<div class="bd-row">
+                    <div class="bd-label">${p.label}</div>
+                    <div class="bd-val ${p.value < 0 ? 'neg' : ''}">${fmt(p.value)}</div>
+                    <div class="bd-hint">${p.hint ? p.hint + '. ' : ''}<span class="bd-avg">${avgTxt}</span></div>
+                    <div class="bd-bar-bg"><div class="bd-bar ${p.value < 0 ? 'neg' : 'pos'}" style="width:${w}%"></div></div>
+                </div>`;
+            }).join('');
+
+            // Что выделяет юнит относительно категории
+            const deltas = bd.parts.map(p => ({ label: p.label, d: p.value - p.avg })).filter(x => Math.abs(x.d) >= 5);
+            const ups = deltas.filter(x => x.d > 0).sort((a, b) => b.d - a.d).slice(0, 2);
+            const downs = deltas.filter(x => x.d < 0).sort((a, b) => a.d - b.d).slice(0, 2);
+            let insight = '';
+            if (ups.length) insight += `<div><b>Выше среднего по категории:</b> ${ups.map(x => x.label + ' (' + fmt(x.d) + ')').join(', ')}.</div>`;
+            if (downs.length) insight += `<div><b>Ниже среднего:</b> ${downs.map(x => x.label + ' (' + fmt(x.d) + ')').join(', ')}.</div>`;
+
+            const chips = [];
+            if (bd.eff.dpm !== undefined && item.dpm) chips.push(['Эфф. DPM', Math.round(bd.eff.dpm).toLocaleString('ru'), Math.round(bd.eff.dpm / item.dpm * 100) + '% от паспортного']);
+            if (bd.eff.burst !== undefined && item.damage_burst) chips.push(['Эфф. альфа-страйк', Math.round(bd.eff.burst).toLocaleString('ru'), Math.round(bd.eff.burst / item.damage_burst * 100) + '% от паспортного']);
+            if (bd.eff.accuracy !== undefined) chips.push(['Индекс точности', Math.round(bd.eff.accuracy) + '%', '']);
+            if (bd.eff.kill !== undefined) chips.push(['Шанс сбить ракету', Math.round(bd.eff.kill * 100) + '%', 'типичную из базы']);
+            const chipsHtml = chips.length ? `<div class="bd-eff">${chips.map(c => `<div class="bd-chip">${c[0]}<b>${c[1]}</b>${c[2]}</div>`).join('')}</div>` : '';
+
+            const clampNote = bd.clamped ? `<div class="bd-note">Сумма очков (${Math.round(bd.raw)}) вышла за границы шкалы 50–1000, поэтому итог обрезан до ${bd.final}.</div>` : '';
+
+            document.getElementById('breakdown-body').innerHTML = `
+                <div class="bd-head">
+                    <div class="bd-img" style="background-image:url('${item.img}')"></div>
+                    <div class="bd-title"><h2>${item.name}</h2><div class="bd-sub">${item.category} · Класс ${rarityLetter(item.rarity)} · ${item.country || ''}</div></div>
+                    <div class="bd-final">${item.rating}<small>РЕЙТИНГ</small></div>
+                </div>
+                <p class="bd-lead">Рейтинг это 100 базовых очков плюс надбавки и штрафы за отдельные характеристики. Ниже каждая из них с вкладом в итог и сравнением со средним по категории «${item.category}».</p>
+                ${chipsHtml}
+                ${insight ? `<div class="bd-insight">${insight}</div>` : ''}
+                <div class="bd-rows">${rows}</div>
+                <div class="bd-total"><span>100 базовых ${bd.sum >= 0 ? '+' : '−'} ${Math.abs(Math.round(bd.sum)).toLocaleString('ru')}</span><span>= ${item.rating}</span></div>
+                ${clampNote}
+            `;
+            openModal('breakdown-modal');
+            document.getElementById('breakdown-modal').querySelector('.modal-content').scrollTop = 0;
+        }
+
+        // =========================================================
+        // РАДАР: профиль одного объекта (используется и для 1v1, и для сравнения 3+)
+        // =========================================================
+        const RADAR_PALETTE = [
+            { c: '#3fd9c7', bg: 'rgba(63, 217, 199, 0.18)' },
+            { c: '#e8483f', bg: 'rgba(232, 72, 63, 0.14)' },
+            { c: '#14181c', bg: 'rgba(20, 24, 28, 0.08)' },
+            { c: '#f5a623', bg: 'rgba(245, 166, 35, 0.14)' },
+            { c: '#6c5ce7', bg: 'rgba(108, 92, 231, 0.12)' },
+            { c: '#2d9cdb', bg: 'rgba(45, 156, 219, 0.12)' }
+        ];
+
+        function getRadarProfile(e) {
+            const pct = (val, max) => Math.min(100, Math.max(0, ((val || 0) / (max || 1)) * 100));
+            const invPct = (val, max) => Math.max(0, 100 - pct(val, max));
+            const c = CATEGORY_MAX_STATS[e.category] || CATEGORY_MAX_STATS["Пушки"];
+            const aoe = (e.splash_radius || 0) + (e.detonation_radius || 0);
+
+            if (e.category === "Пушки") {
+                return { labels: ['Эффект. DPM', 'Эффект. Альфа', 'Баллистика (Скор.)', 'Точность', 'Скорострельность', 'Дальность'],
+                    data: [pct(e.effectiveDpm || e.dpm, c.dpm), pct(e.effectiveBurst || e.damage_burst, c.damage_burst), pct(e.max_speed, c.max_speed), e.accuracyScore || 100, invPct(e.reload, c.reload), pct(e.range, c.range)] };
+            } else if (e.category === "Ракеты") {
+                return { labels: ['Эффект. DPM', 'Альфа-страйк', 'Живучесть (HP)', 'Макс. Скорость', 'Стартовый рывок', 'Дальность'],
+                    data: [pct(e.effectiveDpm || e.dpm, c.dpm), pct(e.effectiveBurst || e.damage_burst, c.damage_burst), pct(e.hp, c.hp), pct(e.max_speed, c.max_speed), pct(e.start_speed, c.start_speed), pct(e.range, c.range)] };
+            } else if (e.category === "Ракеты А/А") {
+                return { labels: ['Урон по авиации', 'Урон по кораблям', 'Скорость перехвата', 'Сплэш / АОЕ', 'Скорострельность', 'Дальность'],
+                    data: [pct(e.dpm, c.dpm), pct(e.effectiveDpm || e.dpm, c.dpm), pct(e.max_speed, c.max_speed), pct(aoe, 700), invPct(e.reload, c.reload), pct(e.range, c.range)] };
+            } else if (e.category === "Торпеды") {
+                return { labels: ['Эффект. DPM', 'Альфа-страйк', 'Скрытность (Разгон)', 'Макс. Скорость', 'Скорострельность', 'Дальность'],
+                    data: [pct(e.effectiveDpm || e.dpm, c.dpm), pct(e.damage_burst, c.damage_burst), invPct(e.accel_time, c.accel_time), pct(e.max_speed, c.max_speed), invPct(e.reload, c.reload), pct(e.range, c.range)] };
+            } else if (e.category === "Гранатометы") {
+                const dens = (e.projectiles || 1) * (e.ammo_clip || 1);
+                return { labels: ['Эффект. DPM', 'Эффект. Альфа', 'ПТЗ (Радиус сплэша)', 'Скорость снаряда', 'Плотность огня', 'Дальность'],
+                    data: [pct(e.effectiveDpm || e.dpm, c.dpm), pct(e.effectiveBurst || e.damage_burst, c.damage_burst), pct(e.splash_radius || e.detonation_radius, Math.max(c.splash_radius, c.detonation_radius)), pct(e.max_speed, c.max_speed), pct(dens, 20), pct(e.range, c.range)] };
+            } else if (e.category === "Автопушки") {
+                const util = ((e.air_target ? 50 : 0) + (e.can_hit_subs ? 50 : 0));
+                return { labels: ['Урон/мин (DPM)', 'Разовый урон', 'Баллистика (Скорость)', 'Боекомплект', 'Утилити (ПВО/ПЛО)', 'Дальность'],
+                    data: [pct(e.dpm, c.dpm), pct(e.damage_burst, c.damage_burst), pct(e.max_speed, c.max_speed), pct(e.ammo_clip || 1, c.ammo_clip), util, pct(e.range, c.range)] };
+            } else if (e.category === "ПВО") {
+                const dens = (e.ammo_clip || 1) * (e.projectiles || 1);
+                const spd = e.start_speed || e.max_speed || 0;
+                return { labels: ['Эффект. DPM', 'Точность перехвата', 'Плотность огня', 'Скорость снаряда', 'Сплэш / АОЕ', 'Дальность'],
+                    data: [pct(e.effectiveDpm || e.dpm, c.dpm), e.accuracyScore || 100, pct(dens, 175), pct(spd, c.max_speed), pct(aoe, 333), pct(e.range, c.range)] };
+            }
+            return { labels: [], data: [] };
+        }
+
+        function drawRadarMulti(canvasId, items, instanceKey) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                canvas.parentElement.innerHTML = `<div style="color:var(--secondary); font-family:Inter; padding:20px; text-align:center;">[ RADAR OFFLINE ]</div>`; return;
+            }
+            const ctx = canvas.getContext('2d');
+            if (window[instanceKey]) window[instanceKey].destroy();
+
+            const profiles = items.map(getRadarProfile);
+            Chart.defaults.color = '#838b96';
+            Chart.defaults.font.family = 'Inter';
+
+            window[instanceKey] = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: profiles[0].labels,
+                    datasets: items.map((it, i) => {
+                        const col = RADAR_PALETTE[i % RADAR_PALETTE.length];
+                        return { label: it.name, data: profiles[i].data, backgroundColor: col.bg, borderColor: col.c, pointBackgroundColor: col.c, borderWidth: 2, pointRadius: 3 };
+                    })
+                },
+                options: {
+                    scales: {
+                        r: {
+                            min: 0, max: 100,
+                            angleLines: { color: 'rgba(20, 24, 28, 0.08)' },
+                            grid: { color: 'rgba(20, 24, 28, 0.08)', circular: true },
+                            pointLabels: { color: '#14181c', font: { family: 'Inter', size: 11, weight: '600' } },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { color: '#14181c', font: { family: 'Inter', size: 12 }, padding: 15 }
+                        }
+                    },
+                    responsive: true, maintainAspectRatio: false
+                }
+            });
+        }
+
+        function drawRadarChart(e1, e2) { drawRadarMulti('radarChart', [e1, e2], 'radarChartInstance'); }
+
+        // =========================================================
+        // СРАВНЕНИЕ 3+ ОБЪЕКТОВ
+        // =========================================================
+        const MAX_COMPARE = 6;
+        let multiMode = false;
+        let compareView = 'duo';
+
+        function showDuoView() {
+            compareView = 'duo';
+            document.getElementById('compare-export-wrapper').style.display = '';
+            document.getElementById('multi-compare-wrapper').style.display = 'none';
+        }
+
+        function exportCompareReport() {
+            exportToImage(compareView === 'multi' ? 'multi-compare-wrapper' : 'compare-export-wrapper', 'MWLAB_Анализ');
+        }
+
+        function setMultiMode(on) {
+            multiMode = !!on;
+            compareQueue = [];
+            document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+            updateCompareTray();
+            showToast(multiMode ? 'РЕЖИМ 3+: ВЫБЕРИТЕ ДО ' + MAX_COMPARE + ' ОБЪЕКТОВ' : 'РЕЖИМ 1 НА 1');
+        }
+
+        function clearCompareQueue() {
+            compareQueue = [];
+            document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+            updateCompareTray();
+        }
+
+        function updateCompareTray() {
+            const chips = document.getElementById('tray-chips');
+            if (!chips) return;
+            const cb = document.getElementById('multi-mode-cb'); if (cb) cb.checked = multiMode;
+            chips.innerHTML = compareQueue.length
+                ? compareQueue.map(id => `<span class="tray-chip" onclick="toggleCompareQueue('${id}')" title="Убрать из сравнения">${DB[id].name}<b>×</b></span>`).join('')
+                : `<span class="tray-empty">${multiMode ? 'Нажимайте на объекты в списке, можно выбрать до ' + MAX_COMPARE : 'Нажмите на два объекта, сравнение запустится само'}</span>`;
+            const go = document.getElementById('tray-go');
+            go.style.display = (multiMode && compareQueue.length >= 2) ? '' : 'none';
+            go.textContent = 'СРАВНИТЬ (' + compareQueue.length + ')';
+            document.getElementById('tray-clear').style.display = compareQueue.length ? '' : 'none';
+        }
+
+        function runMultiCompare() {
+            if (compareQueue.length < 2) return showToast('ВЫБЕРИТЕ МИНИМУМ 2 ОБЪЕКТА', true);
+            const ids = compareQueue.slice();
+            clearCompareQueue();
+            if (ids.length === 2) { runCompareFlow(ids[0], ids[1]); return; }
+            showMultiCompare(ids);
+        }
+
+        function showMultiCompare(ids) {
+            compareView = 'multi';
+            document.getElementById('compare-export-wrapper').style.display = 'none';
+            const wrap = document.getElementById('multi-compare-wrapper');
+            wrap.style.display = 'block';
+            renderMultiCompare(ids);
+            switchMainPage('page-compare', document.getElementById('nav-compare'));
+            window.scrollTo(0, 0);
+            if (isAuth) setTimeout(() => { drawRadarMulti('multiRadarChart', ids.map(id => DB[id]), 'multiRadarInstance'); }, 100);
+        }
+
+        function renderMultiCompare(ids) {
+            const items = ids.map(id => Object.assign({ id: id }, DB[id]));
+            const cat = items[0].category;
+            const wrap = document.getElementById('multi-compare-wrapper');
+
+            // строки таблицы + лучший показатель по каждой
+            const rows = [];
+            const wins = items.map(() => 0);
+            for (const key in STATS_LOGIC) {
+                const vals = items.map(it => it[key]);
+                if (vals.every(v => v === undefined)) continue;
+                if (cat === 'Пушки' && key === 'start_speed') continue;
+                const meta = STATS_LOGIC[key];
+                let best = null;
+                if (!meta.isString) {
+                    const nums = vals.map(v => (v === undefined ? null : parseFloat(v)));
+                    const present = nums.filter(v => v !== null && !isNaN(v));
+                    if (present.length >= 2 && new Set(present).size > 1) {
+                        best = isHigherBetterFor(key, items[0]) ? Math.max.apply(null, present) : Math.min.apply(null, present);
+                        nums.forEach((v, i) => { if (v === best) wins[i]++; });
+                    }
+                    rows.push({ key: key, meta: meta, vals: vals, nums: nums, best: best });
+                } else {
+                    rows.push({ key: key, meta: meta, vals: vals, nums: [], best: null });
+                }
+            }
+            const totalRows = rows.filter(r => r.best !== null).length;
+
+            const order = items.map((it, i) => i).sort((a, b) => wins[b] - wins[a]);
+            const topWins = wins[order[0]];
+            const leaders = order.filter(i => wins[i] === topWins).map(i => items[i].name);
+
+            const head = items.map((it, i) => {
+                const col = RADAR_PALETTE[i % RADAR_PALETTE.length].c;
+                return `<th style="border-top:3px solid ${col}">
+                    <div class="mc-img" style="background-image:url('${it.img}')"></div>
+                    <div class="mc-name">${it.name}</div>
+                    <div class="mc-sub">Класс ${rarityLetter(it.rarity)} · ${it.country || ''}</div>
+                    <div class="mc-rating">${isAuth ? it.rating : '🔒'}</div>
+                </th>`;
+            }).join('');
+
+            const body = rows.map(r => `<tr><td>${r.meta.label}</td>${items.map((it, i) => {
+                const isBest = r.best !== null && r.nums[i] === r.best;
+                return `<td class="${isBest ? 'best' : ''}">${formatStatValue(r.key, r.vals[i])}</td>`;
+            }).join('')}</tr>`).join('');
+
+            let ranking;
+            if (isAuth) {
+                const byRating = items.slice().sort((a, b) => b.rating - a.rating);
+                ranking = `<div class="mc-rank">${byRating.map((it, i) => `<div class="mc-rank-item ${i === 0 ? 'first' : ''}"><span>${i + 1}</span>${it.name}<b>${it.rating}</b></div>`).join('')}</div>`;
+            } else {
+                ranking = `<div class="mc-locked">Рейтинг меты и радар доступны в PRO</div>`;
+            }
+
+            wrap.innerHTML = `
+                <div class="mc-title">
+                    <h2>Сравнение: ${items.length} объектов</h2>
+                    <div class="mc-sub2">Категория «${cat}». Лучшее значение в строке подсвечено.</div>
+                </div>
+                <div class="mc-verdict">
+                    <div><b>Больше всего лучших показателей:</b> ${leaders.join(', ')} (${topWins} из ${totalRows})</div>
+                    <div class="mc-wins">${order.map(i => `<span><i style="background:${RADAR_PALETTE[i % RADAR_PALETTE.length].c}"></i>${items[i].name}: ${wins[i]}</span>`).join('')}</div>
+                </div>
+                <div class="multi-table-wrap">
+                    <table class="multi-table">
+                        <thead><tr><th></th>${head}</tr></thead>
+                        <tbody>${body}</tbody>
+                    </table>
+                </div>
+                <div class="mc-section-title">Рейтинг меты</div>
+                ${ranking}
+                ${isAuth ? `<div class="radar-container" style="position:relative; height:340px; margin-top:24px; max-width:640px;"><canvas id="multiRadarChart"></canvas></div>` : ''}
+            `;
+        }
+
+        // =========================================================
+        // ТИР-ЛИСТ: классы S/A/B по всем категориям на одной странице
+        // =========================================================
+        function renderTierList() {
+            const root = document.getElementById('tier-root');
+            if (!root) return;
+            const country = document.getElementById('tier-country').value;
+            const note = document.getElementById('tier-note');
+            note.innerHTML = isAuth
+                ? 'Внутри каждого класса объекты идут от сильного рейтинга к слабому. Нажмите на карточку, чтобы открыть её в Арсенале.'
+                : '🔒 Порядок по рейтингу и сами цифры доступны в PRO. Сейчас объекты идут по алфавиту. Нажмите на карточку, чтобы открыть её в Арсенале.';
+
+            const jump = document.getElementById('tier-jump');
+            jump.innerHTML = '';
+            let html = '';
+            ALL_CATEGORIES.forEach((cat, ci) => {
+                const keys = Object.keys(DB).filter(k => DB[k].category === cat && (!country || DB[k].country === country));
+                if (!keys.length) return;
+                jump.innerHTML += `<button class="cat-btn-sub tier-jump-btn" onclick="scrollToTierCat(${ci})">${cat}</button>`;
+                let rowsHtml = '';
+                ['S', 'A', 'B'].forEach(letter => {
+                    const inRow = keys.filter(k => rarityLetter(DB[k].rarity) === letter);
+                    if (!inRow.length) return;
+                    inRow.sort((a, b) => isAuth ? (DB[b].rating - DB[a].rating) : DB[a].name.localeCompare(DB[b].name));
+                    rowsHtml += `<div class="tier-row">
+                        <div class="tier-badge tier-${letter}">${letter}</div>
+                        <div class="tier-items">${inRow.map(k => `
+                            <button class="tier-tile" onclick="openInArsenal('${k}')" title="${DB[k].name} · ${DB[k].country || ''}">
+                                <span class="tier-img" style="background-image:url('${DB[k].img}')"></span>
+                                <span class="tier-name">${DB[k].name}</span>
+                                ${isAuth ? `<span class="tier-rating">${DB[k].rating}</span>` : ''}
+                            </button>`).join('')}
+                        </div>
+                    </div>`;
+                });
+                html += `<section class="tier-cat" id="tier-cat-${ci}">
+                    <h2 class="tier-cat-title">${cat}<small>${keys.length}</small></h2>
+                    ${rowsHtml}
+                </section>`;
+            });
+            root.innerHTML = html || `<div class="tier-empty">Для этой фракции ничего не найдено. Выберите другую.</div>`;
+        }
+
+        function scrollToTierCat(ci) {
+            const el = document.getElementById('tier-cat-' + ci);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // =========================================================
+        // КОНТРЫ: выбираешь оружие врага, сайт предлагает чем его контрить
+        // =========================================================
+        const CF_CATS = ['Ракеты', 'Гранатометы', 'Торпеды', 'Пушки', 'ПВО'];
+        let _cfLastType = null;
+
+        function getCfEnemyOptions() {
+            return Object.keys(DB).filter(k => CF_CATS.indexOf(DB[k].category) >= 0).sort((a, b) => DB[a].name.localeCompare(DB[b].name));
+        }
+
+        function renderCfEnemyOptions() {
+            const list = document.getElementById('list-cf-enemy');
+            const searchVal = document.getElementById('search-cf-enemy').value.toLowerCase();
+            const catFilter = document.getElementById('cat-cf-enemy').value;
+            let html = '';
+            getCfEnemyOptions().forEach(key => {
+                const item = DB[key];
+                if (catFilter && item.category !== catFilter) return;
+                if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
+                html += `
+                <div class="dropdown-option" onclick="selectSimOption('cf-enemy', '${key}', event)">
+                    <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
+                    <div class="dropdown-option-text">${item.name}<span class="dropdown-option-sub">${item.category} · ${item.country || ''}</span></div>
+                </div>`;
+            });
+            list.innerHTML = html || `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Inter'; font-weight:bold;">Не найдено</div>`;
+        }
+
+        // Тип угрозы определяет, какие контры имеют смысл
+        function cfType(item) {
+            if (item.category === 'ПВО') return 'aa';
+            if (item.category === 'Торпеды') return 'torpedo';
+            if (item.category === 'Ракеты' || (item.category === 'Гранатометы' && item.gl_type === 'missile')) return 'missile';
+            return 'gun';
+        }
+
+        function cfConfigure(type) {
+            const you = document.getElementById('cf-qty-you'), enemy = document.getElementById('cf-qty-enemy');
+            const wrapYou = document.getElementById('cf-wrap-you'), wrapEnemy = document.getElementById('cf-wrap-enemy'), wrapDist = document.getElementById('cf-wrap-dist');
+            const needQty = (type === 'missile' || type === 'aa');
+            wrapYou.style.display = wrapEnemy.style.display = wrapDist.style.display = needQty ? '' : 'none';
+            if (type === _cfLastType) return;
+            _cfLastType = type;
+            if (type === 'missile') {
+                document.getElementById('cf-label-you').textContent = 'Ваших слотов ПВО';
+                document.getElementById('cf-label-enemy').textContent = 'Слотов с ракетами у врага';
+                you.value = '4'; enemy.value = '2';
+            } else if (type === 'aa') {
+                document.getElementById('cf-label-you').textContent = 'Ваших слотов с ракетами';
+                document.getElementById('cf-label-enemy').textContent = 'Слотов ПВО у врага';
+                you.value = '2'; enemy.value = '4';
+            }
+        }
+
+        function cfRow(rank, id, mainMetric, subMetric, barPct, sub, warn) {
+            const it = DB[id];
+            return `<div class="cf-row" onclick="openInArsenal('${id}')" title="Открыть в Арсенале">
+                <span class="cf-rank">${rank}</span>
+                <span class="cf-img" style="background-image:url('${it.img}')"></span>
+                <div class="cf-main">
+                    <div class="cf-name">${it.name}</div>
+                    <div class="cf-sub">${sub}</div>
+                    <div class="cf-bar"><i style="width:${Math.max(2, Math.min(100, barPct))}%"></i></div>
+                    ${warn ? `<div class="cf-warn">${warn}</div>` : ''}
+                </div>
+                <div class="cf-metric"><b>${mainMetric}</b><span>${subMetric}</span></div>
+            </div>`;
+        }
+
+        function cfTipsHtml(tips) {
+            return tips.length ? `<ul class="cf-tips">${tips.map(t => `<li>${t}</li>`).join('')}</ul>` : '';
+        }
+
+        function runCounterFinder() {
+            const out = document.getElementById('cf-result');
+            const key = document.getElementById('wrapper-cf-enemy').dataset.value;
+            if (!key || !DB[key]) {
+                out.innerHTML = `<div class="cf-empty">Выберите оружие врага, и здесь появится список лучших ответов.</div>`;
+                return;
+            }
+            const enemy = DB[key];
+            const type = cfType(enemy);
+            cfConfigure(type);
+            const dist = parseFloat(document.getElementById('cf-dist').value);
+            const qYou = parseInt(document.getElementById('cf-qty-you').value);
+            const qEnemy = parseInt(document.getElementById('cf-qty-enemy').value);
+            document.getElementById('cf-dist-val').textContent = dist.toFixed(1);
+
+            const head = `<div class="cf-enemy-head"><span class="cf-img big" style="background-image:url('${enemy.img}')"></span><div><div class="cf-enemy-name">${enemy.name}</div><div class="cf-sub">${enemy.category} · ${enemy.country || ''}</div></div></div>`;
+            let html = '';
+
+            if (type === 'missile') {
+                const cands = getSimAAOptions().map(id => {
+                    const r = computeAAEngagement(DB[id], qYou, enemy, qEnemy, dist);
+                    return { id: id, r: r };
+                }).sort((a, b) => a.r.survivalProbability - b.r.survivalProbability || b.r.totalAADamage - a.r.totalAADamage || DB[a.id].name.localeCompare(DB[b.id].name));
+                const total = cands[0].r.totalMissiles;
+                const best = cands[0];
+                const tips = [];
+                tips.push(enemy.anti_jamming === 1
+                    ? 'Эту ракету не отводят ловушки, поэтому вся защита ложится на ПВО.'
+                    : 'Эту ракету отводят ловушки. По модели сайта ракетное ПВО при этом отвлекается и теряет часть урона.');
+                if (enemy.min_range > 0) tips.push('Мёртвая зона ' + enemy.min_range + ' км: ближе этой дистанции ракета не стартует.');
+                if (enemy.cluster === 1 || enemy.fragmentation_damage > 0) tips.push('Кластерная боевая часть: осколки могут пройти даже после частичного перехвата.');
+                html += `<div class="cf-summary ${best.r.survivalProbability === 0 ? 'good' : 'warn'}">${best.r.survivalProbability === 0
+                    ? `Лучший ответ: <b>${DB[best.id].name}</b> сбивает весь залп (${total} из ${total}) на ${dist.toFixed(1)} км.`
+                    : `Полностью остановить залп не удаётся никому. Лучший результат у <b>${DB[best.id].name}</b>: сбито ${best.r.destroyedMissiles} из ${total}, проходит ${best.r.survivalProbability.toFixed(0)}%. Добавьте слотов ПВО.`}</div>`;
+                html += `<h3 class="cf-h">Чем сбивать</h3><div class="cf-list">` + cands.slice(0, 8).map((c, i) => {
+                    const a = DB[c.id];
+                    const stopped = total ? (c.r.destroyedMissiles / total * 100) : 0;
+                    const warn = (c.r.aaHasMissileProfile && c.r.speedFactor < 0.5) ? 'Ракета ПВО слишком медленная для такой цели' : '';
+                    return cfRow(i + 1, c.id, c.r.destroyedMissiles + ' из ' + total, 'ракет сбито', stopped, (a.aa_type || 'Автопушка') + ' · дальность ' + a.range + ' км · ' + qYou + ' сл.', warn);
+                }).join('') + `</div>`;
+                const worst = cands.slice(-3).reverse().map(c => DB[c.id].name);
+                html += `<div class="cf-worst"><b>Хуже всего справляются:</b> ${worst.join(', ')}.</div>`;
+                html += cfTipsHtml(tips);
+            } else if (type === 'aa') {
+                const cands = Object.keys(DB).filter(id => {
+                    const m = DB[id];
+                    if (!(m.category === 'Ракеты' || (m.category === 'Гранатометы' && m.gl_type === 'missile'))) return false;
+                    return m.range >= dist && (m.min_range || 0) <= dist;
+                }).map(id => ({ id: id, r: computeAAEngagement(enemy, qEnemy, DB[id], qYou, dist) }))
+                  .sort((a, b) => b.r.survivalProbability - a.r.survivalProbability || a.r.destroyedMissiles - b.r.destroyedMissiles || DB[a.id].name.localeCompare(DB[b.id].name));
+                if (!cands.length) {
+                    html += `<div class="cf-summary warn">На дистанции ${dist.toFixed(1)} км нет ракет, которые могут стартовать. Уменьшите дистанцию.</div>`;
+                } else {
+                    const best = cands[0];
+                    html += `<div class="cf-summary good">Лучше всего ПВО ${enemy.name} прорывает <b>${DB[best.id].name}</b>: проходит ${best.r.survivalProbability.toFixed(0)}% залпа (сбито ${best.r.destroyedMissiles} из ${best.r.totalMissiles}).</div>`;
+                    html += `<h3 class="cf-h">Чем прорывать</h3><div class="cf-list">` + cands.slice(0, 8).map((c, i) => {
+                        const m = DB[c.id];
+                        const notes = [];
+                        if (m.anti_jamming === 1) notes.push('без ловушек');
+                        if (m.cluster === 1 || m.fragmentation_damage > 0) notes.push('кластерная');
+                        if (m.projectiles > 1) notes.push(m.projectiles + ' ракеты в пуске');
+                        return cfRow(i + 1, c.id, c.r.survivalProbability.toFixed(0) + '%', 'залпа проходит', c.r.survivalProbability, m.country + ' · HP ' + (m.hp || '?') + ' · ' + qYou + ' сл.' + (notes.length ? ' · ' + notes.join(', ') : ''), '');
+                    }).join('') + `</div>`;
+                }
+                const tips = [];
+                if (enemy.aa_type === 'Ракетное' || enemy.aa_type === 'Гибрид') tips.push('Ракетное ПВО отвлекается на ловушки, поэтому отводимые ракеты проходят лучше.');
+                if (enemy.aa_type === 'Лазерное') tips.push('Лазерное ПВО бьёт мгновенно, поэтому главное, сколько ракет в залпе и сколько у них HP.');
+                tips.push('Дальность ПВО ' + enemy.range + ' км: чем быстрее ракета проходит это расстояние, тем меньше времени у ПВО.');
+                html += cfTipsHtml(tips);
+            } else if (type === 'torpedo') {
+                const cands = Object.keys(DB).filter(id => DB[id].category === 'Гранатометы' && DB[id].can_hit_torpedoes === 1)
+                    .sort((a, b) => ((DB[b].splash_radius || 0) - (DB[a].splash_radius || 0)) || ((DB[b].projectiles || 0) - (DB[a].projectiles || 0)) || (DB[b].range - DB[a].range));
+                const maxR = Math.max.apply(null, cands.map(id => DB[id].splash_radius || 0).concat([1]));
+                html += `<div class="cf-summary good">Торпеды сбивают гранатомёты с функцией перехвата торпед. Чем больше радиус взрыва и снарядов в залпе, тем вероятнее перехват.</div>`;
+                html += `<h3 class="cf-h">Чем перехватывать</h3><div class="cf-list">` + cands.slice(0, 8).map((id, i) => {
+                    const g = DB[id];
+                    return cfRow(i + 1, id, (g.splash_radius || 0) + ' м', 'радиус взрыва', (g.splash_radius || 0) / maxR * 100, g.country + ' · ' + (g.projectiles || 1) + ' сн. · дальность ' + g.range + ' км');
+                }).join('') + `</div>`;
+                html += cfTipsHtml([
+                    enemy.anti_jamming === 1 ? 'Эта торпеда игнорирует ловушки, поэтому перехват гранатомётом особенно важен.' : 'Эту торпеду отводят ловушки, перехват гранатомётом лишь дополнительная защита.',
+                    'Скорость торпеды ' + enemy.max_speed + ' уз., дальность ' + enemy.range + ' км.'
+                ]);
+            } else {
+                const baseE = enemy.effectiveDpm || enemy.dpm;
+                const pool = Object.keys(DB).filter(id => id !== key && ['Пушки', 'Ракеты', 'Торпеды', 'Гранатометы'].indexOf(DB[id].category) >= 0);
+                const outrange = pool.filter(id => DB[id].range >= enemy.range + 0.5)
+                    .sort((a, b) => (DB[b].effectiveDpm || DB[b].dpm) - (DB[a].effectiveDpm || DB[a].dpm)).slice(0, 5);
+                const brawl = pool.filter(id => DB[id].category === 'Пушки' && DB[id].range < enemy.range && DB[id].range >= 5 && (DB[id].effectiveDpm || DB[id].dpm) >= baseE * 1.15)
+                    .sort((a, b) => (DB[b].effectiveDpm || DB[b].dpm) - (DB[a].effectiveDpm || DB[a].dpm)).slice(0, 5);
+                const maxDpm = Math.max.apply(null, outrange.concat(brawl).map(id => DB[id].effectiveDpm || DB[id].dpm).concat([1]));
+                html += `<div class="cf-summary">Против снарядов нет «ПВО»: их нельзя сбить, поэтому ответ строится на дальности и DPM. Это оценка по данным оружия, в базе нет брони и HP кораблей.</div>`;
+                html += `<h3 class="cf-h">Держать дистанцию (дальше ${enemy.range} км)</h3><div class="cf-list">` + (outrange.length ? outrange.map((id, i) => {
+                    const c = DB[id]; const e = c.effectiveDpm || c.dpm;
+                    return cfRow(i + 1, id, Math.round(e / 1000) + 'k', 'эфф. DPM', e / maxDpm * 100, c.category + ' · дальность ' + c.range + ' км (+' + (c.range - enemy.range).toFixed(1) + ' км)');
+                }).join('') : `<div class="cf-empty small">Никто из базы не бьёт дальше этого оружия.</div>`) + `</div>`;
+                html += `<h3 class="cf-h">Сблизиться и задавить (DPM выше на 15% и более)</h3><div class="cf-list">` + (brawl.length ? brawl.map((id, i) => {
+                    const c = DB[id]; const e = c.effectiveDpm || c.dpm;
+                    return cfRow(i + 1, id, '+' + Math.round((e / baseE - 1) * 100) + '%', 'к DPM врага', e / maxDpm * 100, c.category + ' · дальность ' + c.range + ' км');
+                }).join('') : `<div class="cf-empty small">Пушек с заметно большим DPM на ближней дистанции не нашлось.</div>`) + `</div>`;
+            }
+            out.innerHTML = head + html;
+        }
+
+        function initCounterFinder() {
+            renderCfEnemyOptions();
+            runCounterFinder();
+        }
+
+        // =========================================================
+        // ДУЭЛЬ КОРАБЛЕЙ: бой двух сборок из Конструктора во времени
+        // =========================================================
+        const DUEL_OFFENSE = ['Пушки', 'Ракеты', 'Торпеды', 'Гранатометы'];
+        const DUEL_MAX_TIME = 180;
+        const DUEL_DIST_MIN = 2, DUEL_DIST_MAX = 20;
+
+        function isMissileType(item) { return item.category === 'Ракеты' || (item.category === 'Гранатометы' && item.gl_type === 'missile'); }
+        function isAADefender(item) { return item.category === 'ПВО' || (item.category === 'Автопушки' && item.air_target === 1); }
+
+        // Время полета залпа до цели на дистанции D (км)
+        function duelFlightTime(item, D) {
+            const vmax = (item.max_speed || 0) * MW_K;
+            if (!vmax) return 0.3;
+            const missileLike = item.category === 'Ракеты' || item.category === 'Торпеды' || (item.category === 'Гранатометы' && item.gl_type === 'missile');
+            if (missileLike) {
+                const v0 = (item.start_speed || item.max_speed || 0) * MW_K;
+                return missileFlightTime(v0, vmax, item.accel_time || 0.1, D);
+            }
+            return D / vmax;
+        }
+
+        // Доля урона залпа, которая доходит до цели (промахи у пушек, ловушки у ракет и торпед)
+        function duelHitFactor(item, D) {
+            const cat = item.category;
+            const isGunShell = cat === 'Пушки' || (cat === 'Гранатометы' && (item.gl_type === 'gun' || item.gl_type === 'mixed'));
+            if (isGunShell) {
+                const base = item.accuracy !== undefined ? item.accuracy : 100;
+                const evasion = D * (800 / (item.max_speed || 800)) * 1.5;
+                if (cat === 'Пушки') return Math.max(5, base - evasion) / 100;
+                const recoil = item.recoil !== undefined ? item.recoil : 15;
+                const spread = (item.range / 10) * recoil * (1 + ((item.projectiles || 1) * 0.1));
+                return Math.min(1, Math.max(5, base - evasion - spread) / 100 + 0.15);
+            }
+            if (item.dpm > 0 && item.effectiveDpm !== undefined) return Math.min(1, item.effectiveDpm / item.dpm);
+            return 1;
+        }
+
+        function getBuildSlots(shipNum) {
+            const out = [];
+            document.querySelectorAll('#build-slots-' + shipNum + ' .build-slot-container').forEach(slot => {
+                const key = slot.querySelector('.custom-select-wrapper').dataset.value;
+                const qty = parseInt(slot.querySelector('.slot-qty').value);
+                if (key && DB[key]) out.push({ key: key, item: DB[key], qty: qty });
+            });
+            return out;
+        }
+
+        // Чистая функция боя: slots1/slots2 = [{item, qty}], D = дистанция (км), hp1/hp2 = HP кораблей
+        function runDuel(slots1, slots2, D, hp1, hp2) {
+            const ships = [{ slots: slots1, hp: hp1 }, { slots: slots2, hp: hp2 }];
+            const events = [[], []];   // events[i] = попадания по кораблю i
+            const stats = [[], []];    // stats[a] = по слотам атакующего корабля a
+
+            for (let a = 0; a < 2; a++) {
+                const att = ships[a], def = ships[1 - a];
+                const aaSlots = def.slots.filter(s => isAADefender(s.item));
+                const off = att.slots.filter(s => DUEL_OFFENSE.indexOf(s.item.category) >= 0);
+
+                // ПВО делит огонь между всеми ракетными слотами пропорционально их прочности
+                let hpTotal = 0;
+                const hpOf = s => (s.item.hp || 50) * (s.item.projectiles || 1) * s.qty;
+                off.filter(s => isMissileType(s.item)).forEach(s => { hpTotal += hpOf(s); });
+
+                off.forEach(s => {
+                    const item = s.item;
+                    const st = { slot: s, status: 'ok', note: '', damage: 0, volleys: 0, killed: 0, total: 0, hit: 1, survive: 1 };
+                    stats[a].push(st);
+                    if (item.range < D) { st.status = 'range'; st.note = 'не достаёт: дальность ' + item.range + ' км'; return; }
+                    if ((item.min_range || 0) > D) { st.status = 'dead'; st.note = 'мёртвая зона до ' + item.min_range + ' км'; return; }
+
+                    let cycle = (item.dpm > 0 && item.damage_burst > 0) ? 60 * item.damage_burst / item.dpm : (item.reload || 5);
+                    cycle = Math.max(0.5, cycle);
+                    const lock = item.lock_time || 0;
+                    const flight = duelFlightTime(item, D);
+                    st.hit = duelHitFactor(item, D);
+
+                    if (isMissileType(item) && aaSlots.length) {
+                        st.total = (item.projectiles || 1) * s.qty;
+                        const singleHP = item.hp || 50;
+                        let aaDmg = 0;
+                        aaSlots.forEach(d => { aaDmg += computeAAEngagement(d.item, d.qty, item, s.qty, D).totalAADamage; });
+                        aaDmg *= hpTotal > 0 ? hpOf(s) / hpTotal : 1;
+                        st.killed = Math.min(st.total, Math.floor(aaDmg / singleHP));
+                        st.survive = (st.total - st.killed) / st.total;
+                        if (st.killed > 0) st.note = 'ПВО врага сбивает ' + st.killed + ' из ' + st.total + ' ракет';
+                    }
+
+                    const perVolley = item.damage_burst * s.qty * st.hit * st.survive;
+                    for (let k = 0; ; k++) {
+                        const tFire = lock + k * cycle;
+                        const tHit = tFire + flight;
+                        if (tHit > DUEL_MAX_TIME) break;
+                        events[1 - a].push({ t: tHit, dmg: perVolley, st: st });
+                    }
+                });
+            }
+
+            const kill = [Infinity, Infinity];
+            const hpLeft = [ships[0].hp, ships[1].hp];
+            for (let i = 0; i < 2; i++) {
+                events[i].sort((x, y) => x.t - y.t);
+                let hp = ships[i].hp;
+                for (const e of events[i]) { hp -= e.dmg; if (hp <= 0) { kill[i] = e.t; break; } }
+                hpLeft[i] = Math.max(0, hp);
+            }
+
+            let winner, tEnd, leader = null;
+            const anyDamage = events[0].length + events[1].length > 0 && (events[0].concat(events[1]).some(e => e.dmg > 0));
+            if (kill[0] === Infinity && kill[1] === Infinity) {
+                winner = 'timeout'; tEnd = DUEL_MAX_TIME;
+                const p1 = hpLeft[0] / ships[0].hp, p2 = hpLeft[1] / ships[1].hp;
+                if (Math.abs(p1 - p2) > 0.01) leader = p1 > p2 ? 1 : 2;
+            } else if (Math.abs(kill[0] - kill[1]) < 0.05) {
+                winner = 'draw'; tEnd = Math.min(kill[0], kill[1]);
+            } else {
+                winner = kill[1] < kill[0] ? 1 : 2; // корабль 1 побеждает, если корабль 2 погиб раньше
+                tEnd = Math.min(kill[0], kill[1]);
+            }
+
+            // Итоговые HP и урон слотов на момент конца боя
+            const hpAtEnd = [ships[0].hp, ships[1].hp];
+            for (let i = 0; i < 2; i++) {
+                events[i].forEach(e => { if (e.t <= tEnd + 1e-9) { hpAtEnd[i] -= e.dmg; e.st.damage += e.dmg; e.st.volleys++; } });
+                hpAtEnd[i] = Math.max(0, hpAtEnd[i]);
+            }
+
+            // Таймлайн HP в процентах
+            const step = tEnd <= 60 ? 0.5 : 1;
+            const times = [], h1 = [], h2 = [];
+            const ptr = [0, 0], cur = [ships[0].hp, ships[1].hp];
+            for (let t = 0; t <= tEnd + step / 2; t += step) {
+                for (let i = 0; i < 2; i++) {
+                    while (ptr[i] < events[i].length && events[i][ptr[i]].t <= t) { cur[i] -= events[i][ptr[i]].dmg; ptr[i]++; }
+                }
+                times.push(+t.toFixed(1));
+                h1.push(+(Math.max(0, cur[0]) / ships[0].hp * 100).toFixed(1));
+                h2.push(+(Math.max(0, cur[1]) / ships[1].hp * 100).toFixed(1));
+            }
+
+            return { winner: winner, leader: leader, tEnd: tEnd, kill: kill, hpPct: [hpAtEnd[0] / ships[0].hp * 100, hpAtEnd[1] / ships[1].hp * 100],
+                     anyDamage: anyDamage, timeline: { t: times, hp1: h1, hp2: h2 }, stats: stats };
+        }
+
+        function duelSlotsTable(shipNum, stats, tEnd) {
+            const color = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
+            const total = stats.reduce((a, s) => a + s.damage, 0);
+            const rows = stats.length ? stats.map(st => {
+                const share = total > 0 ? st.damage / total * 100 : 0;
+                const off = st.status !== 'ok';
+                return `<div class="duel-slot ${off ? 'off' : ''}">
+                    <div class="duel-slot-head"><span>${st.slot.item.name} ×${st.slot.qty}</span><b>${off ? '—' : Math.round(st.damage).toLocaleString('ru')}</b></div>
+                    <div class="duel-slot-note">${off ? st.note : ('попадает ' + Math.round(st.hit * st.survive * 100) + '% урона' + (st.note ? ' · ' + st.note : ''))}</div>
+                    ${off ? '' : `<div class="bd-bar-bg"><div class="bd-bar pos" style="width:${Math.max(2, share)}%; background:${color}"></div></div>`}
+                </div>`;
+            }).join('') : `<div class="duel-slot off"><div class="duel-slot-note">Нет ударного оружия. В дуэли атакуют пушки, ракеты, торпеды и гранатомёты. ПВО и автопушки только защищают.</div></div>`;
+            return `<div class="duel-ship"><div class="duel-ship-title" style="color:${color}">КОРАБЛЬ ${shipNum} · нанёс ${Math.round(total).toLocaleString('ru')} урона</div>${rows}</div>`;
+        }
+
+        function runDuelUI() {
+            const s1 = getBuildSlots(1), s2 = getBuildSlots(2);
+            if (!s1.length || !s2.length) return showToast('ДОБАВЬТЕ СЛОТЫ ОБОИМ КОРАБЛЯМ', true);
+            const D = parseFloat(document.getElementById('duel-dist').value);
+            const hp1 = Math.max(1000, parseInt(document.getElementById('duel-hp1').value) || 300000);
+            const hp2 = Math.max(1000, parseInt(document.getElementById('duel-hp2').value) || 300000);
+            document.getElementById('duel-dist-val').textContent = D.toFixed(1);
+
+            const r = runDuel(s1, s2, D, hp1, hp2);
+
+            let verdict, cls;
+            if (!r.anyDamage) { verdict = 'На дистанции ' + D.toFixed(1) + ' км ни одно оружие не наносит урон. Посмотрите полосу дистанций ниже.'; cls = 'none'; }
+            else if (r.winner === 'draw') { verdict = 'Ничья: оба корабля уничтожены одновременно на ' + r.tEnd.toFixed(1) + ' с.'; cls = 'draw'; }
+            else if (r.winner === 'timeout') {
+                verdict = 'За ' + DUEL_MAX_TIME + ' с никто не уничтожен. ' + (r.leader ? 'По остатку HP впереди корабль ' + r.leader + ' (' + r.hpPct[r.leader - 1].toFixed(0) + '% против ' + r.hpPct[2 - r.leader].toFixed(0) + '%).' : 'HP почти равны.');
+                cls = r.leader ? 'w' + r.leader : 'draw';
+            } else {
+                verdict = 'Корабль ' + r.winner + ' уничтожает противника за ' + r.tEnd.toFixed(1) + ' с и остаётся с ' + r.hpPct[r.winner - 1].toFixed(0) + '% HP.';
+                cls = 'w' + r.winner;
+            }
+
+            // Кто выигрывает на каждой дистанции
+            const cells = [];
+            for (let d = DUEL_DIST_MIN; d <= DUEL_DIST_MAX; d++) {
+                const rr = runDuel(s1, s2, d, hp1, hp2);
+                let c = 'none', label = '—';
+                if (rr.anyDamage) {
+                    if (rr.winner === 1 || rr.winner === 2) { c = 'w' + rr.winner; label = rr.tEnd.toFixed(0) + 'с'; }
+                    else if (rr.winner === 'draw') { c = 'draw'; label = '='; }
+                    else { c = rr.leader ? 'to' + rr.leader : 'draw'; label = '···'; }
+                }
+                cells.push(`<button class="sweep-cell ${c} ${d === Math.round(D) ? 'cur' : ''}" onclick="setDuelDistance(${d})" title="${d} км: ${c === 'w1' ? 'побеждает корабль 1' : c === 'w2' ? 'побеждает корабль 2' : c === 'draw' ? 'ничья' : c.indexOf('to') === 0 ? 'по HP лидирует корабль ' + c.slice(2) : 'нет урона'}"><i>${d}</i><span>${label}</span></button>`);
+            }
+
+            const res = document.getElementById('duel-result');
+            res.style.display = 'block';
+            res.innerHTML = `
+                <div class="duel-verdict ${cls}">${verdict}</div>
+                <div class="duel-chart-wrap"><canvas id="duelChart"></canvas></div>
+                <h3 class="cf-h">Кто побеждает на каждой дистанции</h3>
+                <div class="sweep-strip">${cells.join('')}</div>
+                <div class="sweep-legend"><span><i class="w1"></i>корабль 1</span><span><i class="w2"></i>корабль 2</span><span><i class="draw"></i>ничья</span><span><i class="to"></i>по HP, без убийства</span><span><i class="none"></i>нет урона</span></div>
+                <div class="duel-slots">${duelSlotsTable(1, r.stats[0], r.tEnd)}${duelSlotsTable(2, r.stats[1], r.tEnd)}</div>
+                <div class="duel-note">В базе нет HP кораблей, поэтому их задаёте вы. ПВО и ловушки считаются по той же модели, что и в симуляторе прорыва ПВО. Пушки промахиваются по формуле точности с учётом дистанции. Первый залп у каждого оружия происходит после захвата цели.</div>`;
+
+            if (typeof Chart !== 'undefined') {
+                const ctx = document.getElementById('duelChart').getContext('2d');
+                if (window.duelChartInstance) window.duelChartInstance.destroy();
+                Chart.defaults.color = '#838b96';
+                Chart.defaults.font.family = 'Inter';
+                window.duelChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: r.timeline.t, datasets: [
+                        { label: 'Корабль 1', data: r.timeline.hp1, borderColor: '#14181c', backgroundColor: 'rgba(20,24,28,0.06)', borderWidth: 2, pointRadius: 0, tension: 0.15 },
+                        { label: 'Корабль 2', data: r.timeline.hp2, borderColor: '#e8483f', backgroundColor: 'rgba(232,72,63,0.08)', borderWidth: 2, pointRadius: 0, tension: 0.15 }
+                    ] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(20,24,28,0.06)' } },
+                            x: { title: { display: true, text: 'секунды' }, ticks: { maxTicksLimit: 10 }, grid: { display: false } }
+                        },
+                        plugins: { legend: { position: 'bottom', labels: { color: '#14181c', font: { family: 'Inter', size: 12 } } } }
+                    }
+                });
+            }
+            showToast('ДУЭЛЬ РАССЧИТАНА');
+        }
+
+        function setDuelDistance(d) {
+            document.getElementById('duel-dist').value = d;
+            runDuelUI();
+        }
+
         function initApp() {
             initAASimulator();
+            initCounterFinder();
+            updateCompareTray();
             updateAuthStateUI();
             renderCategoryBar();
             renderDynamicFilters();
@@ -3144,6 +4289,10 @@
                     closeAllBuildDropdowns();
                 }
             });
+
+            // Закрытие окон по клику на затемнение и по Escape
+            document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('active'); }));
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(o => o.classList.remove('active')); });
         }
 
         window.onload = () => { initApp(); };
