@@ -965,7 +965,7 @@
             fire_penalty: { label: "Штраф маскировки", higherIsBetter: false }
         };
 
-        const DB = {
+         const DB = {
 // ----- ПУШКИ -----
             "a192": { name: "A-192 ARMAT (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 308225, damage_burst: 15925, damage: 3185, accuracy: 100, reload: 2.80, crit_chance: 50, projectiles: 4, range: 17.33, max_speed: 777, fire_penalty: 35, img: "img/A192.png" },
             "a200navigator": { name: "A-200 NAVIGATOR (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 326132, damage_burst: 46800, damage: 46800, accuracy: 100, reload: 8.61, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/A200.png" },
@@ -1237,7 +1237,7 @@
             "jm61": { name: "JM61-RFS DUAL (20 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Япония", rarity: "Эпический", dpm: 24138, damage_burst: 6256, damage: 45, reload: 3.15, crit_chance: 20, detonation_radius: 20, range: 3.47, max_speed: 728, start_speed: 728, ammo_clip: 125, fire_penalty: 10, fire_delay: 0.1, img: "img/JM61RFSDual.png" },
             "ksam": { name: "KSAM BLOCK 2", category: "ПВО", aa_type: "Ракетное", country: "Южная Корея", rarity: "Эпический", dpm: 26000, damage_burst: 2080, damage: 520, reload: 4.20, crit_chance: 20, detonation_radius: 20, range: 4.77, max_speed: 340, start_speed: 194, accel_time: 0.83, ammo_clip: 4, fire_penalty: 15, fire_delay: 0.2, img: "img/KSAMBlock2.png" },
             "type730c": { name: "TYPE 730C", category: "ПВО", aa_type: "Гибрид", country: "Китай", rarity: "Эпический", dpm: 16595, damage_burst: 1300, damage: 650, reload: 4.55, crit_chance: 20, detonation_radius: 10, range: 3.90, max_speed: 311, start_speed: 155, accel_time: 1.33, ammo_clip: 2, fire_penalty: 15, fire_delay: 0.2, img: "img/Type730C.png" }
-        };
+         };
 // Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
         function getSafeDistance(item) {
             const MW_COEF = 0.00278; 
