@@ -2280,16 +2280,23 @@
                     let gunBurst = (item.damage_gun || 0) * (item.ammo_clip_gun || 1);
                     let misBurst = (item.damage_missile || 0) * (item.ammo_clip_missile || 1);
                     effBurst = gunBurst + (misBurst * hitRatio); 
-                    
-                    item.effectiveDpm = effDpm;
-                    item.effectiveBurst = effBurst;
-                } else {
-                    item.effectiveDpm = item.dpm;
-                    item.effectiveBurst = item.damage_burst;
-                }
+                } 
+                
+                // Точность оружия (accuracy): у обычных стволов почти всегда 100%, но у "картечных"
+                // (Skyranger Buckshot и т.п.) она искусственно занижена (разброс дроби/картечи) —
+                // раньше это поле нигде не участвовало в расчёте, и такие стволы получали рейтинг
+                // так, будто ВСЕ снаряды долетают в цель.
+                let accuracyFactor = item.accuracy != null ? (item.accuracy / 100) : 1;
+                item.accuracyScore = item.accuracy != null ? item.accuracy : 100;
+                effDpm *= accuracyFactor;
+                effBurst *= accuracyFactor;
+                
+                item.effectiveDpm = effDpm;
+                item.effectiveBurst = effBurst;
                 
                 score += _T("Эффективный DPM", ((effDpm / 250000) * 300));
                 score += _T("Эффективный альфа-страйк", ((effBurst / 30000) * 150));
+                if (accuracyFactor < 1) score -= _N("Штраф: низкая точность (разброс)", ((1 - accuracyFactor) * 120));
                 
                 if (item.air_target === 1) score += _T("Атака авиации", (150)); 
                 if (item.can_hit_subs === 1) score += _T("Атака подлодок", (250)); 
@@ -2303,6 +2310,54 @@
                 
                 if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
                 
+                return Math.round(score);
+            },
+           "ПВО": function(item) {
+                // У категории "ПВО" раньше вообще не было своего калькулятора — все юниты этого
+                // класса получали фиксированные 500 очков (см. calculateRating: фолбэк на "нет
+                // калькулятора для этой категории"). Теперь считаем реальный шанс перехвата через
+                // ту же физическую модель, что и в симуляторе боя (computeAAEngagement), против
+                // усреднённого профиля боевых ракет из базы — а не просто по "паспортным" цифрам.
+                let score = 100;
+
+                const threat = getThreatMissileProfile();
+                const threatMissile = {
+                    start_speed: threat.avgStartSpeed,
+                    max_speed: threat.avgMaxSpeed,
+                    accel_time: threat.avgAccelTime,
+                    hp: threat.avgHp,
+                    anti_jamming: 0 // средний случай: у части атакующих ракет РЭБ нет — иначе рейтинг
+                                    // никак не наказывал бы медленные ракетные/гибридные ПВО за это
+                };
+
+                // Дистанция = собственная дальность ПВО: тогда "окно перехвата" в симуляции — это
+                // именно время прохождения ракетой всей эффективной дальности этого ПВО, честно
+                // сравнимое между разными юнитами независимо от того, на каком расстоянии их запускают.
+                const engagementDistance = item.range || 3;
+                const R = computeAAEngagement(item, 1, threatMissile, 1, engagementDistance);
+
+                item.accuracyScore = Math.round(R.accuracy * 100);
+                item.killChanceVsMissile = Math.min(1, R.totalAADamage / (R.singleMissileHP || 1));
+                item.effectiveDpm = item.dpm;
+                item.effectiveBurst = item.damage_burst;
+
+                score += _T("Реальный шанс сбить ракету", (item.killChanceVsMissile * 350));
+                score += _T("DPM (паспортный)", ((item.dpm / 30000) * 60));
+
+                let cappedRange = Math.min(item.range || 0, 5);
+                score += _T("Дальность", ((cappedRange / 5) * 60));
+
+                if (item.aa_type === "Гибрид") score += _T("Двухканальность (пушка + ракета)", 40);
+                if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 20) * 20));
+                if (item.detonation_radius > 0) score += _T("Осколочное поражение", ((item.detonation_radius / 30) * 15));
+                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 500) * 10));
+                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 100) * 10));
+
+                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
+                if (item.aa_type === "Ракетное" || item.aa_type === "Гибрид") {
+                    score -= _N("Уязвимость к ловушкам (РЭБ)", 15);
+                }
+
                 return Math.round(score);
             },
         };
