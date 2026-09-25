@@ -15,6 +15,7 @@
             /* COLOR PALETTE - LIGHT ROBOTICS UI */
             --bg-base: #eef0f2;
             --surface: #ffffff;
+            --surface-alt: #f4f5f7;
             --primary: #14181c;       /* Ink (main accent/CTA) */
             --primary-dim: rgba(20, 24, 28, 0.06);
             --accent: #3fd9c7;        /* Faint brand teal, used sparingly */
@@ -32,6 +33,24 @@
             
             /* SOFT SHADOW (was neon glow) */
             --hud-glow: 0 10px 24px rgba(20, 24, 28, 0.08);
+        }
+
+        :root[data-theme="dark"] {
+            --bg-base: #0e1013;
+            --surface: #181b1f;
+            --primary: #f2f4f6;
+            --primary-dim: rgba(242, 244, 246, 0.08);
+            --accent: #3fd9c7;
+            --accent-dim: rgba(63, 217, 199, 0.16);
+            --secondary: #ff6259;
+            --text-main: #f2f4f6;
+            --text-muted: #8b93a0;
+            --line: rgba(242, 244, 246, 0.10);
+
+            --surface-alt: #202429;
+            --glass-bg: #181b1f;
+            --glass-border: rgba(242, 244, 246, 0.08);
+            --hud-glow: 0 10px 24px rgba(0, 0, 0, 0.35);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -166,20 +185,20 @@
 
         /* --- CONTROLS --- */
         .controls-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;}
-        .search-input, .filter-select { background: #f4f5f7; border: 1px solid var(--line); color: var(--text-main); padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; border-radius: 10px; outline: none; transition: 0.3s; appearance: none; -webkit-appearance: none; }
+        .search-input, .filter-select { background: var(--surface-alt); border: 1px solid var(--line); color: var(--text-main); padding: 12px 20px; width: 100%; max-width: 250px; font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; border-radius: 10px; outline: none; transition: 0.3s; appearance: none; -webkit-appearance: none; }
         .search-input::placeholder { color: var(--text-muted); text-transform: none; }
         .search-input:focus, .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-dim); }
         .filter-select option { background: #fff; color: var(--text-main); }
         .filter-select option:disabled { color: var(--secondary); }
 
         .categories-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; width: 100%;}
-        .cat-btn-main { background: #f4f5f7; border: 1px solid var(--line); color: var(--text-muted); padding: 10px 30px; border-radius: 30px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.3px;}
+        .cat-btn-main { background: var(--surface-alt); border: 1px solid var(--line); color: var(--text-muted); padding: 10px 30px; border-radius: 30px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.3px;}
         .cat-btn-main:hover, .cat-btn-main.active { border-color: var(--primary); color: #fff; background: var(--primary); }
 
         .mechanics-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
         .mech-checkbox { display: none; }
         .mech-checkbox:checked + .cat-btn-sub { background: var(--primary); border-color: var(--primary); color: #fff; }
-        .cat-btn-sub { background: #f4f5f7; border: 1px solid var(--line); color: var(--text-muted); padding: 6px 20px; border-radius: 20px; font-family: 'Inter'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.3px;}
+        .cat-btn-sub { background: var(--surface-alt); border: 1px solid var(--line); color: var(--text-muted); padding: 6px 20px; border-radius: 20px; font-family: 'Inter'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.3px;}
 
         /* --- BARS --- */
         .stats-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; width: 100%; }
@@ -252,7 +271,7 @@
         .con-item { color: var(--text-muted); font-family: 'Inter'; font-size: 0.85rem; margin-bottom: 12px; text-transform: none; line-height: 1.5; padding-left: 15px; position: relative;}
         .con-item::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 2px; background: var(--secondary); }
 
-        .final-summary-block { width: 100%; margin-top: auto; padding: 20px; background: #f4f5f7; border-radius: 16px; border: 1px solid var(--line); text-align: center; }
+        .final-summary-block { width: 100%; margin-top: auto; padding: 20px; background: var(--surface-alt); border-radius: 16px; border: 1px solid var(--line); text-align: center; }
         .radar-container { width: 100%; max-width: 400px; margin: 0 auto; }
 
         .meta-legend { margin-top: 15px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--line); padding-top: 10px; font-family: 'Inter'; line-height: 1.5;}
@@ -271,7 +290,7 @@
         /* --- КАСТОМНЫЙ СЕЛЕКТ (С ИКОНКАМИ) --- */
         .custom-select-wrapper { position: relative; width: 100%; max-width: 280px; flex-grow: 1; }
         .custom-select-trigger {
-            background: #f4f5f7; border: 1px solid var(--line); color: var(--text-main);
+            background: var(--surface-alt); border: 1px solid var(--line); color: var(--text-main);
             padding: 8px 15px; width: 100%; border-radius: 10px; cursor: pointer;
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
             font-family: 'Inter'; font-size: 0.9rem; transition: 0.3s;
@@ -282,7 +301,7 @@
         .trigger-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
         
         .custom-select-dropdown {
-            position: absolute; top: calc(100% + 5px); left: 0; width: 320px; background: #ffffff;
+            position: absolute; top: calc(100% + 5px); left: 0; width: 320px; background: var(--surface);
             border: 1px solid var(--line); border-radius: 12px; z-index: 9999;
             display: flex; flex-direction: column;
             box-shadow: 0 20px 45px rgba(20,24,28,0.16); overflow: hidden;
@@ -305,7 +324,7 @@
         .dropdown-option-img { width: 35px; height: 35px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(20,24,28,0.2));}
         .dropdown-option-text { font-family: 'Inter'; font-size: 0.85rem; font-weight: 700; color: var(--text-main); display: flex; flex-direction: column; line-height: 1.2; }
         .dropdown-option-sub { font-size: 0.65rem; font-weight: 400; color: var(--text-muted); font-family: 'Inter'; margin-top: 2px; text-transform: uppercase;}
-        .dropdown-category-title { padding: 8px 10px; color: var(--text-muted); font-family: 'Inter'; font-weight: 800; font-size: 0.7rem; letter-spacing: 2px; background: #f4f5f7; margin: 5px 0; border-radius: 6px; text-align: center; text-transform: uppercase;}
+        .dropdown-category-title { padding: 8px 10px; color: var(--text-muted); font-family: 'Inter'; font-weight: 800; font-size: 0.7rem; letter-spacing: 2px; background: var(--surface-alt); margin: 5px 0; border-radius: 6px; text-align: center; text-transform: uppercase;}
 
         @keyframes itemFadeIn {
             0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(3px); }
@@ -354,7 +373,7 @@
         .roster-skills { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
         .roster-skill-chip { width: 100%; border-radius: 10px; background: var(--primary-dim); color: var(--text-main); border-left: 3px solid var(--primary); display: flex; align-items: center; padding: 9px 12px; font-size: 0.78rem; font-weight: 600; line-height: 1.35; position: relative; cursor: default; }
         .roster-skills-empty { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
-        .roster-compare-hint { margin-top: auto; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; text-align: center; line-height: 1.4; padding: 12px; background: #f4f5f7; border-radius: 12px; }
+        .roster-compare-hint { margin-top: auto; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; text-align: center; line-height: 1.4; padding: 12px; background: var(--surface-alt); border-radius: 12px; }
 
         /* --- MODALS & TOASTS --- */
         #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;}
@@ -487,7 +506,7 @@
         /* =========================================
            НОВЫЕ ФУНКЦИИ: разбор рейтинга, сравнение 3+, тир-лист, контры, дуэль
            ========================================= */
-        .why-btn { width: 100%; margin: -8px 0 18px 0; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: #f4f5f7; color: var(--text-main); font-family: 'Inter'; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.25s; text-align: center; }
+        .why-btn { width: 100%; margin: -8px 0 18px 0; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-alt); color: var(--text-main); font-family: 'Inter'; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.25s; text-align: center; }
         .why-btn:hover { border-color: var(--primary); background: var(--primary); color: #fff; }
         .why-btn:focus-visible, .tier-tile:focus-visible, .cf-row:focus-visible, .sweep-cell:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
@@ -502,7 +521,7 @@
         .bd-final small { display: block; font-size: 0.6rem; letter-spacing: 2.5px; color: var(--text-muted); font-weight: 800; margin-top: 4px; }
         .bd-lead { color: var(--text-muted); font-size: 0.86rem; line-height: 1.55; margin: 14px 0 16px 0; user-select: text; }
         .bd-eff { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-        .bd-chip { background: #f4f5f7; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+        .bd-chip { background: var(--surface-alt); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
         .bd-chip b { display: block; color: var(--text-main); font-size: 0.98rem; font-weight: 800; }
         .bd-insight { background: var(--accent-dim); border-radius: 12px; padding: 12px 14px; font-size: 0.82rem; line-height: 1.5; margin-bottom: 10px; }
         .bd-insight div + div { margin-top: 4px; }
@@ -516,7 +535,7 @@
         .bd-bar { height: 100%; border-radius: 3px; }
         .bd-bar.pos { background: var(--accent); }
         .bd-bar.neg { background: var(--secondary); }
-        .bd-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding: 14px 16px; background: #f4f5f7; border-radius: 12px; font-weight: 900; font-size: 1rem; }
+        .bd-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding: 14px 16px; background: var(--surface-alt); border-radius: 12px; font-weight: 900; font-size: 1rem; }
         .bd-note { margin-top: 10px; color: var(--text-muted); font-size: 0.75rem; line-height: 1.45; }
 
         /* --- Трей сравнения (Арсенал) --- */
@@ -524,12 +543,12 @@
         .multi-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: 'Inter'; font-weight: 700; font-size: 0.8rem; white-space: nowrap; }
         .multi-switch input { position: absolute; opacity: 0; pointer-events: none; }
         .multi-switch-ui { width: 36px; height: 20px; border-radius: 10px; background: rgba(20,24,28,0.16); position: relative; transition: 0.25s; flex-shrink: 0; }
-        .multi-switch-ui::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: 0.25s; box-shadow: 0 1px 3px rgba(20,24,28,0.3); }
+        .multi-switch-ui::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); transition: 0.25s; box-shadow: 0 1px 3px rgba(20,24,28,0.3); }
         .multi-switch input:checked + .multi-switch-ui { background: var(--primary); }
         .multi-switch input:checked + .multi-switch-ui::after { transform: translateX(16px); }
         .multi-switch input:focus-visible + .multi-switch-ui { outline: 2px solid var(--primary); outline-offset: 2px; }
         .tray-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 160px; }
-        .tray-chip { display: inline-flex; align-items: center; gap: 6px; background: #f4f5f7; border: 1px solid var(--line); border-radius: 20px; padding: 5px 10px 5px 12px; font-family: 'Inter'; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        .tray-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-alt); border: 1px solid var(--line); border-radius: 20px; padding: 5px 10px 5px 12px; font-family: 'Inter'; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
         .tray-chip b { color: var(--text-muted); font-size: 0.95rem; line-height: 1; }
         .tray-chip:hover { border-color: var(--secondary); }
         .tray-empty { color: var(--text-muted); font-size: 0.78rem; font-weight: 600; }
@@ -541,13 +560,13 @@
         #multi-compare-wrapper { padding: 30px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: var(--glass-radius); box-shadow: var(--hud-glow); }
         .mc-title h2 { font-size: 1.5rem; font-weight: 900; }
         .mc-sub2 { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
-        .mc-verdict { margin: 18px 0; padding: 16px 18px; background: #f4f5f7; border-radius: 14px; font-size: 0.9rem; line-height: 1.5; }
+        .mc-verdict { margin: 18px 0; padding: 16px 18px; background: var(--surface-alt); border-radius: 14px; font-size: 0.9rem; line-height: 1.5; }
         .mc-wins { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); font-weight: 700; }
         .mc-wins i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
-        .multi-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+        .multi-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
         .multi-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 520px; font-family: 'Inter'; }
         .multi-table th, .multi-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: center; font-size: 0.85rem; font-weight: 700; }
-        .multi-table th { vertical-align: top; background: #fff; font-weight: 700; padding-top: 14px; }
+        .multi-table th { vertical-align: top; background: var(--surface); font-weight: 700; padding-top: 14px; }
         .multi-table th:first-child, .multi-table td:first-child { text-align: left; position: sticky; left: 0; background: #fff; color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.4px; text-transform: uppercase; z-index: 2; min-width: 130px; }
         .multi-table tbody tr:last-child td { border-bottom: none; }
         .multi-table td.best { background: var(--accent-dim); font-weight: 900; }
@@ -557,7 +576,7 @@
         .mc-rating { font-weight: 900; font-size: 1.3rem; margin-top: 6px; }
         .mc-section-title { margin: 26px 0 10px 0; font-weight: 900; font-size: 1rem; }
         .mc-rank { display: flex; flex-wrap: wrap; gap: 8px; }
-        .mc-rank-item { display: inline-flex; align-items: center; gap: 8px; background: #f4f5f7; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 0.82rem; font-weight: 700; }
+        .mc-rank-item { display: inline-flex; align-items: center; gap: 8px; background: var(--surface-alt); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 0.82rem; font-weight: 700; }
         .mc-rank-item span { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center; background: var(--primary-dim); font-size: 0.72rem; font-weight: 900; }
         .mc-rank-item.first { border-color: var(--primary); }
         .mc-rank-item.first span { background: var(--primary); color: #fff; }
@@ -604,7 +623,7 @@
         .cf-enemy-name { font-weight: 900; font-size: 1.15rem; }
         .cf-img { width: 52px; height: 52px; flex-shrink: 0; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 4px 6px rgba(20,24,28,0.16)); }
         .cf-img.big { width: 76px; height: 76px; }
-        .cf-summary { padding: 14px 16px; border-radius: 14px; background: #f4f5f7; font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; }
+        .cf-summary { padding: 14px 16px; border-radius: 14px; background: var(--surface-alt); font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; }
         .cf-summary.good { background: var(--accent-dim); }
         .cf-summary.warn { background: rgba(232,72,63,0.09); }
         .cf-h { font-size: 0.95rem; font-weight: 900; margin: 22px 0 10px 0; }
@@ -629,7 +648,7 @@
         /* --- Дуэль кораблей --- */
         .duel-controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; justify-content: center; margin-bottom: 20px; }
         .duel-controls .cf-field { min-width: 170px; }
-        .duel-verdict { padding: 16px 18px; border-radius: 14px; font-weight: 800; font-size: 1rem; line-height: 1.45; background: #f4f5f7; margin-bottom: 18px; border-left: 4px solid var(--line); }
+        .duel-verdict { padding: 16px 18px; border-radius: 14px; font-weight: 800; font-size: 1rem; line-height: 1.45; background: var(--surface-alt); margin-bottom: 18px; border-left: 4px solid var(--line); }
         .duel-verdict.w1 { border-left-color: var(--primary); }
         .duel-verdict.w2 { border-left-color: var(--secondary); background: rgba(232,72,63,0.06); }
         .duel-chart-wrap { position: relative; height: 260px; margin-bottom: 8px; }
@@ -687,15 +706,17 @@
     <div class="app-wrapper">
         <nav class="glass-panel" style="border-radius: 0; border-left:none; border-right:none; border-top:none;">
             <div class="nav-logo-small">MWLAB</div>
-            <button class="nav-btn active" id="nav-home" onclick="switchMainPage('page-home', this)">Главная</button>
-            <button class="nav-btn" id="nav-compare" onclick="switchMainPage('page-compare', this)">Анализатор</button>
-            <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast('ТРЕБУЕТСЯ PRO ДОСТУП', true); }">Конструктор <span id="builder-lock">🔒</span></button>
-            <button class="nav-btn" id="nav-catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
-            <button class="nav-btn" id="nav-tiers" onclick="switchMainPage('page-tiers', this)">Тир-лист</button>
-            <button class="nav-btn" id="nav-counters" onclick="switchMainPage('page-counters', this)">Контры</button>
-            <button class="info-btn" id="nav-admin" onclick="switchMainPage('page-admin')" title="Профиль">👤</button>
-            <button class="info-btn" id="effects-toggle" onclick="toggleEffects()" title="Выключить эффекты">✨</button>
-            <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка">?</button>
+            <button class="nav-btn active" id="nav-home" data-i18n="nav.home" onclick="switchMainPage('page-home', this)">Главная</button>
+            <button class="nav-btn" id="nav-compare" data-i18n="nav.compare" onclick="switchMainPage('page-compare', this)">Анализатор</button>
+            <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast(L('ТРЕБУЕТСЯ PRO ДОСТУП','PRO ACCESS REQUIRED'), true); }"><span data-i18n="nav.builder">Конструктор</span> <span id="builder-lock">🔒</span></button>
+            <button class="nav-btn" id="nav-catalog" data-i18n="nav.catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
+            <button class="nav-btn" id="nav-tiers" data-i18n="nav.tiers" onclick="switchMainPage('page-tiers', this)">Тир-лист</button>
+            <button class="nav-btn" id="nav-counters" data-i18n="nav.counters" onclick="switchMainPage('page-counters', this)">Контры</button>
+            <button class="info-btn" id="nav-lang" onclick="toggleLanguage()" title="Language" data-i18n-title="nav.lang.title">RU</button>
+            <button class="info-btn" id="nav-theme" onclick="toggleTheme()" title="Тема" data-i18n-title="nav.theme.title">🌙</button>
+            <button class="info-btn" id="nav-admin" onclick="switchMainPage('page-admin')" title="Профиль" data-i18n-title="nav.profile.title">👤</button>
+            <button class="info-btn" id="effects-toggle" onclick="toggleEffects()" title="Выключить эффекты" data-i18n-title="nav.effects.title">✨</button>
+            <button class="info-btn" onclick="openModal('ibe-modal')" title="Справка" data-i18n-title="nav.help.title">?</button>
         </nav>
 
         <div style="padding: 15px 15px 0 15px; text-align: center; position: relative; z-index: 10; display: none;" id="category-bar-wrapper">
@@ -708,8 +729,8 @@
                     <h1 class="home-title">MWLAB</h1>
                     <p class="home-subtitle">TACTICAL DATABASE</p>
                     <div class="home-divider"></div>
-                    <p class="home-desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
-                    <button class="cat-btn-main active" style="margin-top:30px; font-size: 1rem; padding: 12px 30px; border:none;" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
+                    <p class="home-desc" data-i18n="home.desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
+                    <button class="cat-btn-main active" style="margin-top:30px; font-size: 1rem; padding: 12px 30px; border:none;" data-i18n="home.cta" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
                 </div>
                 <div class="home-image-side" id="home-image-side">
                     <div class="home-image-glow"></div>
@@ -720,7 +741,7 @@
 
         <main id="page-compare" class="page">
             <div class="controls-container">
-                <button class="cat-btn-main btn-export" onclick="exportCompareReport()" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ ОТЧЕТ</button>
+                <button class="cat-btn-main btn-export" onclick="exportCompareReport()" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);" data-i18n="cmp.download">СКАЧАТЬ ОТЧЕТ</button>
             </div>
             <div id="compare-export-wrapper" class="export-wrapper">
                 <div class="compare-grid">
@@ -731,7 +752,7 @@
                             <div class="equip-img-container" id="img-equip-1"></div>
                             <div class="holo-base" id="holo-1" style="display:none;"></div>
                         </div>
-                        <h3 class="item-title" id="name-equip-1">СЛОТ 1</h3>
+                        <h3 class="item-title" id="name-equip-1" data-i18n="cmp.slot1">СЛОТ 1</h3>
                         <div class="stats-container" id="stats-equip-1"></div>
                     </div>
                     
@@ -739,7 +760,7 @@
                         <div class="center-logo">MWLAB</div>
                         <div class="center-subtitle">TACTICAL ANALYSIS</div>
                         <div id="verdict-screen" style="width: 100%; display: flex; flex-direction: column; flex-grow: 1; justify-content: center; align-items: center; color: var(--text-muted);">
-                            <p style="font-family:'Inter'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
+                            <p style="font-family:'Inter'; font-size:1.1rem; text-align:center;" data-i18n="cmp.waiting">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>
                         </div>
                     </div>
 
@@ -750,7 +771,7 @@
                             <div class="equip-img-container" id="img-equip-2"></div>
                             <div class="holo-base" id="holo-2" style="display:none;"></div>
                         </div>
-                        <h3 class="item-title" id="name-equip-2">СЛОТ 2</h3>
+                        <h3 class="item-title" id="name-equip-2" data-i18n="cmp.slot2">СЛОТ 2</h3>
                         <div class="stats-container" id="stats-equip-2"></div>
                     </div>
                 </div>
@@ -760,25 +781,25 @@
 
         <main id="page-builder" class="page">
             <div class="controls-container">
-                <button class="cat-btn-main" onclick="addBuildSlot(1)">+ СЛОТ (КОР. 1)</button>
-                <button class="cat-btn-main" onclick="addBuildSlot(2)" style="color:var(--secondary); border-color:var(--secondary);">+ СЛОТ (КОР. 2)</button>
-                <button class="cat-btn-main active" style="border:none;" onclick="calculateBuild()">СРАВНИТЬ СБОРКИ</button>
-                <button class="cat-btn-main btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ</button>
+                <button class="cat-btn-main" onclick="addBuildSlot(1)" data-i18n="bld.addslot1">+ СЛОТ (КОР. 1)</button>
+                <button class="cat-btn-main" onclick="addBuildSlot(2)" style="color:var(--secondary); border-color:var(--secondary);" data-i18n="bld.addslot2">+ СЛОТ (КОР. 2)</button>
+                <button class="cat-btn-main active" style="border:none;" onclick="calculateBuild()" data-i18n="bld.compare">СРАВНИТЬ СБОРКИ</button>
+                <button class="cat-btn-main btn-export" onclick="exportToImage('build-export-wrapper', 'MWLAB_Сборка')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);" data-i18n="bld.download">СКАЧАТЬ</button>
             </div>
             
             <div class="build-columns">
                 <div class="build-col">
-                    <h3 style="text-align:center; color:var(--primary); font-family:'Inter'; font-weight:900; margin-bottom:15px; letter-spacing:1px;">КОРАБЛЬ 1</h3>
+                    <h3 style="text-align:center; color:var(--primary); font-family:'Inter'; font-weight:900; margin-bottom:15px; letter-spacing:1px;" data-i18n="bld.ship1">КОРАБЛЬ 1</h3>
                     <div id="build-slots-1"></div>
                 </div>
                 <div class="build-col">
-                    <h3 style="text-align:center; color:var(--secondary); font-family:'Inter'; font-weight:900; margin-bottom:15px; letter-spacing:1px;">КОРАБЛЬ 2</h3>
+                    <h3 style="text-align:center; color:var(--secondary); font-family:'Inter'; font-weight:900; margin-bottom:15px; letter-spacing:1px;" data-i18n="bld.ship2">КОРАБЛЬ 2</h3>
                     <div id="build-slots-2"></div>
                 </div>
             </div>
 
             <div id="build-export-wrapper" class="export-wrapper glass-panel" style="display:none; max-width: 1000px; margin: 0 auto; width:100%;">
-                <h2 style="text-align: center; color: var(--text-main); font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 20px;">СРАВНИТЕЛЬНЫЙ АНАЛИЗ СБОРОК</h2>
+                <h2 style="text-align: center; color: var(--text-main); font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 20px;" data-i18n="bld.analysis">СРАВНИТЕЛЬНЫЙ АНАЛИЗ СБОРОК</h2>
                 <div class="analysis-cols" style="flex-wrap: wrap;" id="build-stats-container"></div>
                 <div class="radar-container" style="position: relative; height: 350px; margin-top: 20px; max-width: 600px;">
                     <canvas id="buildRadarChart"></canvas>
@@ -788,30 +809,30 @@
 
             <!-- СИМУЛЯТОР ПРОРЫВА ПВО -->
             <div class="glass-panel" style="margin: 40px auto 0 auto; padding: 30px; max-width: 1200px; width: 100%;">
-                <h2 style="text-align:center; color:var(--text-main); font-family:'Inter'; font-size: 1.5rem; margin-bottom: 25px;">СИМУЛЯТОР ПРОРЫВА ПВО</h2>
+                <h2 style="text-align:center; color:var(--text-main); font-family:'Inter'; font-size: 1.5rem; margin-bottom: 25px;" data-i18n="aa.title">СИМУЛЯТОР ПРОРЫВА ПВО</h2>
 
                 <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
                     <!-- ПВО -->
-                    <div style="flex: 1; min-width: 250px; background: #f4f5f7; padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
-                        <h3 style="color:var(--primary); margin-bottom: 15px; font-family:'Inter';">СИСТЕМА ПВО</h3>
+                    <div style="flex: 1; min-width: 250px; background: var(--surface-alt); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                        <h3 style="color:var(--primary); margin-bottom: 15px; font-family:'Inter';" data-i18n="aa.system">СИСТЕМА ПВО</h3>
                         <div id="sim-aa" style="position:relative; margin-bottom: 10px;">
                             <div class="custom-select-wrapper" id="wrapper-sim-aa" data-value="" style="max-width:100%;">
                                 <div class="custom-select-trigger" onclick="toggleBuildDropdown('sim-aa')">
                                     <div class="trigger-left">
                                         <div class="trigger-img" id="img-sim-aa"></div>
-                                        <div class="trigger-text" id="text-sim-aa">ВЫБЕРИТЕ ПВО</div>
+                                        <div class="trigger-text" id="text-sim-aa" data-i18n="aa.pick">ВЫБЕРИТЕ ПВО</div>
                                     </div>
                                     <div>▼</div>
                                 </div>
                                 <div class="custom-select-dropdown" id="dropdown-sim-aa">
                                     <div class="dropdown-filter">
-                                        <input type="text" id="search-sim-aa" placeholder="ПОИСК ПВО..." oninput="renderSimAAOptions()" onclick="event.stopPropagation()">
+                                        <input type="text" id="search-sim-aa" placeholder="ПОИСК ПВО..." oninput="renderSimAAOptions()" onclick="event.stopPropagation()" data-i18n-placeholder="aa.search">
                                     </div>
                                     <div class="dropdown-list" id="list-sim-aa"></div>
                                 </div>
                             </div>
                         </div>
-                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';">Количество модулей ПВО:</label>
+                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';" data-i18n="aa.qtylabel">Количество модулей ПВО:</label>
                         <select id="sim-aa-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
                             <option value="1">1 слот</option><option value="2">2 слота</option>
                             <option value="3">3 слота</option><option value="4" selected>4 слота</option>
@@ -821,31 +842,31 @@
                     </div>
 
                     <!-- Ракеты -->
-                    <div style="flex: 1; min-width: 250px; background: #f4f5f7; padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
-                        <h3 style="color:var(--secondary); margin-bottom: 15px; font-family:'Inter';">РАКЕТНЫЙ ЗАЛП</h3>
+                    <div style="flex: 1; min-width: 250px; background: var(--surface-alt); padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
+                        <h3 style="color:var(--secondary); margin-bottom: 15px; font-family:'Inter';" data-i18n="aa.salvo">РАКЕТНЫЙ ЗАЛП</h3>
                         <div id="sim-missile" style="position:relative; margin-bottom: 10px;">
                             <div class="custom-select-wrapper" id="wrapper-sim-missile" data-value="" style="max-width:100%;">
                                 <div class="custom-select-trigger" onclick="toggleBuildDropdown('sim-missile')">
                                     <div class="trigger-left">
                                         <div class="trigger-img" id="img-sim-missile"></div>
-                                        <div class="trigger-text" id="text-sim-missile">ВЫБЕРИТЕ РАКЕТУ</div>
+                                        <div class="trigger-text" id="text-sim-missile" data-i18n="aa.pickmissile">ВЫБЕРИТЕ РАКЕТУ</div>
                                     </div>
                                     <div>▼</div>
                                 </div>
                                 <div class="custom-select-dropdown" id="dropdown-sim-missile">
                                     <div class="dropdown-filter">
-                                        <input type="text" id="search-sim-missile" placeholder="ПОИСК..." oninput="renderSimMissileOptions()" onclick="event.stopPropagation()">
+                                        <input type="text" id="search-sim-missile" placeholder="ПОИСК..." data-i18n-placeholder="common.search" oninput="renderSimMissileOptions()" onclick="event.stopPropagation()">
                                         <select id="cat-sim-missile" onchange="renderSimMissileOptions()" onclick="event.stopPropagation()">
-                                            <option value="">ВСЕ ТИПЫ</option>
-                                            <option value="Ракеты">Ракеты</option>
-                                            <option value="Гранатометы">Ракетные гранатометы</option>
+                                            <option value="" data-i18n="common.alltypes">ВСЕ ТИПЫ</option>
+                                            <option value="Ракеты" data-i18n="cat.missiles">Ракеты</option>
+                                            <option value="Гранатометы" data-i18n="aa.rocketlaunchers">Ракетные гранатометы</option>
                                         </select>
                                     </div>
                                     <div class="dropdown-list" id="list-sim-missile"></div>
                                 </div>
                             </div>
                         </div>
-                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';">Количество пусковых установок:</label>
+                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';" data-i18n="aa.launcherqty">Количество пусковых установок:</label>
                         <select id="sim-missile-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
                             <option value="1">1 слот</option><option value="2" selected>2 слота</option>
                             <option value="3">3 слота</option><option value="4">4 слота</option>
@@ -855,35 +876,35 @@
 
                 <!-- Дистанция и кнопка запуска -->
                 <div style="text-align: center; margin-bottom: 25px;">
-                    <label style="color: var(--text-main); font-family:'Inter'; font-size: 1.1rem;">Дистанция пуска: <span id="sim-dist-val" style="color:var(--primary); font-weight:bold;">7.0</span> км</label><br>
+                    <label style="color: var(--text-main); font-family:'Inter'; font-size: 1.1rem;"><span data-i18n="aa.distlabel">Дистанция пуска:</span> <span id="sim-dist-val" style="color:var(--primary); font-weight:bold;">7.0</span> <span data-i18n="common.km">км</span></label><br>
                     <input type="range" id="sim-dist" min="1" max="15" step="0.5" value="7" style="width: 100%; max-width: 500px; margin-top: 15px; accent-color: var(--primary);" oninput="document.getElementById('sim-dist-val').innerText = this.value">
                 </div>
 
-                <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto; display: block; border:none; padding: 15px;" onclick="simulateAA()">РАССЧИТАТЬ ВЕРОЯТНОСТЬ</button>
+                <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto; display: block; border:none; padding: 15px;" onclick="simulateAA()" data-i18n="aa.calc">РАССЧИТАТЬ ВЕРОЯТНОСТЬ</button>
 
                 <!-- Вывод результата -->
-                <div id="sim-result" style="margin-top: 30px; display: none; padding: 20px; border: 1px solid var(--line); border-radius: 12px; text-align: center; background: #f4f5f7;"></div>
+                <div id="sim-result" style="margin-top: 30px; display: none; padding: 20px; border: 1px solid var(--line); border-radius: 12px; text-align: center; background: var(--surface-alt);"></div>
             </div>
 
             <!-- ДУЭЛЬ КОРАБЛЕЙ -->
             <div class="glass-panel" id="duel-panel" style="margin: 40px auto 0 auto; padding: 30px; max-width: 1200px; width: 100%;">
-                <h2 style="text-align:center; color:var(--text-main); font-family:'Inter'; font-size: 1.5rem; margin-bottom: 8px;">ДУЭЛЬ КОРАБЛЕЙ</h2>
-                <p style="text-align:center; color:var(--text-muted); font-size:0.85rem; line-height:1.5; margin-bottom: 24px;">Бой двух сборок из конструктора выше: кто первым уничтожит противника на выбранной дистанции.</p>
+                <h2 style="text-align:center; color:var(--text-main); font-family:'Inter'; font-size: 1.5rem; margin-bottom: 8px;" data-i18n="duel.title">ДУЭЛЬ КОРАБЛЕЙ</h2>
+                <p style="text-align:center; color:var(--text-muted); font-size:0.85rem; line-height:1.5; margin-bottom: 24px;" data-i18n="duel.desc">Бой двух сборок из конструктора выше: кто первым уничтожит противника на выбранной дистанции.</p>
                 <div class="duel-controls">
-                    <div class="cf-field"><label for="duel-hp1">HP корабля 1</label><input type="number" id="duel-hp1" class="search-input" value="300000" min="1000" step="10000" inputmode="numeric"></div>
-                    <div class="cf-field"><label for="duel-hp2">HP корабля 2</label><input type="number" id="duel-hp2" class="search-input" value="300000" min="1000" step="10000" inputmode="numeric"></div>
-                    <div class="cf-field" style="min-width:260px;"><label for="duel-dist">Дистанция боя: <b id="duel-dist-val">7.0</b> км</label><input type="range" id="duel-dist" min="2" max="20" step="0.5" value="7" style="accent-color: var(--primary); width:100%;" oninput="document.getElementById('duel-dist-val').textContent = parseFloat(this.value).toFixed(1)"></div>
+                    <div class="cf-field"><label for="duel-hp1" data-i18n="duel.hp1">HP корабля 1</label><input type="number" id="duel-hp1" class="search-input" value="300000" min="1000" step="10000" inputmode="numeric"></div>
+                    <div class="cf-field"><label for="duel-hp2" data-i18n="duel.hp2">HP корабля 2</label><input type="number" id="duel-hp2" class="search-input" value="300000" min="1000" step="10000" inputmode="numeric"></div>
+                    <div class="cf-field" style="min-width:260px;"><label for="duel-dist"><span data-i18n="duel.distlabel">Дистанция боя:</span> <b id="duel-dist-val">7.0</b> <span data-i18n="common.km">км</span></label><input type="range" id="duel-dist" min="2" max="20" step="0.5" value="7" style="accent-color: var(--primary); width:100%;" oninput="document.getElementById('duel-dist-val').textContent = parseFloat(this.value).toFixed(1)"></div>
                 </div>
-                <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto 26px auto; display: block; border:none; padding: 15px;" onclick="runDuelUI()">НАЧАТЬ ДУЭЛЬ</button>
+                <button class="cat-btn-main active" style="width: 100%; max-width: 350px; margin: 0 auto 26px auto; display: block; border:none; padding: 15px;" onclick="runDuelUI()" data-i18n="duel.start">НАЧАТЬ ДУЭЛЬ</button>
                 <div id="duel-result" style="display:none;"></div>
             </div>
         </main>
 
         <main id="page-catalog" class="page">
             <div class="controls-container">
-                <input type="text" class="search-input glass-panel" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК..." oninput="handleSearch(this.value)">
+                <input type="text" class="search-input glass-panel" id="search-input-catalog" autocomplete="off" placeholder="ПОИСК..." data-i18n-placeholder="common.search" oninput="handleSearch(this.value)">
                 <select class="filter-select glass-panel" id="filter-country-catalog" onchange="handleFilter()">
-                    <option value="" selected>ВСЕ ФРАКЦИИ</option>
+                    <option value="" selected data-i18n="common.allfactions">ВСЕ ФРАКЦИИ</option>
                     <option value="Бразилия">Бразилия</option>
                     <option value="Великобритания">Великобритания</option>
                     <option value="Германия">Германия</option>
@@ -904,11 +925,11 @@
                     <option value="Япония">Япония</option>
                 </select>
                 <select class="filter-select glass-panel" id="sort-catalog" onchange="handleFilter()">
-                    <option value="none" selected>СОРТИРОВКА: ОТКЛ.</option>
-                    <option value="rating">ТОП: РЕЙТИНГ МЕТЫ</option>
-                    <option value="dpm">ТОП: УРОН В МИНУТУ</option>
-                    <option value="burst">ТОП: АЛЬФА-СТРАЙК</option>
-                    <option value="speed">ТОП: СКОРОСТЬ</option>
+                    <option value="none" selected data-i18n="sort.off">СОРТИРОВКА: ОТКЛ.</option>
+                    <option value="rating" data-i18n="sort.rating">ТОП: РЕЙТИНГ МЕТЫ</option>
+                    <option value="dpm" data-i18n="sort.dpm">ТОП: УРОН В МИНУТУ</option>
+                    <option value="burst" data-i18n="sort.burst">ТОП: АЛЬФА-СТРАЙК</option>
+                    <option value="speed" data-i18n="sort.speed">ТОП: СКОРОСТЬ</option>
                 </select>
             </div>
 
@@ -929,47 +950,47 @@
                 <div class="roster-stage">
                     <div class="roster-stage-glow"></div>
                     <div class="roster-portrait" id="roster-portrait"></div>
-                    <div class="roster-empty" id="roster-empty">ВЫБЕРИТЕ ЕДИНИЦУ ИЗ СПИСКА</div>
+                    <div class="roster-empty" id="roster-empty" data-i18n="roster.empty">ВЫБЕРИТЕ ЕДИНИЦУ ИЗ СПИСКА</div>
                 </div>
 
                 <div class="roster-detail glass-panel" id="roster-detail">
                     <div class="roster-top-row">
                         <div class="roster-level">
                             <div class="roster-level-num" id="roster-rating-num">--</div>
-                            <div class="roster-level-label">РЕЙТИНГ</div>
+                            <div class="roster-level-label" data-i18n="roster.ratinglabel">РЕЙТИНГ</div>
                         </div>
                         <div class="roster-heading">
                             <h2 id="roster-name">—</h2>
-                            <div class="roster-classtext" id="roster-classtext">Категория —</div>
+                            <div class="roster-classtext" id="roster-classtext" data-i18n="roster.categoryph">Категория —</div>
                         </div>
                     </div>
 
-                    <button class="why-btn" id="roster-why-btn" onclick="openRatingBreakdown(currentPreviewId)">Почему такой рейтинг?</button>
+                    <button class="why-btn" id="roster-why-btn" onclick="openRatingBreakdown(currentPreviewId)" data-i18n="roster.whybtn">Почему такой рейтинг?</button>
 
                     <div class="roster-stats" id="roster-stats"></div>
 
-                    <div class="roster-skills-label">ОСОБЕННОСТИ</div>
+                    <div class="roster-skills-label" data-i18n="roster.skillslabel">ОСОБЕННОСТИ</div>
                     <div class="roster-skills" id="roster-skills"></div>
 
-                    <div class="roster-compare-hint" id="roster-compare-hint">Нажмите на 1-й, затем на 2-й объект в списке — сравнение запустится автоматически. Для 3 и более объектов включите «Сравнить 3+» внизу.</div>
+                    <div class="roster-compare-hint" id="roster-compare-hint" data-i18n="roster.comparehint">Нажмите на 1-й, затем на 2-й объект в списке — сравнение запустится автоматически. Для 3 и более объектов включите «Сравнить 3+» внизу.</div>
                 </div>
             </div>
 
                 <div class="compare-tray glass-panel" id="compare-tray">
-                    <label class="multi-switch"><input type="checkbox" id="multi-mode-cb" onchange="setMultiMode(this.checked)"><span class="multi-switch-ui"></span>Сравнить 3+</label>
+                    <label class="multi-switch"><input type="checkbox" id="multi-mode-cb" onchange="setMultiMode(this.checked)"><span class="multi-switch-ui"></span><span data-i18n="roster.compare3plus">Сравнить 3+</span></label>
                     <div class="tray-chips" id="tray-chips"></div>
-                    <button class="tray-clear" id="tray-clear" onclick="clearCompareQueue()" style="display:none;">Очистить</button>
-                    <button class="cat-btn-main active tray-go" id="tray-go" onclick="runMultiCompare()" style="display:none;">СРАВНИТЬ</button>
+                    <button class="tray-clear" id="tray-clear" onclick="clearCompareQueue()" style="display:none;" data-i18n="roster.clear">Очистить</button>
+                    <button class="cat-btn-main active tray-go" id="tray-go" onclick="runMultiCompare()" style="display:none;" data-i18n="roster.gocompare">СРАВНИТЬ</button>
                 </div>
         </main>
 
         <main id="page-tiers" class="page">
             <div class="tier-head">
-                <h2>Тир-лист</h2>
+                <h2 data-i18n="tiers.title">Тир-лист</h2>
                 <p id="tier-note"></p>
                 <div class="tier-toolbar">
                     <select class="filter-select glass-panel" id="tier-country" onchange="renderTierList()" aria-label="Фракция">
-                    <option value="" selected>ВСЕ ФРАКЦИИ</option>
+                    <option value="" selected data-i18n="common.allfactions">ВСЕ ФРАКЦИИ</option>
                     <option value="Бразилия">Бразилия</option>
                     <option value="Великобритания">Великобритания</option>
                     <option value="Германия">Германия</option>
@@ -989,7 +1010,7 @@
                     <option value="Южная Корея">Южная Корея</option>
                     <option value="Япония">Япония</option>
                 </select>
-                    <button class="cat-btn-main btn-export" onclick="exportToImage('tier-export-wrapper', 'MWLAB_Тирлист')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);">СКАЧАТЬ ТИР-ЛИСТ</button>
+                    <button class="cat-btn-main btn-export" onclick="exportToImage('tier-export-wrapper', 'MWLAB_Тирлист')" style="background:transparent; border: 1px solid var(--primary); color: var(--primary);" data-i18n="tiers.download">СКАЧАТЬ ТИР-ЛИСТ</button>
                 </div>
                 <div class="tier-jump" id="tier-jump"></div>
             </div>
@@ -998,25 +1019,25 @@
 
         <main id="page-counters" class="page">
             <div class="cf-panel glass-panel" style="overflow: visible;">
-                <h2>Контры</h2>
-                <p>Выберите оружие врага. Для ракеты сайт подберёт лучшее ПВО, для ПВО ракеты, которые его прорывают, для торпеды перехватчики, для пушки оружие, которое её переигрывает.</p>
+                <h2 data-i18n="cf.title">Контры</h2>
+                <p data-i18n="cf.desc">Выберите оружие врага. Для ракеты сайт подберёт лучшее ПВО, для ПВО ракеты, которые его прорывают, для торпеды перехватчики, для пушки оружие, которое её переигрывает.</p>
                 <div class="cf-controls">
                     <div class="cf-field grow">
-                        <label>Оружие врага</label>
+                        <label data-i18n="cf.enemyweapon">Оружие врага</label>
                         <div id="cf-enemy" style="position:relative;">
                             <div class="custom-select-wrapper" id="wrapper-cf-enemy" data-value="" style="max-width:100%;">
                                 <div class="custom-select-trigger" onclick="toggleBuildDropdown('cf-enemy')">
                                     <div class="trigger-left">
                                         <div class="trigger-img" id="img-cf-enemy"></div>
-                                        <div class="trigger-text" id="text-cf-enemy">ВЫБЕРИТЕ ОРУЖИЕ</div>
+                                        <div class="trigger-text" id="text-cf-enemy" data-i18n="cf.pickweapon">ВЫБЕРИТЕ ОРУЖИЕ</div>
                                     </div>
                                     <div>▼</div>
                                 </div>
                                 <div class="custom-select-dropdown" id="dropdown-cf-enemy">
                                     <div class="dropdown-filter">
-                                        <input type="text" id="search-cf-enemy" placeholder="ПОИСК..." oninput="renderCfEnemyOptions()" onclick="event.stopPropagation()">
+                                        <input type="text" id="search-cf-enemy" placeholder="ПОИСК..." data-i18n-placeholder="common.search" oninput="renderCfEnemyOptions()" onclick="event.stopPropagation()">
                                         <select id="cat-cf-enemy" onchange="renderCfEnemyOptions()" onclick="event.stopPropagation()">
-                                            <option value="">ВСЕ ТИПЫ</option>
+                                            <option value="" data-i18n="common.alltypes">ВСЕ ТИПЫ</option>
                                             <option value="Ракеты">Ракеты</option>
                                             <option value="Гранатометы">Гранатометы</option>
                                             <option value="Торпеды">Торпеды</option>
@@ -1029,9 +1050,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="cf-field" id="cf-wrap-you" style="display:none;"><label for="cf-qty-you" id="cf-label-you">Ваших слотов ПВО</label><select id="cf-qty-you" class="search-input" onchange="runCounterFinder()"><option value="1">1 слот</option><option value="2">2 слота</option><option value="3">3 слота</option><option value="4" selected>4 слота</option><option value="5">5 слотов</option><option value="6">6 слотов</option><option value="7">7 слотов</option><option value="8">8 слотов</option></select></div>
-                    <div class="cf-field" id="cf-wrap-enemy" style="display:none;"><label for="cf-qty-enemy" id="cf-label-enemy">Слотов с ракетами у врага</label><select id="cf-qty-enemy" class="search-input" onchange="runCounterFinder()"><option value="1">1 слот</option><option value="2" selected>2 слота</option><option value="3">3 слота</option><option value="4">4 слота</option><option value="5">5 слотов</option><option value="6">6 слотов</option><option value="7">7 слотов</option><option value="8">8 слотов</option></select></div>
-                    <div class="cf-field" id="cf-wrap-dist" style="display:none;"><label for="cf-dist">Дистанция: <b id="cf-dist-val">7.0</b> км</label><input type="range" id="cf-dist" min="1" max="15" step="0.5" value="7" style="accent-color: var(--primary); width:100%;" oninput="runCounterFinder()"></div>
+                    <div class="cf-field" id="cf-wrap-you" style="display:none;"><label for="cf-qty-you" id="cf-label-you" data-i18n="cf.yourslots">Ваших слотов ПВО</label><select id="cf-qty-you" class="search-input" onchange="runCounterFinder()"><option value="1">1 слот</option><option value="2">2 слота</option><option value="3">3 слота</option><option value="4" selected>4 слота</option><option value="5">5 слотов</option><option value="6">6 слотов</option><option value="7">7 слотов</option><option value="8">8 слотов</option></select></div>
+                    <div class="cf-field" id="cf-wrap-enemy" style="display:none;"><label for="cf-qty-enemy" id="cf-label-enemy" data-i18n="cf.enemyslots">Слотов с ракетами у врага</label><select id="cf-qty-enemy" class="search-input" onchange="runCounterFinder()"><option value="1">1 слот</option><option value="2" selected>2 слота</option><option value="3">3 слота</option><option value="4">4 слота</option><option value="5">5 слотов</option><option value="6">6 слотов</option><option value="7">7 слотов</option><option value="8">8 слотов</option></select></div>
+                    <div class="cf-field" id="cf-wrap-dist" style="display:none;"><label for="cf-dist"><span data-i18n="cf.distance">Дистанция:</span> <b id="cf-dist-val">7.0</b> <span data-i18n="common.km">км</span></label><input type="range" id="cf-dist" min="1" max="15" step="0.5" value="7" style="accent-color: var(--primary); width:100%;" oninput="runCounterFinder()"></div>
                 </div>
             </div>
             <div id="cf-result"></div>
@@ -1039,21 +1060,21 @@
 
         <main id="page-admin" class="page">
             <div class="glass-panel" style="max-width: 400px; margin: 0 auto; padding: 40px; text-align: center; width: 100%;">
-                <h2 style="color:var(--text-main); font-family:'Inter'; margin-bottom: 10px; font-size:1.5rem;" id="auth-title">АВТОРИЗАЦИЯ</h2>
-                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 25px;" id="auth-subtitle">Войдите для доступа к диаграммам, индексу меты и конструктору сборок.</p>
+                <h2 style="color:var(--text-main); font-family:'Inter'; margin-bottom: 10px; font-size:1.5rem;" id="auth-title" data-i18n="admin.title">АВТОРИЗАЦИЯ</h2>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 25px;" id="auth-subtitle" data-i18n="admin.subtitle">Войдите для доступа к диаграммам, индексу меты и конструктору сборок.</p>
                 
                 <div id="admin-auth">
-                    <input type="text" id="admin-login" class="search-input glass-panel" autocomplete="username" placeholder="ЛОГИН" style="margin-bottom: 15px; text-align:center; width: 100%;">
-                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="current-password" placeholder="ПАРОЛЬ" style="margin-bottom: 25px; text-align:center; width: 100%;">
-                    <button class="cat-btn-main active" style="border:none; width:100%;" onclick="checkAuthLogin()">ВОЙТИ</button>
+                    <input type="text" id="admin-login" class="search-input glass-panel" autocomplete="username" placeholder="ЛОГИН" data-i18n-placeholder="admin.login" style="margin-bottom: 15px; text-align:center; width: 100%;">
+                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="current-password" placeholder="ПАРОЛЬ" data-i18n-placeholder="admin.password" style="margin-bottom: 25px; text-align:center; width: 100%;">
+                    <button class="cat-btn-main active" style="border:none; width:100%;" onclick="checkAuthLogin()" data-i18n="admin.enter">ВОЙТИ</button>
                 </div>
 
                 <div id="admin-dashboard" style="display: none;">
                     <div style="width: 80px; height: 80px; background: var(--primary-dim); border: 2px solid var(--primary); border-radius: 50%; margin: 0 auto 20px auto; display:flex; align-items:center; justify-content:center; font-size: 2.5rem;">👑</div>
-                    <h3 style="color: var(--primary); font-family: 'Inter'; font-weight: 900; margin-bottom: 25px;">PRO ДОСТУП АКТИВЕН</h3>
-                    <p style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 10px;">ПОСЕЩЕНИЯ САЙТА</p>
+                    <h3 style="color: var(--primary); font-family: 'Inter'; font-weight: 900; margin-bottom: 25px;" data-i18n="admin.proactive">PRO ДОСТУП АКТИВЕН</h3>
+                    <p style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 10px;" data-i18n="admin.visits">ПОСЕЩЕНИЯ САЙТА</p>
                     <div style="font-size: 3rem; color: var(--text-main); font-family: 'Inter'; font-weight: 900; margin-bottom: 30px;" id="visit-counter">0</div>
-                    <button class="cat-btn-main" style="width:100%; color:var(--secondary); border-color:var(--secondary);" onclick="logout()">ВЫЙТИ ИЗ АККАУНТА</button>
+                    <button class="cat-btn-main" style="width:100%; color:var(--secondary); border-color:var(--secondary);" onclick="logout()" data-i18n="admin.logout">ВЫЙТИ ИЗ АККАУНТА</button>
                 </div>
             </div>
         </main>
@@ -1071,25 +1092,25 @@
     <div id="ibe-modal" class="modal-overlay">
         <div class="modal-content glass-panel">
             <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
-            <h2 style="color: var(--text-main); font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 15px;">БАЗА ЗНАНИЙ MWLAB</h2>
+            <h2 style="color: var(--text-main); font-family: 'Inter'; font-size: 1.5rem; margin-bottom: 15px;" data-i18n="kb.title">БАЗА ЗНАНИЙ MWLAB</h2>
             
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" data-i18n-html="kb.intro">
                 <b>Анализатор:</b> Сравнивает вооружение в мете 5-10 км.<br>
                 <b>Конструктор:</b> Симулирует реальную сборку корабля.
             </p>
 
             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
-                <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('cannons')">ПУШКИ</button>
-                <button class="cat-btn-main" id="btn-modal-missiles" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('missiles')">РАКЕТЫ</button>
-                <button class="cat-btn-main" id="btn-modal-aamissiles" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('aamissiles')">РАКЕТЫ А/А</button>
-                <button class="cat-btn-main" id="btn-modal-torpedoes" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('torpedoes')">ТОРПЕДЫ</button>
-                <button class="cat-btn-main" id="btn-modal-launchers" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('launchers')">ГРАНАТОМЕТЫ</button>
-                <button class="cat-btn-main" id="btn-modal-autocannons" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('autocannons')">АВТОПУШКИ</button>
-                <button class="cat-btn-main" id="btn-modal-aa" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('aa')">ПВО</button>
+                <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('cannons')" data-i18n="kb.tab.cannons">ПУШКИ</button>
+                <button class="cat-btn-main" id="btn-modal-missiles" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('missiles')" data-i18n="kb.tab.missiles">РАКЕТЫ</button>
+                <button class="cat-btn-main" id="btn-modal-aamissiles" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('aamissiles')" data-i18n="kb.tab.aamissiles">РАКЕТЫ А/А</button>
+                <button class="cat-btn-main" id="btn-modal-torpedoes" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('torpedoes')" data-i18n="kb.tab.torpedoes">ТОРПЕДЫ</button>
+                <button class="cat-btn-main" id="btn-modal-launchers" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('launchers')" data-i18n="kb.tab.launchers">ГРАНАТОМЕТЫ</button>
+                <button class="cat-btn-main" id="btn-modal-autocannons" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('autocannons')" data-i18n="kb.tab.autocannons">АВТОПУШКИ</button>
+                <button class="cat-btn-main" id="btn-modal-aa" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('aa')" data-i18n="kb.tab.aa">ПВО</button>
             </div>
 
             <div id="info-cannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5;">
-                <ul style="margin-left: 20px; color: var(--text-muted);">
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.cannons">
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
@@ -1098,7 +1119,7 @@
             </div>
 
             <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);">
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.missiles">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
@@ -1107,7 +1128,7 @@
             </div>
 
             <div id="info-aamissiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);">
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.aamissiles">
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Та же формула, что у ракет:</b> Зенитные ракеты считаются по модели обычных ракет, но с упором на стрельбу по авиации.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Многозарядность:</b> Каждая дополнительная ракета в пуске даёт заметный бонус к рейтингу.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Сплэш/АОЕ:</b> Даёт огромный бонус — одна ракета может задеть сразу всё звено авиации.</li>
@@ -1116,7 +1137,7 @@
             </div>
 
             <div id="info-torpedoes" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);">
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.torpedoes">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Обход ловушек:</b> Без помехозащиты эффективный урон в минуту снижается по циклу отвода (29 сек) и зависит от скорости торпеды.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Скорость и разгон:</b> Чем быстрее торпеда и короче время разгона — тем выше итоговый рейтинг.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Обойма и залп:</b> Бонус за количество торпед в обойме и в одном пуске.</li>
@@ -1125,7 +1146,7 @@
             </div>
 
             <div id="info-launchers" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);">
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.launchers">
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Тип определяет формулу:</b> Пушечные (снарядные), Ракетные, Лазерные и Смешанные гранатометы оцениваются по-разному.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Пушечные / Смешанные:</b> Штраф за отдачу и разброс на дистанции — как у обычных пушек.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Ракетные:</b> Учитывается HP снаряда и цикл обхода ловушек — как у ракет.</li>
@@ -1135,7 +1156,7 @@
             </div>
 
             <div id="info-autocannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);">
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.autocannons">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Базовый DPM и альфа-страйк:</b> Основной вклад в итоговую оценку.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">ПВО / ПЛО:</b> Крупный бонус за возможность бить авиацию и подлодки.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Дальность и скорость снаряда:</b> Чем выше показатели — тем лучше рейтинг.</li>
@@ -1144,7 +1165,7 @@
             </div>
 
             <div id="info-aa" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);">
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.aa">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Реальная угроза, а не вакуум:</b> ПВО оценивается против усреднённого профиля боевых ракет из базы — считается «окно перехвата» и реальный шанс сбить типичную ракету.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность по типу:</b> Лазерное ПВО точнее Гибридного, Ракетного и Пулемётного — у каждого свой индекс разброса.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Скорость перехвата:</b> У Ракетного/Гибридного ПВО скорость и разгон собственной ракеты сравниваются со скоростью цели — медленный интерцептор резко теряет эффективность.</li>
@@ -1157,6 +1178,97 @@
     <div id="toast-container"></div>
     <script>
         // --- AUTH LOGIC ---
+        // =========================================================
+        // ТЕМА (светлая/тёмная)
+        // =========================================================
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const btn = document.getElementById('nav-theme');
+            if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) metaTheme.setAttribute('content', theme === 'dark' ? '#0e1013' : '#eef0f2');
+            localStorage.setItem('mw_theme', theme);
+            refreshChartColors();
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+        function cssVar(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+        // Пересобрать открытые графики Chart.js под новую тему (иначе цвета осей/легенды останутся старыми)
+        function refreshChartColors() {
+            ['radarChartInstance', 'multiRadarInstance', 'duelChartInstance'].forEach(key => {
+                const inst = window[key];
+                if (!inst) return;
+                inst.options.plugins && inst.options.plugins.legend && inst.options.plugins.legend.labels && (inst.options.plugins.legend.labels.color = cssVar('--text-main'));
+                if (inst.options.scales) {
+                    Object.values(inst.options.scales).forEach(sc => {
+                        if (sc.pointLabels) sc.pointLabels.color = cssVar('--text-main');
+                        if (sc.ticks) sc.ticks.color = cssVar('--text-muted');
+                    });
+                }
+                inst.update();
+            });
+        }
+
+        // =========================================================
+        // ЯЗЫК (RU/EN)
+        // =========================================================
+        let LANG = localStorage.getItem('mw_lang') || 'ru';
+        // Быстрый инлайн-хелпер перевода: L('русский текст', 'english text')
+        function L(ru, en) { return LANG === 'en' ? en : ru; }
+        function toggleLanguage() {
+            LANG = LANG === 'ru' ? 'en' : 'ru';
+            localStorage.setItem('mw_lang', LANG);
+            applyLanguage();
+        }
+        function applyLanguage() {
+            const btn = document.getElementById('nav-lang');
+            if (btn) btn.textContent = LANG.toUpperCase();
+            document.documentElement.lang = LANG === 'en' ? 'en' : 'ru';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const entry = I18N[key];
+                if (entry) el.textContent = entry[LANG];
+            });
+            document.querySelectorAll('[data-i18n-html]').forEach(el => {
+                const key = el.getAttribute('data-i18n-html');
+                const entry = I18N[key];
+                if (entry) el.innerHTML = entry[LANG];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                const entry = I18N[key];
+                if (entry) el.placeholder = entry[LANG];
+            });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                const entry = I18N[key];
+                if (entry) el.title = entry[LANG];
+            });
+            // Опции количества слотов (1 слот / 2 слота / ... ↔ 1 slot / 2 slots / ...)
+            document.querySelectorAll('#sim-aa-qty option, #sim-missile-qty option, #cf-qty-you option, #cf-qty-enemy option').forEach(opt => {
+                const n = parseInt(opt.value, 10);
+                if (!n) return;
+                opt.textContent = LANG === 'en'
+                    ? (n + (n === 1 ? ' slot' : ' slots'))
+                    : (n + ' ' + (n === 1 ? 'слот' : (n >= 2 && n <= 4 ? 'слота' : 'слотов')));
+            });
+            // Опции <select> со странами/категориями: value остаётся русским (это внутренний ключ),
+            // переводится только видимый текст.
+            document.querySelectorAll('#filter-country-catalog option, #tier-country option, #cat-cf-enemy option, #cat-sim-missile option').forEach(opt => {
+                if (typeof COUNTRY_EN !== 'undefined' && COUNTRY_EN[opt.value]) opt.textContent = trCountry(opt.value);
+                else if (typeof CATEGORY_EN !== 'undefined' && CATEGORY_EN[opt.value]) opt.textContent = trCategory(opt.value);
+            });
+            // Перерисовать динамические блоки, зависящие от языка (каталог, тир-лист и т.д.)
+            if (typeof handleFilter === 'function') handleFilter();
+            if (typeof renderCategoryBar === 'function') renderCategoryBar();
+            if (typeof renderDynamicFilters === 'function') renderDynamicFilters();
+            if (typeof updateCompareTray === 'function') updateCompareTray();
+        }
+
         let isAuth = localStorage.getItem('mw_auth') === 'true';
         let siteVisits = localStorage.getItem('mw_site_visits') || 0; 
         siteVisits++; 
@@ -1172,8 +1284,8 @@
             if (isAuth) {
                 adminDash.style.display = 'block';
                 adminAuth.style.display = 'none';
-                document.getElementById('auth-title').innerText = "АККАУНТ";
-                document.getElementById('auth-subtitle').innerText = "Управление доступом";
+                document.getElementById('auth-title').innerText = L("АККАУНТ","ACCOUNT");
+                document.getElementById('auth-subtitle').innerText = L("Управление доступом","Access management");
                 document.getElementById('visit-counter').innerText = siteVisits;
                 if (lockIcon) lockIcon.style.display = 'none';
                 navAdminBtn.classList.add('auth-active');
@@ -1181,8 +1293,8 @@
             } else {
                 adminDash.style.display = 'none';
                 adminAuth.style.display = 'block';
-                document.getElementById('auth-title').innerText = "АВТОРИЗАЦИЯ";
-                document.getElementById('auth-subtitle').innerText = "Войдите для доступа к диаграммам, индексу меты и конструктору сборок.";
+                document.getElementById('auth-title').innerText = L("АВТОРИЗАЦИЯ","LOGIN");
+                document.getElementById('auth-subtitle').innerText = L("Войдите для доступа к диаграммам, индексу меты и конструктору сборок.","Log in for access to charts, the meta index, and the build constructor.");
                 if (lockIcon) lockIcon.style.display = 'inline';
                 navAdminBtn.classList.remove('auth-active');
                 sortOpts.forEach(opt => opt.disabled = true);
@@ -1195,7 +1307,7 @@
             if(document.getElementById('page-compare').classList.contains('active') && compareQueue.length === 0) {
                 const n1 = document.getElementById('name-equip-1').innerText;
                 const n2 = document.getElementById('name-equip-2').innerText;
-                if(n1 !== "СЛОТ 1" && n2 !== "СЛОТ 2") {
+                if(n1 !== L('СЛОТ 1','SLOT 1') && n2 !== L('СЛОТ 2','SLOT 2')) {
                     let id1, id2;
                     for (let key in DB) { if(DB[key].name === n1) id1 = key; if(DB[key].name === n2) id2 = key; }
                     if(id1 && id2) runAnalysis(id1, id2);
@@ -1212,9 +1324,9 @@
                 document.getElementById('admin-login').value = '';
                 document.getElementById('admin-pass').value = '';
                 updateAuthStateUI();
-                showToast("ДОСТУП РАЗРЕШЕН");
+                showToast(L("ДОСТУП РАЗРЕШЕН","ACCESS GRANTED"));
             } else { 
-                showToast('ОШИБКА АВТОРИЗАЦИИ', true); 
+                showToast(L('ОШИБКА АВТОРИЗАЦИИ','LOGIN ERROR'), true); 
             }
         }
 
@@ -1222,7 +1334,7 @@
             isAuth = false;
             localStorage.setItem('mw_auth', 'false');
             updateAuthStateUI();
-            showToast("ВЫХОД ВЫПОЛНЕН");
+            showToast(L("ВЫХОД ВЫПОЛНЕН","LOGGED OUT"));
             
             if (document.getElementById('page-builder').classList.contains('active')) {
                 switchMainPage('page-home', document.getElementById('nav-home'));
@@ -1320,36 +1432,268 @@
         };
 
         const STATS_LOGIC = {
-            aa_type: { label: "Тип ПВО", isString: true },
-            aa_accuracy: { label: "Индекс точности", higherIsBetter: true },
-            killChanceVsMissile: { label: "Шанс сбить ракету", higherIsBetter: true },
-            damage_burst: { label: "Урон за залп", higherIsBetter: true },
-            dpm: { label: "Урон в минуту", higherIsBetter: true },
-            damage: { label: "Урон", higherIsBetter: true },
-            accuracy: { label: "Точность", higherIsBetter: true },
-            reload: { label: "Перезарядка (с)", higherIsBetter: false },
-            dispersion: { label: "Базовый разброс", higherIsBetter: false },
-            lock_time: { label: "Время захвата (с)", higherIsBetter: false },
-            crit_chance: { label: "Шанс крита", higherIsBetter: true },
-            projectiles: { label: "Снарядов", higherIsBetter: false }, 
-            ammo_clip: { label: "Обойма", higherIsBetter: false },
-            anti_jamming: { label: "Помехозащита", higherIsBetter: true },
-            air_target: { label: "Атака авиации", isBool: true, higherIsBetter: true },
-            sub_launch: { label: "Подводный пуск", isBool: true, higherIsBetter: true },
-            can_hit_subs: { label: "Атака подлодок", isBool: true, higherIsBetter: true },
-            cluster: { label: "Кластерная БЧ", isBool: true, higherIsBetter: true }, 
-            splash_damage: { label: "Сплэш-урон", higherIsBetter: true },
-            splash_radius: { label: "Радиус взрыва (м)", higherIsBetter: true },
-            fragmentation_damage: { label: "Урон осколков", higherIsBetter: true },
-            detonation_radius: { label: "Радиус детонации (м)", higherIsBetter: true },
-            hp: { label: "Прочность (HP)", higherIsBetter: true },
-            start_speed: { label: "Нач. скорость (уз)", higherIsBetter: true },
-            max_speed: { label: "Скорость (уз)", higherIsBetter: true },
-            accel_time: { label: "Разгон (с)", higherIsBetter: false },
-            range: { label: "Дальность (км)", higherIsBetter: true },
-            min_range: { label: "Мертвая зона (км)", higherIsBetter: false },
-            fire_penalty: { label: "Штраф маскировки", higherIsBetter: false }
+            aa_type: { label: "Тип ПВО", label_en: "AA type", isString: true },
+            aa_accuracy: { label: "Индекс точности", label_en: "Accuracy index", higherIsBetter: true },
+            killChanceVsMissile: { label: "Шанс сбить ракету", label_en: "Missile kill chance", higherIsBetter: true },
+            damage_burst: { label: "Урон за залп", label_en: "Damage per salvo", higherIsBetter: true },
+            dpm: { label: "Урон в минуту", label_en: "Damage per minute", higherIsBetter: true },
+            damage: { label: "Урон", label_en: "Damage", higherIsBetter: true },
+            accuracy: { label: "Точность", label_en: "Accuracy", higherIsBetter: true },
+            reload: { label: "Перезарядка (с)", label_en: "Reload (s)", higherIsBetter: false },
+            dispersion: { label: "Базовый разброс", label_en: "Base dispersion", higherIsBetter: false },
+            lock_time: { label: "Время захвата (с)", label_en: "Lock time (s)", higherIsBetter: false },
+            crit_chance: { label: "Шанс крита", label_en: "Crit chance", higherIsBetter: true },
+            projectiles: { label: "Снарядов", label_en: "Projectiles", higherIsBetter: false },
+            ammo_clip: { label: "Обойма", label_en: "Clip size", higherIsBetter: false },
+            anti_jamming: { label: "Помехозащита", label_en: "Jam resistance", higherIsBetter: true },
+            air_target: { label: "Атака авиации", label_en: "Anti-air", isBool: true, higherIsBetter: true },
+            sub_launch: { label: "Подводный пуск", label_en: "Sub-launched", isBool: true, higherIsBetter: true },
+            can_hit_subs: { label: "Атака подлодок", label_en: "Anti-sub", isBool: true, higherIsBetter: true },
+            cluster: { label: "Кластерная БЧ", label_en: "Cluster warhead", isBool: true, higherIsBetter: true },
+            splash_damage: { label: "Сплэш-урон", label_en: "Splash damage", higherIsBetter: true },
+            splash_radius: { label: "Радиус взрыва (м)", label_en: "Blast radius (m)", higherIsBetter: true },
+            fragmentation_damage: { label: "Урон осколков", label_en: "Fragment damage", higherIsBetter: true },
+            detonation_radius: { label: "Радиус детонации (м)", label_en: "Detonation radius (m)", higherIsBetter: true },
+            hp: { label: "Прочность (HP)", label_en: "Hitpoints (HP)", higherIsBetter: true },
+            start_speed: { label: "Нач. скорость (уз)", label_en: "Start speed (kn)", higherIsBetter: true },
+            max_speed: { label: "Скорость (уз)", label_en: "Speed (kn)", higherIsBetter: true },
+            accel_time: { label: "Разгон (с)", label_en: "Accel. time (s)", higherIsBetter: false },
+            range: { label: "Дальность (км)", label_en: "Range (km)", higherIsBetter: true },
+            min_range: { label: "Мертвая зона (км)", label_en: "Dead zone (km)", higherIsBetter: false },
+            fire_penalty: { label: "Штраф маскировки", label_en: "Stealth penalty", higherIsBetter: false }
         };
+        function statLabel(key) {
+            const s = STATS_LOGIC[key];
+            if (!s) return key;
+            return LANG === 'en' ? (s.label_en || s.label) : s.label;
+        }
+
+        // =========================================================
+        // ПЕРЕВОД ОТОБРАЖАЕМЫХ ДАННЫХ БАЗЫ (категории/страны/редкость/имена)
+        // Внутренние ключи (item.category и т.п.) остаются русскими — на них
+        // завязана вся игровая логика; переводится только то, что видит игрок.
+        // =========================================================
+        const CATEGORY_EN = {
+            "Ракеты": "Missiles", "Ракеты А/А": "AA Missiles", "Пушки": "Guns",
+            "Торпеды": "Torpedoes", "Гранатометы": "Launchers", "Автопушки": "Autocannons", "ПВО": "AA Systems"
+        };
+        const COUNTRY_EN = {
+            "Россия": "Russia", "Китай": "China", "США": "USA", "Южная Корея": "South Korea",
+            "Турция": "Turkey", "Европейский Союз": "European Union", "Италия": "Italy", "Швеция": "Sweden",
+            "Франция": "France", "Норвегия": "Norway", "Индия": "India", "Израиль": "Israel",
+            "Бразилия": "Brazil", "Иран": "Iran", "Япония": "Japan", "Германия": "Germany",
+            "Великобритания": "United Kingdom", "Украина": "Ukraine", "Польша": "Poland",
+            "Испания": "Spain", "Канада": "Canada", "Австралия": "Australia", "Пакистан": "Pakistan",
+            "Северная Корея": "North Korea", "Тайвань": "Taiwan"
+        };
+        const RARITY_EN = { "Легендарный": "Legendary", "Эпический": "Epic", "Редкий": "Rare", "Обычный": "Common" };
+        const NAME_EN = {
+            "АК-130 (КАРТЕЧЬ)": "AK-130 (BUCKSHOT)",
+            "НОВОГОДНИЙ СВАРМЕР": "NEW YEAR SWARMER",
+            "ТУРБОМЕТЛА": "TURBOBROOM",
+            "HYFLY-2 (ЯДЕРНАЯ)": "HYFLY-2 (NUCLEAR)",
+            "P-500 BAZALT (ЯДЕРНАЯ)": "P-500 BAZALT (NUCLEAR)",
+            "НОВОГОДНЯЯ РАКЕТНИЦА": "NEW YEAR FLARE GUN",
+            "ТЫКВОМЕТ (375ММ)": "PUMPKIN LAUNCHER (375MM)",
+            "RIM-8 TALOS (ЯДЕРНАЯ 5Ч)": "RIM-8 TALOS (NUCLEAR 5MT)"
+        };
+        function trCategory(cat) { return LANG === 'en' ? (CATEGORY_EN[cat] || cat) : cat; }
+        function trCountry(c) { return LANG === 'en' ? (COUNTRY_EN[c] || c) : (c || ''); }
+        function trRarity(r) { return LANG === 'en' ? (RARITY_EN[r] || r) : r; }
+        function itemName(item) { if (!item) return ''; return LANG === 'en' ? (NAME_EN[item.name] || item.name) : item.name; }
+
+        // Словарь статичных подписей интерфейса (для элементов с data-i18n / data-i18n-title / data-i18n-placeholder)
+        const I18N = {
+            'nav.home': { ru: 'Главная', en: 'Home' },
+            'nav.compare': { ru: 'Анализатор', en: 'Analyzer' },
+            'nav.builder': { ru: 'Конструктор', en: 'Builder' },
+            'nav.catalog': { ru: 'Арсенал', en: 'Arsenal' },
+            'nav.tiers': { ru: 'Тир-лист', en: 'Tier List' },
+            'nav.counters': { ru: 'Контры', en: 'Counters' },
+            'nav.lang.title': { ru: 'Язык', en: 'Language' },
+            'nav.theme.title': { ru: 'Тема', en: 'Theme' },
+            'nav.profile.title': { ru: 'Профиль', en: 'Profile' },
+            'nav.effects.title': { ru: 'Выключить эффекты', en: 'Turn off effects' },
+            'nav.help.title': { ru: 'Справка', en: 'Help' },
+            'home.desc': { ru: 'Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.', en: 'An advanced system for analysis, build construction, and combat-potential assessment in the current meta.' },
+            'home.cta': { ru: 'ОТКРЫТЬ АРСЕНАЛ', en: 'OPEN ARSENAL' },
+            'cmp.download': { ru: 'СКАЧАТЬ ОТЧЕТ', en: 'DOWNLOAD REPORT' },
+            'cmp.slot1': { ru: 'СЛОТ 1', en: 'SLOT 1' },
+            'cmp.slot2': { ru: 'СЛОТ 2', en: 'SLOT 2' },
+            'cmp.waiting': { ru: 'ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...', en: 'WAITING FOR TARGET INPUT...' },
+            'bld.addslot1': { ru: '+ СЛОТ (КОР. 1)', en: '+ SLOT (SHIP 1)' },
+            'bld.addslot2': { ru: '+ СЛОТ (КОР. 2)', en: '+ SLOT (SHIP 2)' },
+            'bld.compare': { ru: 'СРАВНИТЬ СБОРКИ', en: 'COMPARE BUILDS' },
+            'bld.download': { ru: 'СКАЧАТЬ', en: 'DOWNLOAD' },
+            'bld.ship1': { ru: 'КОРАБЛЬ 1', en: 'SHIP 1' },
+            'bld.ship2': { ru: 'КОРАБЛЬ 2', en: 'SHIP 2' },
+            'bld.analysis': { ru: 'СРАВНИТЕЛЬНЫЙ АНАЛИЗ СБОРОК', en: 'BUILD COMPARISON ANALYSIS' },
+            'aa.title': { ru: 'СИМУЛЯТОР ПРОРЫВА ПВО', en: 'AA BREAKTHROUGH SIMULATOR' },
+            'aa.system': { ru: 'СИСТЕМА ПВО', en: 'AA SYSTEM' },
+            'aa.pick': { ru: 'ВЫБЕРИТЕ ПВО', en: 'SELECT AA' },
+            'aa.search': { ru: 'ПОИСК ПВО...', en: 'SEARCH AA...' },
+            'aa.qtylabel': { ru: 'Количество модулей ПВО:', en: 'Number of AA modules:' },
+            'aa.salvo': { ru: 'РАКЕТНЫЙ ЗАЛП', en: 'MISSILE SALVO' },
+            'aa.pickmissile': { ru: 'ВЫБЕРИТЕ РАКЕТУ', en: 'SELECT MISSILE' },
+            'aa.rocketlaunchers': { ru: 'Ракетные гранатометы', en: 'Rocket launchers' },
+            'aa.launcherqty': { ru: 'Количество пусковых установок:', en: 'Number of launchers:' },
+            'aa.distlabel': { ru: 'Дистанция пуска:', en: 'Launch distance:' },
+            'aa.calc': { ru: 'РАССЧИТАТЬ ВЕРОЯТНОСТЬ', en: 'CALCULATE PROBABILITY' },
+            'duel.title': { ru: 'ДУЭЛЬ КОРАБЛЕЙ', en: 'SHIP DUEL' },
+            'duel.desc': { ru: 'Бой двух сборок из конструктора выше: кто первым уничтожит противника на выбранной дистанции.', en: 'A fight between the two builds from the Builder above: who destroys the enemy first at the chosen distance.' },
+            'duel.hp1': { ru: 'HP корабля 1', en: 'Ship 1 HP' },
+            'duel.hp2': { ru: 'HP корабля 2', en: 'Ship 2 HP' },
+            'duel.distlabel': { ru: 'Дистанция боя:', en: 'Combat distance:' },
+            'duel.start': { ru: 'НАЧАТЬ ДУЭЛЬ', en: 'START DUEL' },
+            'cat.missiles': { ru: 'Ракеты', en: 'Missiles' },
+            'common.alltypes': { ru: 'ВСЕ ТИПЫ', en: 'ALL TYPES' },
+            'common.km': { ru: 'км', en: 'km' },
+            'common.search': { ru: 'ПОИСК...', en: 'SEARCH...' },
+            'roster.whybtn': { ru: 'Почему такой рейтинг?', en: 'Why this rating?' },
+            'common.allfactions': { ru: 'ВСЕ ФРАКЦИИ', en: 'ALL FACTIONS' },
+            'sort.off': { ru: 'СОРТИРОВКА: ОТКЛ.', en: 'SORT: OFF' },
+            'sort.rating': { ru: 'ТОП: РЕЙТИНГ МЕТЫ', en: 'TOP: META RATING' },
+            'sort.dpm': { ru: 'ТОП: УРОН В МИНУТУ', en: 'TOP: DAMAGE PER MINUTE' },
+            'sort.burst': { ru: 'ТОП: АЛЬФА-СТРАЙК', en: 'TOP: ALPHA STRIKE' },
+            'sort.speed': { ru: 'ТОП: СКОРОСТЬ', en: 'TOP: SPEED' },
+            'roster.empty': { ru: 'ВЫБЕРИТЕ ЕДИНИЦУ ИЗ СПИСКА', en: 'SELECT AN ITEM FROM THE LIST' },
+            'roster.ratinglabel': { ru: 'РЕЙТИНГ', en: 'RATING' },
+            'roster.skillslabel': { ru: 'ОСОБЕННОСТИ', en: 'TRAITS' },
+            'roster.comparehint': { ru: 'Нажмите на 1-й, затем на 2-й объект в списке — сравнение запустится автоматически. Для 3 и более объектов включите «Сравнить 3+» внизу.', en: 'Click the 1st, then the 2nd item in the list — the comparison starts automatically. For 3 or more items, turn on "Compare 3+" below.' },
+            'roster.compare3plus': { ru: 'Сравнить 3+', en: 'Compare 3+' },
+            'roster.clear': { ru: 'Очистить', en: 'Clear' },
+            'roster.gocompare': { ru: 'СРАВНИТЬ', en: 'COMPARE' },
+            'tiers.title': { ru: 'Тир-лист', en: 'Tier List' },
+            'tiers.download': { ru: 'СКАЧАТЬ ТИР-ЛИСТ', en: 'DOWNLOAD TIER LIST' },
+            'cf.title': { ru: 'Контры', en: 'Counters' },
+            'cf.desc': { ru: 'Выберите оружие врага. Для ракеты сайт подберёт лучшее ПВО, для ПВО ракеты, которые его прорывают, для торпеды перехватчики, для пушки оружие, которое её переигрывает.', en: 'Pick the enemy weapon. For a missile the site finds the best AA, for AA the missiles that breach it, for a torpedo the interceptors, for a gun the weapon that outplays it.' },
+            'cf.enemyweapon': { ru: 'Оружие врага', en: 'Enemy weapon' },
+            'cf.pickweapon': { ru: 'ВЫБЕРИТЕ ОРУЖИЕ', en: 'SELECT WEAPON' },
+            'cf.yourslots': { ru: 'Ваших слотов ПВО', en: 'Your AA slots' },
+            'cf.enemyslots': { ru: 'Слотов с ракетами у врага', en: "Enemy's missile slots" },
+            'cf.distance': { ru: 'Дистанция:', en: 'Distance:' },
+            'admin.title': { ru: 'АВТОРИЗАЦИЯ', en: 'LOGIN' },
+            'admin.subtitle': { ru: 'Войдите для доступа к диаграммам, индексу меты и конструктору сборок.', en: 'Log in for access to charts, the meta index, and the build constructor.' },
+            'admin.login': { ru: 'ЛОГИН', en: 'USERNAME' },
+            'admin.password': { ru: 'ПАРОЛЬ', en: 'PASSWORD' },
+            'admin.enter': { ru: 'ВОЙТИ', en: 'LOG IN' },
+            'admin.proactive': { ru: 'PRO ДОСТУП АКТИВЕН', en: 'PRO ACCESS ACTIVE' },
+            'admin.visits': { ru: 'ПОСЕЩЕНИЯ САЙТА', en: 'SITE VISITS' },
+            'admin.logout': { ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'LOG OUT' },
+            'roster.categoryph': { ru: 'Категория —', en: 'Category —' },
+
+            'kb.title': { ru: 'БАЗА ЗНАНИЙ MWLAB', en: 'MWLAB KNOWLEDGE BASE' },
+            'kb.intro': {
+                ru: '<b>Анализатор:</b> Сравнивает вооружение в мете 5-10 км.<br><b>Конструктор:</b> Симулирует реальную сборку корабля.',
+                en: '<b>Analyzer:</b> Compares weapons in the 5–10 km meta.<br><b>Builder:</b> Simulates a real ship build.'
+            },
+            'kb.tab.cannons': { ru: 'ПУШКИ', en: 'GUNS' },
+            'kb.tab.missiles': { ru: 'РАКЕТЫ', en: 'MISSILES' },
+            'kb.tab.aamissiles': { ru: 'РАКЕТЫ А/А', en: 'AA MISSILES' },
+            'kb.tab.torpedoes': { ru: 'ТОРПЕДЫ', en: 'TORPEDOES' },
+            'kb.tab.launchers': { ru: 'ГРАНАТОМЕТЫ', en: 'LAUNCHERS' },
+            'kb.tab.autocannons': { ru: 'АВТОПУШКИ', en: 'AUTOCANNONS' },
+            'kb.tab.aa': { ru: 'ПВО', en: 'AA' },
+
+            'kb.cannons': {
+                ru: `<li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон с учетом крита.</li>`,
+                en: `<li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Built-in spread (shotguns):</b> Buckshot fires a cloud of pellets. Base accuracy is artificially lowered.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Auto-aim:</b> Drum guns converge on the enemy's center. Because of cover, shells will fly into the rock instead.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Closed-map meta (5–10 km):</b> Excess range gives no bonus. Close-range weapons are rated higher.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Critical damage:</b> The ideal maximum damage including crits is calculated.</li>`
+            },
+            'kb.missiles': {
+                ru: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>`,
+                en: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Jam resistance:</b> Missiles that don't react to decoys get the maximum bonus.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">AA breakthrough:</b> Missile HP, start speed, acceleration and salvo count are all scored. <i>(AA missiles get +20 points for each additional missile in the salvo).</i></li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Cluster warhead / AOE:</b> Bypasses AA. Divertable missiles have a 20% chance to punch through decoys. AOE AA missiles get a huge bonus for hitting an entire aircraft flight at once.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Laser guidance:</b> Lets you target exposed parts of a ship around cover and needs no lock time, but because of the straight flight path such missiles are an easy target for AA.</li>`
+            },
+            'kb.aamissiles': {
+                ru: `<li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Та же формула, что у ракет:</b> Зенитные ракеты считаются по модели обычных ракет, но с упором на стрельбу по авиации.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Многозарядность:</b> Каждая дополнительная ракета в пуске даёт заметный бонус к рейтингу.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Сплэш/АОЕ:</b> Даёт огромный бонус — одна ракета может задеть сразу всё звено авиации.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Прочность и скорость:</b> HP ракеты, стартовая/макс. скорость и разгон напрямую влияют на шанс долететь до цели.</li>`,
+                en: `<li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Same formula as missiles:</b> AA missiles are scored on the regular missile model, with emphasis on hitting aircraft.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Multi-warhead:</b> Each extra missile per launch gives a noticeable rating bonus.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Splash/AOE:</b> Gives a huge bonus — one missile can hit an entire aircraft flight at once.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Durability and speed:</b> Missile HP, start/max speed and acceleration directly affect the chance of reaching the target.</li>`
+            },
+            'kb.torpedoes': {
+                ru: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Обход ловушек:</b> Без помехозащиты эффективный урон в минуту снижается по циклу отвода (29 сек) и зависит от скорости торпеды.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Скорость и разгон:</b> Чем быстрее торпеда и короче время разгона — тем выше итоговый рейтинг.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Обойма и залп:</b> Бонус за количество торпед в обойме и в одном пуске.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Спец. возможности:</b> Радиус детонации и сплэш-урон повышают шанс поражения даже при неточном попадании.</li>`,
+                en: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Decoy evasion:</b> Without jam resistance, effective damage per minute drops based on the diversion cycle (29 sec) and depends on torpedo speed.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Speed and acceleration:</b> The faster the torpedo and the shorter its acceleration time, the higher the final rating.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Clip and salvo:</b> Bonus for the number of torpedoes in the clip and per launch.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Special features:</b> Detonation radius and splash damage raise the hit chance even on an imprecise hit.</li>`
+            },
+            'kb.launchers': {
+                ru: `<li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Тип определяет формулу:</b> Пушечные (снарядные), Ракетные, Лазерные и Смешанные гранатометы оцениваются по-разному.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Пушечные / Смешанные:</b> Штраф за отдачу и разброс на дистанции — как у обычных пушек.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Ракетные:</b> Учитывается HP снаряда и цикл обхода ловушек — как у ракет.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерные:</b> Мгновенное наведение без времени захвата, но сниженный эффективный урон.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Спец. модификаторы:</b> Поражение торпед/подлодок, залповый режим (burst) и атака авиации дают дополнительные очки.</li>`,
+                en: `<li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Type determines the formula:</b> Gun-type (shell), Missile, Laser and Mixed launchers are scored differently.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Gun-type / Mixed:</b> Recoil and range-spread penalty — same as regular guns.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Missile-type:</b> Round HP and the decoy-evasion cycle are counted — same as missiles.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Laser-type:</b> Instant lock with no lock time, but reduced effective damage.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Special modifiers:</b> Torpedo/sub intercept, burst-fire mode and anti-air capability give extra points.</li>`
+            },
+            'kb.autocannons': {
+                ru: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Базовый DPM и альфа-страйк:</b> Основной вклад в итоговую оценку.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">ПВО / ПЛО:</b> Крупный бонус за возможность бить авиацию и подлодки.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Дальность и скорость снаряда:</b> Чем выше показатели — тем лучше рейтинг.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Крит и сплэш:</b> Дают дополнительные очки к общей оценке.</li>`,
+                en: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Base DPM and alpha strike:</b> The main contribution to the final score.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">AA / ASW:</b> A large bonus for being able to hit aircraft and submarines.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Range and projectile speed:</b> The higher these stats, the better the rating.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Crit and splash:</b> Give extra points to the overall score.</li>`
+            },
+            'kb.aa': {
+                ru: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Реальная угроза, а не вакуум:</b> ПВО оценивается против усреднённого профиля боевых ракет из базы — считается «окно перехвата» и реальный шанс сбить типичную ракету.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность по типу:</b> Лазерное ПВО точнее Гибридного, Ракетного и Пулемётного — у каждого свой индекс разброса.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Скорость перехвата:</b> У Ракетного/Гибридного ПВО скорость и разгон собственной ракеты сравниваются со скоростью цели — медленный интерцептор резко теряет эффективность.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">АОЕ и плотность огня:</b> Сплэш, радиус детонации и размер обоймы дают бонус против роя ракет.</li>`,
+                en: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">A real threat, not a vacuum:</b> AA is scored against the averaged profile of combat missiles from the database — an "intercept window" and a real chance to down a typical missile are calculated.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Accuracy by type:</b> Laser AA is more accurate than Hybrid, Missile and Machine-gun AA — each has its own spread index.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Intercept speed:</b> For Missile/Hybrid AA, its own missile's speed and acceleration are compared against the target's speed — a slow interceptor loses effectiveness sharply.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">AOE and fire density:</b> Splash, detonation radius and clip size give a bonus against a missile swarm.</li>`
+            }
+        };
+
+        // Метки, которые PRO-разбор рейтинга ("Почему такой рейтинг?") подставляет в _T()/_N() —
+        // переводятся централизованно на выводе, без правки полусотни мест начисления очков.
+        const LABEL_EN = {
+            "DPM (паспортный)": "DPM (rated)", "Альфа-страйк": "Alpha strike", "Атака авиации": "Anti-air",
+            "Атака подлодок": "Anti-sub", "Базовый бонус класса": "Base class bonus", "Боеголовки в залпе": "Warheads per salvo",
+            "Быстрая перезарядка": "Fast reload", "Быстрый разгон": "Fast acceleration", "Время захвата цели": "Target lock time",
+            "Дальность": "Range", "Живучесть (HP)": "Survivability (HP)", "Залповая плотность": "Salvo density",
+            "Залповая схема (без обоймы)": "Salvo-fire scheme (no clip)", "Зенитная специализация": "AA specialization",
+            "Зенитный сплэш": "AA splash", "Кластерная БЧ": "Cluster warhead", "Лазерное наведение": "Laser guidance",
+            "Максимальная скорость": "Max speed", "Обойма": "Clip size", "Осколочный урон": "Fragment damage",
+            "Перехват торпед": "Torpedo intercept", "Плотность огня": "Fire density", "Подводный пуск": "Sub-launched",
+            "Помехозащита (РЭБ)": "Jam resistance (ECM)", "Проходимость через ловушки": "Decoy penetration",
+            "Режим залпа": "Salvo mode", "Скорость перехвата": "Intercept speed", "Скорость снаряда": "Projectile speed",
+            "Скорость": "Speed", "Сплэш и взрыв": "Splash & blast", "Сплэш и радиус взрыва": "Splash & blast radius",
+            "Стартовая скорость": "Start speed", "Тип гранатомёта": "Launcher type", "Торпеды в залпе": "Torpedoes per salvo",
+            "Чистота попаданий": "Hit cleanliness", "Шанс крита": "Crit chance", "Шанс сбить ракету": "Missile kill chance",
+            "Штраф маскировки": "Stealth penalty", "Штраф: большая обойма": "Penalty: large clip",
+            "Штраф: время захвата": "Penalty: lock time", "Штраф: время разгона": "Penalty: acceleration time",
+            "Штраф: дальность ниже 11 км": "Penalty: range under 11 km", "Штраф: дальность ниже 11.5 км": "Penalty: range under 11.5 km",
+            "Штраф: мёртвая зона": "Penalty: dead zone", "Штраф: отдача": "Penalty: recoil",
+            "Штраф: ручной режим": "Penalty: manual mode", "Штраф: уязвимость к ловушкам": "Penalty: decoy vulnerability",
+            "Эффективный DPM": "Effective DPM", "Эффективный альфа-страйк": "Effective alpha strike",
+            "лучшему общему балансу характеристик в этой категории": "the best overall stat balance in this category"
+        };
+        function trLabel(ru) { return LANG === 'en' ? (LABEL_EN[ru] || ru) : ru; }
 
          const DB = {
 // ----- ПУШКИ -----
@@ -2288,9 +2632,9 @@
                 
                 btn.onclick = () => { 
                     currentCategory = cat; compareQueue = []; 
-                    document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">СЛОТ 1</h3><div class="stats-container" id="stats-equip-1"></div>`;
-                    document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">СЛОТ 2</h3><div class="stats-container" id="stats-equip-2"></div>`;
-                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Inter'; font-size:1.1rem; text-align:center;">ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...</p>`;
+                    document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">${L('СЛОТ 1','SLOT 1')}</h3><div class="stats-container" id="stats-equip-1"></div>`;
+                    document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">${L('СЛОТ 2','SLOT 2')}</h3><div class="stats-container" id="stats-equip-2"></div>`;
+                    document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Inter'; font-size:1.1rem; text-align:center;">${L('ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...','WAITING FOR TARGET INPUT...')}</p>`;
                     renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
                     switchMainPage('page-catalog', document.getElementById('nav-catalog'));
                 };
@@ -2352,7 +2696,7 @@
             let sortType = document.getElementById('sort-catalog').value;
             
             if (!isAuth && sortType !== 'none') {
-                showToast("СОРТИРОВКА ДОСТУПНА ТОЛЬКО В PRO", true);
+                showToast(L("СОРТИРОВКА ДОСТУПНА ТОЛЬКО В PRO","SORTING IS PRO ONLY"), true);
                 document.getElementById('sort-catalog').value = 'none';
                 sortType = 'none';
             }
@@ -2465,7 +2809,7 @@
 
             verdictScreen.style.animation = 'none';
             verdictScreen.innerHTML = `<div class="vs-badge">VS</div>`;
-            showToast("СИМУЛЯЦИЯ БОЯ...");
+            showToast(L("СИМУЛЯЦИЯ БОЯ...","SIMULATING COMBAT..."));
 
             setTimeout(() => {
                 const vsBadge = verdictScreen.querySelector('.vs-badge');
@@ -2479,7 +2823,7 @@
                         void verdictScreen.offsetWidth;
                         verdictScreen.style.animation = 'itemFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards';
 
-                        showToast("АНАЛИЗ ЗАВЕРШЕН");
+                        showToast(L("АНАЛИЗ ЗАВЕРШЕН","ANALYSIS COMPLETE"));
                     }, 400);
                 }
             }, 1400);
@@ -2518,10 +2862,10 @@
                 portrait.style.opacity = 1;
             }, 120);
 
-            document.getElementById('roster-name').innerText = item.name;
-            document.getElementById('roster-classtext').innerText = `${item.category} · Класс ${item.rarity === 'Легендарный' ? 'S' : item.rarity === 'Эпический' ? 'A' : 'B'}`;
+            document.getElementById('roster-name').innerText = itemName(item);
+            document.getElementById('roster-classtext').innerText = `${trCategory(item.category)} · ${L('Класс','Class')} ${item.rarity === 'Легендарный' ? 'S' : item.rarity === 'Эпический' ? 'A' : 'B'}`;
             document.getElementById('roster-rating-num').innerText = isAuth ? item.rating : '🔒';
-            const whyBtn = document.getElementById('roster-why-btn'); if (whyBtn) whyBtn.textContent = (isAuth ? '' : '🔒 ') + 'Почему такой рейтинг?';
+            const whyBtn = document.getElementById('roster-why-btn'); if (whyBtn) whyBtn.textContent = (isAuth ? '' : '🔒 ') + L('Почему такой рейтинг?','Why this rating?');
             document.getElementById('roster-stats').innerHTML = generateStatsHtml(item, 'roster');
 
             const chips = getSkillChips(item);
@@ -2545,13 +2889,13 @@
                 compareQueue = compareQueue.filter(id => id !== itemId);
                 document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
                 compareQueue.forEach(id => { const el = document.querySelector(`.catalog-item[data-id="${id}"]`); if (el) el.classList.add('queued'); });
-                showToast(`СЛОТ ОСВОБОЖДЕН: ${item.name}`);
+                showToast(`${L("СЛОТ ОСВОБОЖДЕН","SLOT CLEARED")}: ${itemName(item)}`);
                 updateCompareTray();
                 return;
             }
 
             if (multiMode && compareQueue.length >= MAX_COMPARE) {
-                showToast('МАКСИМУМ ' + MAX_COMPARE + ' ОБЪЕКТОВ', true);
+                showToast(L('МАКСИМУМ ','MAXIMUM ') + MAX_COMPARE + L(' ОБЪЕКТОВ',' OBJECTS'), true);
                 return;
             }
 
@@ -2561,7 +2905,7 @@
             if (multiMode) {
                 showToast(`В СРАВНЕНИИ (${compareQueue.length}): ${item.name}`);
             } else if (compareQueue.length === 1) {
-                showToast(`СЛОТ 1: ${item.name}`);
+                showToast(`${L("СЛОТ 1","SLOT 1")}: ${itemName(item)}`);
             } else if (compareQueue.length === 2) {
                 const id1 = compareQueue[0]; const id2 = compareQueue[1];
                 runCompareFlow(id1, id2);
@@ -2589,8 +2933,8 @@
                     <div class="catalog-item ${queued} ${active}" data-id="${s.id}" style="animation-delay: ${delay}s" onclick="selectCatalogItem('${s.id}')">
                         <div class="catalog-item-img" style="background-image: url('${s.img}')"></div>
                         <div>
-                            <div class="cat-item-name">${s.name}</div>
-                            <div class="cat-item-meta">${s.country} · ${isAuth ? s.rating : '🔒 PRO'}</div>
+                            <div class="cat-item-name">${itemName(s)}</div>
+                            <div class="cat-item-meta">${trCountry(s.country)} · ${isAuth ? s.rating : '🔒 PRO'}</div>
                         </div>
                     </div>`;
             });
@@ -2602,7 +2946,7 @@
                 document.getElementById('roster-empty').style.display = 'block';
                 document.getElementById('roster-portrait').style.backgroundImage = '';
                 document.getElementById('roster-name').innerText = '—';
-                document.getElementById('roster-classtext').innerText = 'Категория —';
+                document.getElementById('roster-classtext').innerText = L('Категория —','Category —');
                 document.getElementById('roster-rating-num').innerText = '--';
                 document.getElementById('roster-stats').innerHTML = '';
                 document.getElementById('roster-skills').innerHTML = '';
@@ -2648,7 +2992,7 @@
                 html += `
                 <div class="stat-row">
                     <div class="stat-header">
-                        <span class="stat-name">${STATS_LOGIC[key].label}</span>
+                        <span class="stat-name">${statLabel(key)}</span>
                         <span class="stat-value" id="val-${side}-${key}">${val}</span>
                     </div>
                     ${!STATS_LOGIC[key].isBool && !STATS_LOGIC[key].isString ? `<div class="stat-bar-bg"><div class="stat-bar-fill" id="bar-${side}-${key}" style="width: ${pct}%"></div></div>` : ''}
@@ -2931,8 +3275,8 @@
                     <div class="dropdown-option" onclick="selectSlotOption('${slotId}', '${key}', event)">
                         <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
                         <div class="dropdown-option-text">
-                            ${item.name}
-                            <span class="dropdown-option-sub">${item.country}</span>
+                            ${itemName(item)}
+                            <span class="dropdown-option-sub">${trCountry(item.country)}</span>
                         </div>
                     </div>`;
                 });
@@ -2973,7 +3317,7 @@
 
             const slotHtml = `
                 <div class="build-slot-container glass-panel ${colorClass}" id="${slotId}">
-                    <div style="color: ${colorStyle}; font-family: 'Inter';">СЛОТ:</div>
+                    <div style="color: ${colorStyle}; font-family: 'Inter';">${L("СЛОТ:","SLOT:")}</div>
                     
                     <div class="custom-select-wrapper" id="wrapper-${slotId}" data-value="${defaultItemKey}">
                         <div class="custom-select-trigger" onclick="toggleBuildDropdown('${slotId}')">
@@ -2985,7 +3329,7 @@
                         </div>
                         <div class="custom-select-dropdown" id="dropdown-${slotId}">
                             <div class="dropdown-filter">
-                                <input type="text" id="search-${slotId}" placeholder="ПОИСК..." oninput="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
+                                <input type="text" id="search-${slotId}" placeholder="ПОИСК..." data-i18n-placeholder="common.search" oninput="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
                                 <select id="cat-${slotId}" onchange="renderBuildOptions('${slotId}')" onclick="event.stopPropagation()">
                                     <option value="">ВСЕ КАТЕГОРИИ</option>
                                     <option value="Ракеты">Ракеты</option>
@@ -3096,7 +3440,7 @@
             const s1 = getShipStats(1);
             const s2 = getShipStats(2);
 
-            if (s1.itemsCount === 0 && s2.itemsCount === 0) return showToast("ОШИБКА: ДОБАВЬТЕ СЛОТЫ", true);
+            if (s1.itemsCount === 0 && s2.itemsCount === 0) return showToast(L("ОШИБКА: ДОБАВЬТЕ СЛОТЫ","ERROR: ADD SLOTS"), true);
 
             document.getElementById('build-export-wrapper').style.display = 'block';
 
@@ -3109,7 +3453,7 @@
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
             
-            Chart.defaults.color = '#838b96';
+            Chart.defaults.color = cssVar('--text-muted');
             Chart.defaults.font.family = 'Inter';
 
             const datasets = [];
@@ -3124,7 +3468,7 @@
                         Math.min(100, (s1.avgSpeed / 1000) * 100),
                         ((s1.hasAir ? 50 : 0) + (s1.hasSub ? 30 : 0) + (s1.hasAntiJamming ? 20 : 0))
                     ],
-                    backgroundColor: 'rgba(63, 217, 199, 0.18)', borderColor: '#3fd9c7', pointBackgroundColor: '#3fd9c7', borderWidth: 2, pointRadius: 4
+                    backgroundColor: 'rgba(63, 217, 199, 0.18)', borderColor: cssVar('--accent'), pointBackgroundColor: cssVar('--accent'), borderWidth: 2, pointRadius: 4
                 });
             }
             if(s2.itemsCount > 0) {
@@ -3137,7 +3481,7 @@
                         Math.min(100, (s2.avgSpeed / 1000) * 100),
                         ((s2.hasAir ? 50 : 0) + (s2.hasSub ? 30 : 0) + (s2.hasAntiJamming ? 20 : 0))
                     ],
-                    backgroundColor: 'rgba(232, 72, 63, 0.14)', borderColor: '#e8483f', pointBackgroundColor: '#e8483f', borderWidth: 2, pointRadius: 4
+                    backgroundColor: 'rgba(232, 72, 63, 0.14)', borderColor: cssVar('--secondary'), pointBackgroundColor: cssVar('--secondary'), borderWidth: 2, pointRadius: 4
                 });
             }
 
@@ -3148,19 +3492,19 @@
                     datasets: datasets
                 },
                 options: {
-                    scales: { r: { min: 0, max: 100, angleLines: { color: 'rgba(20, 24, 28, 0.08)' }, grid: { color: 'rgba(20, 24, 28, 0.08)', circular: true }, pointLabels: { color: '#14181c', font: { family: 'Inter', size: 12, weight: '600' } }, ticks: { display: false } } },
-                    plugins: { legend: { display: true, position: 'bottom', labels: { color: '#14181c', font: { family: 'Inter', size: 12 }, padding: 15 } } }, responsive: true, maintainAspectRatio: false
+                    scales: { r: { min: 0, max: 100, angleLines: { color: cssVar('--line') }, grid: { color: cssVar('--line'), circular: true }, pointLabels: { color: cssVar('--text-main'), font: { family: 'Inter', size: 12, weight: '600' } }, ticks: { display: false } } },
+                    plugins: { legend: { display: true, position: 'bottom', labels: { color: cssVar('--text-main'), font: { family: 'Inter', size: 12 }, padding: 15 } } }, responsive: true, maintainAspectRatio: false
                 }
             });
-            showToast("СИСТЕМЫ РАССЧИТАНЫ");
+            showToast(L("СИСТЕМЫ РАССЧИТАНЫ","SYSTEMS CALCULATED"));
         }
 
         /* --- ГЕНЕРАТОР ИНФОГРАФИКИ --- */
         function exportToImage(elementId, filename) {
             const el = document.getElementById(elementId);
-            if (!el || el.style.display === 'none') return showToast("ОШИБКА: НЕТ ДАННЫХ", true);
+            if (!el || el.style.display === 'none') return showToast(L("ОШИБКА: НЕТ ДАННЫХ","ERROR: NO DATA"), true);
             
-            showToast("ФОРМИРОВАНИЕ ОТЧЕТА...");
+            showToast(L("ФОРМИРОВАНИЕ ОТЧЕТА...","GENERATING REPORT..."));
             
             document.body.style.overflow = 'hidden';
             const originalScrollY = window.scrollY;
@@ -3170,12 +3514,12 @@
             glassPanels.forEach(p => { 
                 p.style.backdropFilter = 'none'; 
                 p.style.webkitBackdropFilter = 'none'; 
-                p.style.background = '#ffffff';
+                p.style.background = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
             });
             
             setTimeout(() => {
                 html2canvas(el, {
-                    backgroundColor: '#eef0f2',
+                    backgroundColor: cssVar('--bg-base'),
                     scale: window.devicePixelRatio > 1 ? window.devicePixelRatio : 2,
                     useCORS: true,
                     allowTaint: true,
@@ -3193,7 +3537,7 @@
                     link.download = `${filename}_${new Date().getTime()}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
-                    showToast("ОТЧЕТ СОХРАНЕН");
+                    showToast(L("ОТЧЕТ СОХРАНЕН","REPORT SAVED"));
                 }).catch(err => {
                     glassPanels.forEach(p => { 
                         p.style.backdropFilter = ''; 
@@ -3202,7 +3546,7 @@
                     });
                     document.body.style.overflow = '';
                     window.scrollTo(0, originalScrollY);
-                    showToast("ОШИБКА ЭКСПОРТА", true);
+                    showToast(L("ОШИБКА ЭКСПОРТА","EXPORT ERROR"), true);
                 });
             }, 500);
         }
@@ -3234,8 +3578,8 @@
                 <div class="dropdown-option" onclick="selectSimOption('sim-aa', '${key}', event)">
                     <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
                     <div class="dropdown-option-text">
-                        ${item.name}
-                        <span class="dropdown-option-sub">${item.country}</span>
+                        ${itemName(item)}
+                        <span class="dropdown-option-sub">${trCountry(item.country)}</span>
                     </div>
                 </div>`;
             });
@@ -3255,8 +3599,8 @@
                 <div class="dropdown-option" onclick="selectSimOption('sim-missile', '${key}', event)">
                     <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
                     <div class="dropdown-option-text">
-                        ${item.name}
-                        <span class="dropdown-option-sub">${item.category === "Гранатометы" ? "Ракетный гранатомет" : item.country}</span>
+                        ${itemName(item)}
+                        <span class="dropdown-option-sub">${item.category === "Гранатометы" ? L("Ракетный гранатомет","Rocket launcher") : trCountry(item.country)}</span>
                     </div>
                 </div>`;
             });
@@ -3369,11 +3713,18 @@
                 let dps = aa.damage || 0;
                 totalAADamage = dps * engageTime * aaQty * accuracy;
             } else {
-                // Ракетное/Гибрид ПВО и все Автопушки (в т.ч. гибридные) — считаем реальные пуски
+                // Ракетное/Гибрид ПВО и все Автопушки (в т.ч. гибридные) — считаем реальные пуски.
+                // Раньше исход каждого пуска был бинарным: "успел долететь до конца окна = 100% попадание".
+                // Теперь у каждого перехватчика есть вероятность попадания, а не жёсткий порог по времени:
+                // запас времени на перехват переводится в шанс через сигмоиду, поэтому пуск в притык
+                // даёт что-то около 50%, пуск с большим запасом — почти гарантированный шанс, а пуск
+                // впритык к финалу окна или "не успевающий" — плавно падающий, но не строго нулевой шанс.
                 let currentTime = 0;
                 let clipLeft = aa.ammo_clip || 1;
                 let fireDelay = aa.fire_delay || 0.2;
                 let reload = aa.reload || 3.0;
+                let expectedHits = 0; // сумма вероятностей попадания по всем пускам (ожидаемое число попаданий)
+                const TIMING_SHARPNESS = 0.6; // сек.: масштаб "мягкости" временного окна перехвата
 
                 while (currentTime < engageTime) {
                     if (clipLeft > 0) {
@@ -3385,9 +3736,15 @@
                             ? missileFlightTime(aaV0, aaVmax, aaAccelTime, requiredDist)
                             : 0;
 
-                        if (currentTime + interceptFlightTime <= engageTime) {
-                            shotsLanded++;
-                        }
+                        // Запас времени: положительный — перехватчик прилетает заранее, отрицательный — опаздывает
+                        let timeMargin = engageTime - (currentTime + interceptFlightTime);
+                        let timingProb = aaHasMissileProfile
+                            ? (1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS)))
+                            : 1; // для оружия без разгона (автопушки без accel_time) — как и раньше, мгновенно
+
+                        let shotHitProb = timingProb * accuracy * speedFactor;
+                        expectedHits += shotHitProb;
+
                         shotsFired++;
                         clipLeft--;
                         currentTime += fireDelay;
@@ -3397,7 +3754,8 @@
                     }
                 }
 
-                totalAADamage = shotsLanded * (aa.damage || 0) * aaQty * accuracy * speedFactor;
+                shotsLanded = expectedHits; // теперь дробное ожидаемое число попаданий, а не целочисленный счётчик
+                totalAADamage = expectedHits * (aa.damage || 0) * aaQty;
             }
 
             // Штраф по РЭБ для отводимых ракет (ПВО отвлекается на ловушки)
@@ -3425,7 +3783,7 @@
             const misQty = parseInt(document.getElementById('sim-missile-qty').value);
             const distance = parseFloat(document.getElementById('sim-dist').value);
 
-            if (!aaKey || !misKey) return showToast("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО", true);
+            if (!aaKey || !misKey) return showToast(L("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО","ERROR: WEAPON NOT SELECTED"), true);
 
             const aa = DB[aaKey];
             const mis = DB[misKey];
@@ -3435,32 +3793,32 @@
                     destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
 
             let resColor = survivalProbability > 0 ? 'var(--primary)' : 'var(--secondary)';
-            let verdict = survivalProbability === 0 ? "ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА" : "ПРОРЫВ ПВО УСПЕШЕН!";
+            let verdict = survivalProbability === 0 ? L("ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА","SALVO FULLY INTERCEPTED") : L("ПРОРЫВ ПВО УСПЕШЕН!","AA BREAKTHROUGH SUCCESSFUL!");
 
             let speedWarning = '';
             if (aaHasMissileProfile && speedFactor < 0.5) {
-                speedWarning = `<div style="margin-top:10px; color: var(--secondary); font-size:0.85rem; line-height:1.5;">⚠ Ракета ПВО (макс. ${Math.round(aa.max_speed)}) слишком медленная против цели (макс. ${Math.round(mis.max_speed)}) — большая часть пусков не успевает довести перехват.</div>`;
+                speedWarning = `<div style="margin-top:10px; color: var(--secondary); font-size:0.85rem; line-height:1.5;">⚠ ${L('Ракета ПВО (макс.','The AA missile (max')} ${Math.round(aa.max_speed)}) ${L('слишком медленная против цели (макс.','is too slow against the target (max')} ${Math.round(mis.max_speed)}) — ${L('большая часть пусков не успевает довести перехват.','most launches fail to complete the intercept in time.')}</div>`;
             }
 
             const resDiv = document.getElementById('sim-result');
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
                 <div style="font-family:'Inter'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
-                    Время реакции ПВО: <b style="color:var(--text-main);">${engageTime.toFixed(2)} сек.</b><br>
-                    ${aaHasMissileProfile ? `Фактор скорости перехвата: <b style="color:var(--text-main);">${(speedFactor*100).toFixed(0)}%</b> (долетело пусков: ${shotsLanded}/${shotsFired})<br>` : ''}
-                    Точность системы: <b style="color:var(--text-main);">${(accuracy*100).toFixed(0)}%</b><br>
-                    Математический урон ПВО: <b style="color:var(--primary);">${Math.round(totalAADamage).toLocaleString('ru')} HP</b><br>
-                    Прочность роя ракет (${totalMissiles} шт.): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString('ru')} HP</b><br>
+                    ${L('Время реакции ПВО','AA reaction time')}: <b style="color:var(--text-main);">${engageTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
+                    ${aaHasMissileProfile ? `${L('Фактор скорости перехвата','Intercept speed factor')}: <b style="color:var(--text-main);">${(speedFactor*100).toFixed(0)}%</b> (${L('ожидаемо результативных пусков','expected effective launches')}: ${shotsLanded.toFixed(1)} ${L('из','of')} ${shotsFired})<br>` : ''}
+                    ${L('Точность системы','System accuracy')}: <b style="color:var(--text-main);">${(accuracy*100).toFixed(0)}%</b><br>
+                    ${L('Математический урон ПВО','Expected AA damage')}: <b style="color:var(--primary);">${Math.round(totalAADamage).toLocaleString(LANG === 'en' ? 'en' : 'ru')} HP</b><br>
+                    ${L('Прочность роя ракет','Missile swarm HP')} (${totalMissiles} ${L('шт.','pcs')}): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString(LANG === 'en' ? 'en' : 'ru')} HP</b><br>
                     <div style="margin: 15px 0; border-top: 1px solid var(--line); padding-top: 15px;">
                         <span style="font-family:'Inter'; font-weight:900; font-size:1.4rem; color:${resColor};">${verdict}</span><br>
-                        Сбито ракет: <b style="color:var(--text-main); font-size:1.2rem;">${destroyedMissiles}</b> из <b style="color:var(--text-main); font-size:1.2rem;">${totalMissiles}</b><br>
-                        Проходимость урона: <b style="font-size:1.8rem; color:${resColor};">${survivalProbability.toFixed(1)}%</b>
+                        ${L('Сбито ракет','Missiles destroyed')}: <b style="color:var(--text-main); font-size:1.2rem;">${destroyedMissiles}</b> ${L('из','of')} <b style="color:var(--text-main); font-size:1.2rem;">${totalMissiles}</b><br>
+                        ${L('Проходимость урона','Damage that gets through')}: <b style="font-size:1.8rem; color:${resColor};">${survivalProbability.toFixed(1)}%</b>
                     </div>
                     ${speedWarning}
                 </div>
             `;
             
-            showToast("СИМУЛЯЦИЯ ЗАВЕРШЕНА");
+            showToast(L("СИМУЛЯЦИЯ ЗАВЕРШЕНА","SIMULATION COMPLETE"));
         }
 
 
@@ -3482,8 +3840,8 @@
         function formatStatValue(key, val) {
             if (val === undefined || val === null) return '—';
             if (['dpm', 'damage_burst', 'splash_damage', 'fragmentation_damage', 'damage'].indexOf(key) >= 0) return Number(val).toLocaleString('ru');
-            if (key === 'anti_jamming') return val === 1 ? 'АКТИВНО' : 'НЕТ';
-            if (['cluster', 'air_target', 'sub_launch', 'can_hit_subs'].indexOf(key) >= 0) return val === 1 ? 'ДА' : 'НЕТ';
+            if (key === 'anti_jamming') return val === 1 ? L('АКТИВНО','ACTIVE') : L('НЕТ','NO');
+            if (['cluster', 'air_target', 'sub_launch', 'can_hit_subs'].indexOf(key) >= 0) return val === 1 ? L('ДА','YES') : L('НЕТ','NO');
             if (['fire_penalty', 'accuracy', 'dispersion'].indexOf(key) >= 0) return val + '%';
             if (key === 'killChanceVsMissile') return Math.round((val || 0) * 100) + '%';
             return val;
@@ -3491,7 +3849,7 @@
 
         function needPro(msg) {
             if (isAuth) return true;
-            showToast(msg || 'ТРЕБУЕТСЯ PRO ДОСТУП', true);
+            showToast(msg || L('ТРЕБУЕТСЯ PRO ДОСТУП','PRO ACCESS REQUIRED'), true);
             return false;
         }
 
@@ -3518,26 +3876,26 @@
         function refreshProGatedViews() {
             renderTierList();
             const btn = document.getElementById('roster-why-btn');
-            if (btn) btn.textContent = (isAuth ? '' : '🔒 ') + 'Почему такой рейтинг?';
+            if (btn) btn.textContent = (isAuth ? '' : '🔒 ') + L('Почему такой рейтинг?','Why this rating?');
             closeModal('breakdown-modal');
         }
 
         function openRatingBreakdown(itemId) {
             if (!itemId || !DB[itemId]) return;
-            if (!needPro('РАЗБОР РЕЙТИНГА ДОСТУПЕН В PRO')) { switchMainPage('page-admin', document.getElementById('nav-admin')); return; }
+            if (!needPro(L('РАЗБОР РЕЙТИНГА ДОСТУПЕН В PRO','RATING BREAKDOWN IS A PRO FEATURE'))) { switchMainPage('page-admin', document.getElementById('nav-admin')); return; }
             const bd = getRatingBreakdown(itemId);
             if (!bd) return;
             const item = bd.item;
-            const fmt = v => (v > 0 ? '+' : (v < 0 ? '−' : '')) + Math.abs(Math.round(v)).toLocaleString('ru');
+            const fmt = v => (v > 0 ? '+' : (v < 0 ? '−' : '')) + Math.abs(Math.round(v)).toLocaleString(LANG === 'en' ? 'en' : 'ru');
 
             const visible = bd.parts.filter(p => Math.abs(p.value) >= 0.5).sort((a, b) => b.value - a.value);
             const maxAbs = Math.max(1, ...visible.map(p => Math.abs(p.value)));
 
             const rows = visible.map(p => {
                 const w = Math.max(2, Math.round(Math.abs(p.value) / maxAbs * 100));
-                const avgTxt = 'среднее по категории: ' + (Math.abs(p.avg) < 0.5 ? '0' : fmt(p.avg));
+                const avgTxt = L('среднее по категории','category average') + ': ' + (Math.abs(p.avg) < 0.5 ? '0' : fmt(p.avg));
                 return `<div class="bd-row">
-                    <div class="bd-label">${p.label}</div>
+                    <div class="bd-label">${trLabel(p.label)}</div>
                     <div class="bd-val ${p.value < 0 ? 'neg' : ''}">${fmt(p.value)}</div>
                     <div class="bd-hint">${p.hint ? p.hint + '. ' : ''}<span class="bd-avg">${avgTxt}</span></div>
                     <div class="bd-bar-bg"><div class="bd-bar ${p.value < 0 ? 'neg' : 'pos'}" style="width:${w}%"></div></div>
@@ -3545,33 +3903,33 @@
             }).join('');
 
             // Что выделяет юнит относительно категории
-            const deltas = bd.parts.map(p => ({ label: p.label, d: p.value - p.avg })).filter(x => Math.abs(x.d) >= 5);
+            const deltas = bd.parts.map(p => ({ label: trLabel(p.label), d: p.value - p.avg })).filter(x => Math.abs(x.d) >= 5);
             const ups = deltas.filter(x => x.d > 0).sort((a, b) => b.d - a.d).slice(0, 2);
             const downs = deltas.filter(x => x.d < 0).sort((a, b) => a.d - b.d).slice(0, 2);
             let insight = '';
-            if (ups.length) insight += `<div><b>Выше среднего по категории:</b> ${ups.map(x => x.label + ' (' + fmt(x.d) + ')').join(', ')}.</div>`;
-            if (downs.length) insight += `<div><b>Ниже среднего:</b> ${downs.map(x => x.label + ' (' + fmt(x.d) + ')').join(', ')}.</div>`;
+            if (ups.length) insight += `<div><b>${L('Выше среднего по категории','Above the category average')}:</b> ${ups.map(x => x.label + ' (' + fmt(x.d) + ')').join(', ')}.</div>`;
+            if (downs.length) insight += `<div><b>${L('Ниже среднего','Below average')}:</b> ${downs.map(x => x.label + ' (' + fmt(x.d) + ')').join(', ')}.</div>`;
 
             const chips = [];
-            if (bd.eff.dpm !== undefined && item.dpm) chips.push(['Эфф. DPM', Math.round(bd.eff.dpm).toLocaleString('ru'), Math.round(bd.eff.dpm / item.dpm * 100) + '% от паспортного']);
-            if (bd.eff.burst !== undefined && item.damage_burst) chips.push(['Эфф. альфа-страйк', Math.round(bd.eff.burst).toLocaleString('ru'), Math.round(bd.eff.burst / item.damage_burst * 100) + '% от паспортного']);
-            if (bd.eff.accuracy !== undefined) chips.push(['Индекс точности', Math.round(bd.eff.accuracy) + '%', '']);
-            if (bd.eff.kill !== undefined) chips.push(['Шанс сбить ракету', Math.round(bd.eff.kill * 100) + '%', 'типичную из базы']);
+            if (bd.eff.dpm !== undefined && item.dpm) chips.push([L('Эфф. DPM','Eff. DPM'), Math.round(bd.eff.dpm).toLocaleString(LANG === 'en' ? 'en' : 'ru'), Math.round(bd.eff.dpm / item.dpm * 100) + '% ' + L('от паспортного','of rated')]);
+            if (bd.eff.burst !== undefined && item.damage_burst) chips.push([L('Эфф. альфа-страйк','Eff. alpha strike'), Math.round(bd.eff.burst).toLocaleString(LANG === 'en' ? 'en' : 'ru'), Math.round(bd.eff.burst / item.damage_burst * 100) + '% ' + L('от паспортного','of rated')]);
+            if (bd.eff.accuracy !== undefined) chips.push([L('Индекс точности','Accuracy index'), Math.round(bd.eff.accuracy) + '%', '']);
+            if (bd.eff.kill !== undefined) chips.push([L('Шанс сбить ракету','Missile kill chance'), Math.round(bd.eff.kill * 100) + '%', L('типичную из базы','a typical one from the database')]);
             const chipsHtml = chips.length ? `<div class="bd-eff">${chips.map(c => `<div class="bd-chip">${c[0]}<b>${c[1]}</b>${c[2]}</div>`).join('')}</div>` : '';
 
-            const clampNote = bd.clamped ? `<div class="bd-note">Сумма очков (${Math.round(bd.raw)}) вышла за границы шкалы 50–1000, поэтому итог обрезан до ${bd.final}.</div>` : '';
+            const clampNote = bd.clamped ? `<div class="bd-note">${L('Сумма очков','The point total')} (${Math.round(bd.raw)}) ${L('вышла за границы шкалы 50–1000, поэтому итог обрезан до','fell outside the 50–1000 scale, so the result was clamped to')} ${bd.final}.</div>` : '';
 
             document.getElementById('breakdown-body').innerHTML = `
                 <div class="bd-head">
                     <div class="bd-img" style="background-image:url('${item.img}')"></div>
-                    <div class="bd-title"><h2>${item.name}</h2><div class="bd-sub">${item.category} · Класс ${rarityLetter(item.rarity)} · ${item.country || ''}</div></div>
-                    <div class="bd-final">${item.rating}<small>РЕЙТИНГ</small></div>
+                    <div class="bd-title"><h2>${itemName(item)}</h2><div class="bd-sub">${trCategory(item.category)} · ${L('Класс','Class')} ${rarityLetter(item.rarity)} · ${trCountry(item.country)}</div></div>
+                    <div class="bd-final">${item.rating}<small>${L('РЕЙТИНГ','RATING')}</small></div>
                 </div>
-                <p class="bd-lead">Рейтинг это 100 базовых очков плюс надбавки и штрафы за отдельные характеристики. Ниже каждая из них с вкладом в итог и сравнением со средним по категории «${item.category}».</p>
+                <p class="bd-lead">${L('Рейтинг это 100 базовых очков плюс надбавки и штрафы за отдельные характеристики. Ниже каждая из них с вкладом в итог и сравнением со средним по категории','This rating is 100 base points plus bonuses and penalties for individual stats. Below is each one\'s contribution, compared to the category average for')} «${trCategory(item.category)}».</p>
                 ${chipsHtml}
                 ${insight ? `<div class="bd-insight">${insight}</div>` : ''}
                 <div class="bd-rows">${rows}</div>
-                <div class="bd-total"><span>100 базовых ${bd.sum >= 0 ? '+' : '−'} ${Math.abs(Math.round(bd.sum)).toLocaleString('ru')}</span><span>= ${item.rating}</span></div>
+                <div class="bd-total"><span>${L('100 базовых','100 base')} ${bd.sum >= 0 ? '+' : '−'} ${Math.abs(Math.round(bd.sum)).toLocaleString(LANG === 'en' ? 'en' : 'ru')}</span><span>= ${item.rating}</span></div>
                 ${clampNote}
             `;
             openModal('breakdown-modal');
@@ -3582,9 +3940,9 @@
         // РАДАР: профиль одного объекта (используется и для 1v1, и для сравнения 3+)
         // =========================================================
         const RADAR_PALETTE = [
-            { c: '#3fd9c7', bg: 'rgba(63, 217, 199, 0.18)' },
-            { c: '#e8483f', bg: 'rgba(232, 72, 63, 0.14)' },
-            { c: '#14181c', bg: 'rgba(20, 24, 28, 0.08)' },
+            { c: cssVar('--accent'), bg: 'rgba(63, 217, 199, 0.18)' },
+            { c: cssVar('--secondary'), bg: 'rgba(232, 72, 63, 0.14)' },
+            { c: cssVar('--text-main'), bg: 'rgba(20, 24, 28, 0.08)' },
             { c: '#f5a623', bg: 'rgba(245, 166, 35, 0.14)' },
             { c: '#6c5ce7', bg: 'rgba(108, 92, 231, 0.12)' },
             { c: '#2d9cdb', bg: 'rgba(45, 156, 219, 0.12)' }
@@ -3635,7 +3993,7 @@
             if (window[instanceKey]) window[instanceKey].destroy();
 
             const profiles = items.map(getRadarProfile);
-            Chart.defaults.color = '#838b96';
+            Chart.defaults.color = cssVar('--text-muted');
             Chart.defaults.font.family = 'Inter';
 
             window[instanceKey] = new Chart(ctx, {
@@ -3653,7 +4011,7 @@
                             min: 0, max: 100,
                             angleLines: { color: 'rgba(20, 24, 28, 0.08)' },
                             grid: { color: 'rgba(20, 24, 28, 0.08)', circular: true },
-                            pointLabels: { color: '#14181c', font: { family: 'Inter', size: 11, weight: '600' } },
+                            pointLabels: { color: cssVar('--text-main'), font: { family: 'Inter', size: 11, weight: '600' } },
                             ticks: { display: false }
                         }
                     },
@@ -3661,7 +4019,7 @@
                         legend: {
                             display: true,
                             position: 'bottom',
-                            labels: { color: '#14181c', font: { family: 'Inter', size: 12 }, padding: 15 }
+                            labels: { color: cssVar('--text-main'), font: { family: 'Inter', size: 12 }, padding: 15 }
                         }
                     },
                     responsive: true, maintainAspectRatio: false
@@ -3716,7 +4074,7 @@
         }
 
         function runMultiCompare() {
-            if (compareQueue.length < 2) return showToast('ВЫБЕРИТЕ МИНИМУМ 2 ОБЪЕКТА', true);
+            if (compareQueue.length < 2) return showToast(L('ВЫБЕРИТЕ МИНИМУМ 2 ОБЪЕКТА','SELECT AT LEAST 2 OBJECTS'), true);
             const ids = compareQueue.slice();
             clearCompareQueue();
             if (ids.length === 2) { runCompareFlow(ids[0], ids[1]); return; }
@@ -3770,8 +4128,8 @@
                 const col = RADAR_PALETTE[i % RADAR_PALETTE.length].c;
                 return `<th style="border-top:3px solid ${col}">
                     <div class="mc-img" style="background-image:url('${it.img}')"></div>
-                    <div class="mc-name">${it.name}</div>
-                    <div class="mc-sub">Класс ${rarityLetter(it.rarity)} · ${it.country || ''}</div>
+                    <div class="mc-name">${itemName(it)}</div>
+                    <div class="mc-sub">${L('Класс','Class')} ${rarityLetter(it.rarity)} · ${trCountry(it.country)}</div>
                     <div class="mc-rating">${isAuth ? it.rating : '🔒'}</div>
                 </th>`;
             }).join('');
@@ -3837,9 +4195,9 @@
                     rowsHtml += `<div class="tier-row">
                         <div class="tier-badge tier-${letter}">${letter}</div>
                         <div class="tier-items">${inRow.map(k => `
-                            <button class="tier-tile" onclick="openInArsenal('${k}')" title="${DB[k].name} · ${DB[k].country || ''}">
+                            <button class="tier-tile" onclick="openInArsenal('${k}')" title="${itemName(DB[k])} · ${trCountry(DB[k].country)}">
                                 <span class="tier-img" style="background-image:url('${DB[k].img}')"></span>
-                                <span class="tier-name">${DB[k].name}</span>
+                                <span class="tier-name">${itemName(DB[k])}</span>
                                 ${isAuth ? `<span class="tier-rating">${DB[k].rating}</span>` : ''}
                             </button>`).join('')}
                         </div>
@@ -3880,7 +4238,7 @@
                 html += `
                 <div class="dropdown-option" onclick="selectSimOption('cf-enemy', '${key}', event)">
                     <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
-                    <div class="dropdown-option-text">${item.name}<span class="dropdown-option-sub">${item.category} · ${item.country || ''}</span></div>
+                    <div class="dropdown-option-text">${itemName(item)}<span class="dropdown-option-sub">${trCategory(item.category)} · ${trCountry(item.country)}</span></div>
                 </div>`;
             });
             list.innerHTML = html || `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Inter'; font-weight:bold;">Не найдено</div>`;
@@ -3935,7 +4293,7 @@
             const out = document.getElementById('cf-result');
             const key = document.getElementById('wrapper-cf-enemy').dataset.value;
             if (!key || !DB[key]) {
-                out.innerHTML = `<div class="cf-empty">Выберите оружие врага, и здесь появится список лучших ответов.</div>`;
+                out.innerHTML = `<div class="cf-empty">${L('Выберите оружие врага, и здесь появится список лучших ответов.','Pick the enemy weapon and the best counters will show up here.')}</div>`;
                 return;
             }
             const enemy = DB[key];
@@ -3946,7 +4304,7 @@
             const qEnemy = parseInt(document.getElementById('cf-qty-enemy').value);
             document.getElementById('cf-dist-val').textContent = dist.toFixed(1);
 
-            const head = `<div class="cf-enemy-head"><span class="cf-img big" style="background-image:url('${enemy.img}')"></span><div><div class="cf-enemy-name">${enemy.name}</div><div class="cf-sub">${enemy.category} · ${enemy.country || ''}</div></div></div>`;
+            const head = `<div class="cf-enemy-head"><span class="cf-img big" style="background-image:url('${enemy.img}')"></span><div><div class="cf-enemy-name">${itemName(enemy)}</div><div class="cf-sub">${trCategory(enemy.category)} · ${trCountry(enemy.country)}</div></div></div>`;
             let html = '';
 
             if (type === 'missile') {
@@ -3958,21 +4316,21 @@
                 const best = cands[0];
                 const tips = [];
                 tips.push(enemy.anti_jamming === 1
-                    ? 'Эту ракету не отводят ловушки, поэтому вся защита ложится на ПВО.'
-                    : 'Эту ракету отводят ловушки. По модели сайта ракетное ПВО при этом отвлекается и теряет часть урона.');
-                if (enemy.min_range > 0) tips.push('Мёртвая зона ' + enemy.min_range + ' км: ближе этой дистанции ракета не стартует.');
-                if (enemy.cluster === 1 || enemy.fragmentation_damage > 0) tips.push('Кластерная боевая часть: осколки могут пройти даже после частичного перехвата.');
+                    ? L('Эту ракету не отводят ловушки, поэтому вся защита ложится на ПВО.', 'Decoys do not divert this missile, so all the defense falls on the AA.')
+                    : L('Эту ракету отводят ловушки. По модели сайта ракетное ПВО при этом отвлекается и теряет часть урона.', 'Decoys divert this missile. In this model, missile AA gets distracted by them and loses part of its damage.'));
+                if (enemy.min_range > 0) tips.push(L('Мёртвая зона ', 'Dead zone ') + enemy.min_range + L(' км: ближе этой дистанции ракета не стартует.', ' km: the missile cannot launch closer than that.'));
+                if (enemy.cluster === 1 || enemy.fragmentation_damage > 0) tips.push(L('Кластерная боевая часть: осколки могут пройти даже после частичного перехвата.', 'Cluster warhead: fragments can get through even after a partial intercept.'));
                 html += `<div class="cf-summary ${best.r.survivalProbability === 0 ? 'good' : 'warn'}">${best.r.survivalProbability === 0
-                    ? `Лучший ответ: <b>${DB[best.id].name}</b> сбивает весь залп (${total} из ${total}) на ${dist.toFixed(1)} км.`
-                    : `Полностью остановить залп не удаётся никому. Лучший результат у <b>${DB[best.id].name}</b>: сбито ${best.r.destroyedMissiles} из ${total}, проходит ${best.r.survivalProbability.toFixed(0)}%. Добавьте слотов ПВО.`}</div>`;
-                html += `<h3 class="cf-h">Чем сбивать</h3><div class="cf-list">` + cands.slice(0, 8).map((c, i) => {
+                    ? `${L('Лучший ответ','Best answer')}: <b>${itemName(DB[best.id])}</b> ${L('сбивает весь залп','shoots down the whole salvo')} (${total} ${L('из',' of')} ${total}) ${L('на','at')} ${dist.toFixed(1)} ${L('км','km')}.`
+                    : `${L('Полностью остановить залп не удаётся никому. Лучший результат у','No one fully stops the salvo. The best result belongs to')} <b>${itemName(DB[best.id])}</b>: ${L('сбито','destroyed')} ${best.r.destroyedMissiles} ${L('из',' of')} ${total}, ${L('проходит','gets through')} ${best.r.survivalProbability.toFixed(0)}%. ${L('Добавьте слотов ПВО.','Add more AA slots.')}`}</div>`;
+                html += `<h3 class="cf-h">${L('Чем сбивать','What to shoot it down with')}</h3><div class="cf-list">` + cands.slice(0, 8).map((c, i) => {
                     const a = DB[c.id];
                     const stopped = total ? (c.r.destroyedMissiles / total * 100) : 0;
-                    const warn = (c.r.aaHasMissileProfile && c.r.speedFactor < 0.5) ? 'Ракета ПВО слишком медленная для такой цели' : '';
-                    return cfRow(i + 1, c.id, c.r.destroyedMissiles + ' из ' + total, 'ракет сбито', stopped, (a.aa_type || 'Автопушка') + ' · дальность ' + a.range + ' км · ' + qYou + ' сл.', warn);
+                    const warn = (c.r.aaHasMissileProfile && c.r.speedFactor < 0.5) ? L('Ракета ПВО слишком медленная для такой цели','The AA missile is too slow for this target') : '';
+                    return cfRow(i + 1, c.id, c.r.destroyedMissiles + ' ' + L('из','of') + ' ' + total, L('ракет сбито','missiles downed'), stopped, (a.aa_type || L('Автопушка','Autocannon')) + ' · ' + L('дальность','range') + ' ' + a.range + ' ' + L('км','km') + ' · ' + qYou + ' ' + L('сл.','slot(s)'), warn);
                 }).join('') + `</div>`;
-                const worst = cands.slice(-3).reverse().map(c => DB[c.id].name);
-                html += `<div class="cf-worst"><b>Хуже всего справляются:</b> ${worst.join(', ')}.</div>`;
+                const worst = cands.slice(-3).reverse().map(c => itemName(DB[c.id]));
+                html += `<div class="cf-worst"><b>${L('Хуже всего справляются','Worst performers')}:</b> ${worst.join(', ')}.</div>`;
                 html += cfTipsHtml(tips);
             } else if (type === 'aa') {
                 const cands = Object.keys(DB).filter(id => {
@@ -3982,36 +4340,36 @@
                 }).map(id => ({ id: id, r: computeAAEngagement(enemy, qEnemy, DB[id], qYou, dist) }))
                   .sort((a, b) => b.r.survivalProbability - a.r.survivalProbability || a.r.destroyedMissiles - b.r.destroyedMissiles || DB[a.id].name.localeCompare(DB[b.id].name));
                 if (!cands.length) {
-                    html += `<div class="cf-summary warn">На дистанции ${dist.toFixed(1)} км нет ракет, которые могут стартовать. Уменьшите дистанцию.</div>`;
+                    html += `<div class="cf-summary warn">${L('На дистанции','At')} ${dist.toFixed(1)} ${L('км нет ракет, которые могут стартовать. Уменьшите дистанцию.','km there are no missiles that can launch. Reduce the distance.')}</div>`;
                 } else {
                     const best = cands[0];
-                    html += `<div class="cf-summary good">Лучше всего ПВО ${enemy.name} прорывает <b>${DB[best.id].name}</b>: проходит ${best.r.survivalProbability.toFixed(0)}% залпа (сбито ${best.r.destroyedMissiles} из ${best.r.totalMissiles}).</div>`;
-                    html += `<h3 class="cf-h">Чем прорывать</h3><div class="cf-list">` + cands.slice(0, 8).map((c, i) => {
+                    html += `<div class="cf-summary good">${L('Лучше всего ПВО','The AA of')} ${itemName(enemy)} ${L('прорывает','is best breached by')} <b>${itemName(DB[best.id])}</b>: ${L('проходит','gets through')} ${best.r.survivalProbability.toFixed(0)}% ${L('залпа','of the salvo')} (${L('сбито','destroyed')} ${best.r.destroyedMissiles} ${L('из','of')} ${best.r.totalMissiles}).</div>`;
+                    html += `<h3 class="cf-h">${L('Чем прорывать','What to breach it with')}</h3><div class="cf-list">` + cands.slice(0, 8).map((c, i) => {
                         const m = DB[c.id];
                         const notes = [];
-                        if (m.anti_jamming === 1) notes.push('без ловушек');
-                        if (m.cluster === 1 || m.fragmentation_damage > 0) notes.push('кластерная');
-                        if (m.projectiles > 1) notes.push(m.projectiles + ' ракеты в пуске');
-                        return cfRow(i + 1, c.id, c.r.survivalProbability.toFixed(0) + '%', 'залпа проходит', c.r.survivalProbability, m.country + ' · HP ' + (m.hp || '?') + ' · ' + qYou + ' сл.' + (notes.length ? ' · ' + notes.join(', ') : ''), '');
+                        if (m.anti_jamming === 1) notes.push(L('без ловушек','no decoys'));
+                        if (m.cluster === 1 || m.fragmentation_damage > 0) notes.push(L('кластерная','cluster'));
+                        if (m.projectiles > 1) notes.push(m.projectiles + ' ' + L('ракеты в пуске','missiles per launch'));
+                        return cfRow(i + 1, c.id, c.r.survivalProbability.toFixed(0) + '%', L('залпа проходит','of salvo gets through'), c.r.survivalProbability, trCountry(m.country) + ' · HP ' + (m.hp || '?') + ' · ' + qYou + ' ' + L('сл.','slot(s)') + (notes.length ? ' · ' + notes.join(', ') : ''), '');
                     }).join('') + `</div>`;
                 }
                 const tips = [];
-                if (enemy.aa_type === 'Ракетное' || enemy.aa_type === 'Гибрид') tips.push('Ракетное ПВО отвлекается на ловушки, поэтому отводимые ракеты проходят лучше.');
-                if (enemy.aa_type === 'Лазерное') tips.push('Лазерное ПВО бьёт мгновенно, поэтому главное, сколько ракет в залпе и сколько у них HP.');
-                tips.push('Дальность ПВО ' + enemy.range + ' км: чем быстрее ракета проходит это расстояние, тем меньше времени у ПВО.');
+                if (enemy.aa_type === 'Ракетное' || enemy.aa_type === 'Гибрид') tips.push(L('Ракетное ПВО отвлекается на ловушки, поэтому отводимые ракеты проходят лучше.','Missile AA gets distracted by decoys, so divertable missiles get through better.'));
+                if (enemy.aa_type === 'Лазерное') tips.push(L('Лазерное ПВО бьёт мгновенно, поэтому главное, сколько ракет в залпе и сколько у них HP.','Laser AA hits instantly, so what matters most is missiles per salvo and their HP.'));
+                tips.push(L('Дальность ПВО','AA range') + ' ' + enemy.range + ' ' + L('км: чем быстрее ракета проходит это расстояние, тем меньше времени у ПВО.','km: the faster a missile covers that distance, the less time the AA has.'));
                 html += cfTipsHtml(tips);
             } else if (type === 'torpedo') {
                 const cands = Object.keys(DB).filter(id => DB[id].category === 'Гранатометы' && DB[id].can_hit_torpedoes === 1)
                     .sort((a, b) => ((DB[b].splash_radius || 0) - (DB[a].splash_radius || 0)) || ((DB[b].projectiles || 0) - (DB[a].projectiles || 0)) || (DB[b].range - DB[a].range));
                 const maxR = Math.max.apply(null, cands.map(id => DB[id].splash_radius || 0).concat([1]));
-                html += `<div class="cf-summary good">Торпеды сбивают гранатомёты с функцией перехвата торпед. Чем больше радиус взрыва и снарядов в залпе, тем вероятнее перехват.</div>`;
-                html += `<h3 class="cf-h">Чем перехватывать</h3><div class="cf-list">` + cands.slice(0, 8).map((id, i) => {
+                html += `<div class="cf-summary good">${L('Торпеды сбивают гранатомёты с функцией перехвата торпед. Чем больше радиус взрыва и снарядов в залпе, тем вероятнее перехват.','Torpedoes are countered by launchers with torpedo-intercept capability. The bigger the blast radius and rounds per salvo, the more likely the intercept.')}</div>`;
+                html += `<h3 class="cf-h">${L('Чем перехватывать','What to intercept with')}</h3><div class="cf-list">` + cands.slice(0, 8).map((id, i) => {
                     const g = DB[id];
-                    return cfRow(i + 1, id, (g.splash_radius || 0) + ' м', 'радиус взрыва', (g.splash_radius || 0) / maxR * 100, g.country + ' · ' + (g.projectiles || 1) + ' сн. · дальность ' + g.range + ' км');
+                    return cfRow(i + 1, id, (g.splash_radius || 0) + ' ' + L('м','m'), L('радиус взрыва','blast radius'), (g.splash_radius || 0) / maxR * 100, trCountry(g.country) + ' · ' + (g.projectiles || 1) + ' ' + L('сн.','rd.') + ' · ' + L('дальность','range') + ' ' + g.range + ' ' + L('км','km'));
                 }).join('') + `</div>`;
                 html += cfTipsHtml([
-                    enemy.anti_jamming === 1 ? 'Эта торпеда игнорирует ловушки, поэтому перехват гранатомётом особенно важен.' : 'Эту торпеду отводят ловушки, перехват гранатомётом лишь дополнительная защита.',
-                    'Скорость торпеды ' + enemy.max_speed + ' уз., дальность ' + enemy.range + ' км.'
+                    enemy.anti_jamming === 1 ? L('Эта торпеда игнорирует ловушки, поэтому перехват гранатомётом особенно важен.','This torpedo ignores decoys, so launcher intercept matters especially here.') : L('Эту торпеду отводят ловушки, перехват гранатомётом лишь дополнительная защита.','Decoys divert this torpedo; launcher intercept is only an extra layer of defense.'),
+                    L('Скорость торпеды','Torpedo speed') + ' ' + enemy.max_speed + ' ' + L('уз., дальность','kn, range') + ' ' + enemy.range + ' ' + L('км.','km.')
                 ]);
             } else {
                 const baseE = enemy.effectiveDpm || enemy.dpm;
@@ -4021,15 +4379,15 @@
                 const brawl = pool.filter(id => DB[id].category === 'Пушки' && DB[id].range < enemy.range && DB[id].range >= 5 && (DB[id].effectiveDpm || DB[id].dpm) >= baseE * 1.15)
                     .sort((a, b) => (DB[b].effectiveDpm || DB[b].dpm) - (DB[a].effectiveDpm || DB[a].dpm)).slice(0, 5);
                 const maxDpm = Math.max.apply(null, outrange.concat(brawl).map(id => DB[id].effectiveDpm || DB[id].dpm).concat([1]));
-                html += `<div class="cf-summary">Против снарядов нет «ПВО»: их нельзя сбить, поэтому ответ строится на дальности и DPM. Это оценка по данным оружия, в базе нет брони и HP кораблей.</div>`;
-                html += `<h3 class="cf-h">Держать дистанцию (дальше ${enemy.range} км)</h3><div class="cf-list">` + (outrange.length ? outrange.map((id, i) => {
+                html += `<div class="cf-summary">${L('Против снарядов нет «ПВО»: их нельзя сбить, поэтому ответ строится на дальности и DPM. Это оценка по данным оружия, в базе нет брони и HP кораблей.','There is no "AA" against shells: they cannot be shot down, so the answer is built on range and DPM. This is an estimate from weapon data only — the database has no ship armor or HP.')}</div>`;
+                html += `<h3 class="cf-h">${L('Держать дистанцию (дальше','Keep distance (beyond')} ${enemy.range} ${L('км)','km)')}</h3><div class="cf-list">` + (outrange.length ? outrange.map((id, i) => {
                     const c = DB[id]; const e = c.effectiveDpm || c.dpm;
-                    return cfRow(i + 1, id, Math.round(e / 1000) + 'k', 'эфф. DPM', e / maxDpm * 100, c.category + ' · дальность ' + c.range + ' км (+' + (c.range - enemy.range).toFixed(1) + ' км)');
-                }).join('') : `<div class="cf-empty small">Никто из базы не бьёт дальше этого оружия.</div>`) + `</div>`;
-                html += `<h3 class="cf-h">Сблизиться и задавить (DPM выше на 15% и более)</h3><div class="cf-list">` + (brawl.length ? brawl.map((id, i) => {
+                    return cfRow(i + 1, id, Math.round(e / 1000) + 'k', L('эфф. DPM','eff. DPM'), e / maxDpm * 100, trCategory(c.category) + ' · ' + L('дальность','range') + ' ' + c.range + ' ' + L('км','km') + ' (+' + (c.range - enemy.range).toFixed(1) + ' ' + L('км','km') + ')');
+                }).join('') : `<div class="cf-empty small">${L('Никто из базы не бьёт дальше этого оружия.','Nothing in the database outranges this weapon.')}</div>`) + `</div>`;
+                html += `<h3 class="cf-h">${L('Сблизиться и задавить (DPM выше на 15% и более)','Close in and overpower (15%+ higher DPM)')}</h3><div class="cf-list">` + (brawl.length ? brawl.map((id, i) => {
                     const c = DB[id]; const e = c.effectiveDpm || c.dpm;
-                    return cfRow(i + 1, id, '+' + Math.round((e / baseE - 1) * 100) + '%', 'к DPM врага', e / maxDpm * 100, c.category + ' · дальность ' + c.range + ' км');
-                }).join('') : `<div class="cf-empty small">Пушек с заметно большим DPM на ближней дистанции не нашлось.</div>`) + `</div>`;
+                    return cfRow(i + 1, id, '+' + Math.round((e / baseE - 1) * 100) + '%', L('к DPM врага','vs enemy DPM'), e / maxDpm * 100, trCategory(c.category) + ' · ' + L('дальность','range') + ' ' + c.range + ' ' + L('км','km'));
+                }).join('') : `<div class="cf-empty small">${L('Пушек с заметно большим DPM на ближней дистанции не нашлось.','No guns with noticeably higher DPM at close range were found.')}</div>`) + `</div>`;
             }
             out.innerHTML = head + html;
         }
@@ -4190,17 +4548,17 @@
                 const share = total > 0 ? st.damage / total * 100 : 0;
                 const off = st.status !== 'ok';
                 return `<div class="duel-slot ${off ? 'off' : ''}">
-                    <div class="duel-slot-head"><span>${st.slot.item.name} ×${st.slot.qty}</span><b>${off ? '—' : Math.round(st.damage).toLocaleString('ru')}</b></div>
-                    <div class="duel-slot-note">${off ? st.note : ('попадает ' + Math.round(st.hit * st.survive * 100) + '% урона' + (st.note ? ' · ' + st.note : ''))}</div>
+                    <div class="duel-slot-head"><span>${itemName(st.slot.item)} ×${st.slot.qty}</span><b>${off ? '—' : Math.round(st.damage).toLocaleString(LANG === 'en' ? 'en' : 'ru')}</b></div>
+                    <div class="duel-slot-note">${off ? st.note : (L('попадает','lands') + ' ' + Math.round(st.hit * st.survive * 100) + '% ' + L('урона','of damage') + (st.note ? ' · ' + st.note : ''))}</div>
                     ${off ? '' : `<div class="bd-bar-bg"><div class="bd-bar pos" style="width:${Math.max(2, share)}%; background:${color}"></div></div>`}
                 </div>`;
-            }).join('') : `<div class="duel-slot off"><div class="duel-slot-note">Нет ударного оружия. В дуэли атакуют пушки, ракеты, торпеды и гранатомёты. ПВО и автопушки только защищают.</div></div>`;
-            return `<div class="duel-ship"><div class="duel-ship-title" style="color:${color}">КОРАБЛЬ ${shipNum} · нанёс ${Math.round(total).toLocaleString('ru')} урона</div>${rows}</div>`;
+            }).join('') : `<div class="duel-slot off"><div class="duel-slot-note">${L('Нет ударного оружия. В дуэли атакуют пушки, ракеты, торпеды и гранатомёты. ПВО и автопушки только защищают.','No offensive weapons. In a duel, guns, missiles, torpedoes and launchers attack. AA and autocannons only defend.')}</div></div>`;
+            return `<div class="duel-ship"><div class="duel-ship-title" style="color:${color}">${L('КОРАБЛЬ','SHIP')} ${shipNum} · ${L('нанёс','dealt')} ${Math.round(total).toLocaleString(LANG === 'en' ? 'en' : 'ru')} ${L('урона','damage')}</div>${rows}</div>`;
         }
 
         function runDuelUI() {
             const s1 = getBuildSlots(1), s2 = getBuildSlots(2);
-            if (!s1.length || !s2.length) return showToast('ДОБАВЬТЕ СЛОТЫ ОБОИМ КОРАБЛЯМ', true);
+            if (!s1.length || !s2.length) return showToast(L('ДОБАВЬТЕ СЛОТЫ ОБОИМ КОРАБЛЯМ','ADD SLOTS TO BOTH SHIPS'), true);
             const D = parseFloat(document.getElementById('duel-dist').value);
             const hp1 = Math.max(1000, parseInt(document.getElementById('duel-hp1').value) || 300000);
             const hp2 = Math.max(1000, parseInt(document.getElementById('duel-hp2').value) || 300000);
@@ -4209,13 +4567,13 @@
             const r = runDuel(s1, s2, D, hp1, hp2);
 
             let verdict, cls;
-            if (!r.anyDamage) { verdict = 'На дистанции ' + D.toFixed(1) + ' км ни одно оружие не наносит урон. Посмотрите полосу дистанций ниже.'; cls = 'none'; }
-            else if (r.winner === 'draw') { verdict = 'Ничья: оба корабля уничтожены одновременно на ' + r.tEnd.toFixed(1) + ' с.'; cls = 'draw'; }
+            if (!r.anyDamage) { verdict = L('На дистанции','At') + ' ' + D.toFixed(1) + ' ' + L('км ни одно оружие не наносит урон. Посмотрите полосу дистанций ниже.','km no weapon deals damage. Check the distance strip below.'); cls = 'none'; }
+            else if (r.winner === 'draw') { verdict = L('Ничья: оба корабля уничтожены одновременно на','Draw: both ships are destroyed simultaneously at') + ' ' + r.tEnd.toFixed(1) + ' ' + L('с.','s.'); cls = 'draw'; }
             else if (r.winner === 'timeout') {
-                verdict = 'За ' + DUEL_MAX_TIME + ' с никто не уничтожен. ' + (r.leader ? 'По остатку HP впереди корабль ' + r.leader + ' (' + r.hpPct[r.leader - 1].toFixed(0) + '% против ' + r.hpPct[2 - r.leader].toFixed(0) + '%).' : 'HP почти равны.');
+                verdict = L('За','In') + ' ' + DUEL_MAX_TIME + ' ' + L('с никто не уничтожен.','s no one is destroyed.') + ' ' + (r.leader ? L('По остатку HP впереди корабль','By remaining HP, ship') + ' ' + r.leader + ' ' + L('впереди','is ahead') + ' (' + r.hpPct[r.leader - 1].toFixed(0) + '% ' + L('против','vs') + ' ' + r.hpPct[2 - r.leader].toFixed(0) + '%).' : L('HP почти равны.','HP is nearly even.'));
                 cls = r.leader ? 'w' + r.leader : 'draw';
             } else {
-                verdict = 'Корабль ' + r.winner + ' уничтожает противника за ' + r.tEnd.toFixed(1) + ' с и остаётся с ' + r.hpPct[r.winner - 1].toFixed(0) + '% HP.';
+                verdict = L('Корабль','Ship') + ' ' + r.winner + ' ' + L('уничтожает противника за','destroys the enemy in') + ' ' + r.tEnd.toFixed(1) + ' ' + L('с и остаётся с','s and is left with') + ' ' + r.hpPct[r.winner - 1].toFixed(0) + '% HP.';
                 cls = 'w' + r.winner;
             }
 
@@ -4225,11 +4583,11 @@
                 const rr = runDuel(s1, s2, d, hp1, hp2);
                 let c = 'none', label = '—';
                 if (rr.anyDamage) {
-                    if (rr.winner === 1 || rr.winner === 2) { c = 'w' + rr.winner; label = rr.tEnd.toFixed(0) + 'с'; }
+                    if (rr.winner === 1 || rr.winner === 2) { c = 'w' + rr.winner; label = rr.tEnd.toFixed(0) + L('с','s'); }
                     else if (rr.winner === 'draw') { c = 'draw'; label = '='; }
                     else { c = rr.leader ? 'to' + rr.leader : 'draw'; label = '···'; }
                 }
-                cells.push(`<button class="sweep-cell ${c} ${d === Math.round(D) ? 'cur' : ''}" onclick="setDuelDistance(${d})" title="${d} км: ${c === 'w1' ? 'побеждает корабль 1' : c === 'w2' ? 'побеждает корабль 2' : c === 'draw' ? 'ничья' : c.indexOf('to') === 0 ? 'по HP лидирует корабль ' + c.slice(2) : 'нет урона'}"><i>${d}</i><span>${label}</span></button>`);
+                cells.push(`<button class="sweep-cell ${c} ${d === Math.round(D) ? 'cur' : ''}" onclick="setDuelDistance(${d})" title="${d} ${L('км','km')}: ${c === 'w1' ? L('побеждает корабль 1','ship 1 wins') : c === 'w2' ? L('побеждает корабль 2','ship 2 wins') : c === 'draw' ? L('ничья','draw') : c.indexOf('to') === 0 ? L('по HP лидирует корабль','by HP, ship leads') + ' ' + c.slice(2) : L('нет урона','no damage')}"><i>${d}</i><span>${label}</span></button>`);
             }
 
             const res = document.getElementById('duel-result');
@@ -4237,34 +4595,34 @@
             res.innerHTML = `
                 <div class="duel-verdict ${cls}">${verdict}</div>
                 <div class="duel-chart-wrap"><canvas id="duelChart"></canvas></div>
-                <h3 class="cf-h">Кто побеждает на каждой дистанции</h3>
+                <h3 class="cf-h">${L('Кто побеждает на каждой дистанции','Who wins at each distance')}</h3>
                 <div class="sweep-strip">${cells.join('')}</div>
-                <div class="sweep-legend"><span><i class="w1"></i>корабль 1</span><span><i class="w2"></i>корабль 2</span><span><i class="draw"></i>ничья</span><span><i class="to"></i>по HP, без убийства</span><span><i class="none"></i>нет урона</span></div>
+                <div class="sweep-legend"><span><i class="w1"></i>${L('корабль 1','ship 1')}</span><span><i class="w2"></i>${L('корабль 2','ship 2')}</span><span><i class="draw"></i>${L('ничья','draw')}</span><span><i class="to"></i>${L('по HP, без убийства','by HP, no kill')}</span><span><i class="none"></i>${L('нет урона','no damage')}</span></div>
                 <div class="duel-slots">${duelSlotsTable(1, r.stats[0], r.tEnd)}${duelSlotsTable(2, r.stats[1], r.tEnd)}</div>
-                <div class="duel-note">В базе нет HP кораблей, поэтому их задаёте вы. ПВО и ловушки считаются по той же модели, что и в симуляторе прорыва ПВО. Пушки промахиваются по формуле точности с учётом дистанции. Первый залп у каждого оружия происходит после захвата цели.</div>`;
+                <div class="duel-note">${L('В базе нет HP кораблей, поэтому их задаёте вы. ПВО и ловушки считаются по той же модели, что и в симуляторе прорыва ПВО. Пушки промахиваются по формуле точности с учётом дистанции. Первый залп у каждого оружия происходит после захвата цели.','The database has no ship HP, so you set it yourself. AA and decoys use the same model as the AA breakthrough simulator. Guns miss according to the accuracy formula adjusted for distance. Each weapon fires its first salvo after acquiring the target.')}</div>`;
 
             if (typeof Chart !== 'undefined') {
                 const ctx = document.getElementById('duelChart').getContext('2d');
                 if (window.duelChartInstance) window.duelChartInstance.destroy();
-                Chart.defaults.color = '#838b96';
+                Chart.defaults.color = cssVar('--text-muted');
                 Chart.defaults.font.family = 'Inter';
                 window.duelChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: { labels: r.timeline.t, datasets: [
-                        { label: 'Корабль 1', data: r.timeline.hp1, borderColor: '#14181c', backgroundColor: 'rgba(20,24,28,0.06)', borderWidth: 2, pointRadius: 0, tension: 0.15 },
-                        { label: 'Корабль 2', data: r.timeline.hp2, borderColor: '#e8483f', backgroundColor: 'rgba(232,72,63,0.08)', borderWidth: 2, pointRadius: 0, tension: 0.15 }
+                        { label: L('Корабль 1','Ship 1'), data: r.timeline.hp1, borderColor: cssVar('--text-main'), backgroundColor: 'rgba(20,24,28,0.06)', borderWidth: 2, pointRadius: 0, tension: 0.15 },
+                        { label: L('Корабль 2','Ship 2'), data: r.timeline.hp2, borderColor: cssVar('--secondary'), backgroundColor: 'rgba(232,72,63,0.08)', borderWidth: 2, pointRadius: 0, tension: 0.15 }
                     ] },
                     options: {
                         responsive: true, maintainAspectRatio: false,
                         scales: {
                             y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(20,24,28,0.06)' } },
-                            x: { title: { display: true, text: 'секунды' }, ticks: { maxTicksLimit: 10 }, grid: { display: false } }
+                            x: { title: { display: true, text: L('секунды','seconds') }, ticks: { maxTicksLimit: 10 }, grid: { display: false } }
                         },
-                        plugins: { legend: { position: 'bottom', labels: { color: '#14181c', font: { family: 'Inter', size: 12 } } } }
+                        plugins: { legend: { position: 'bottom', labels: { color: cssVar('--text-main'), font: { family: 'Inter', size: 12 } } } }
                     }
                 });
             }
-            showToast('ДУЭЛЬ РАССЧИТАНА');
+            showToast(L('ДУЭЛЬ РАССЧИТАНА','DUEL CALCULATED'));
         }
 
         function setDuelDistance(d) {
@@ -4273,6 +4631,8 @@
         }
 
         function initApp() {
+            applyTheme(localStorage.getItem('mw_theme') || 'light');
+            applyLanguage();
             initAASimulator();
             initCounterFinder();
             updateCompareTray();
