@@ -2273,59 +2273,33 @@
             "ПВО": function(item) {
                 let score = 100;
                 
-                // 1. Установка индекса разброса (Чем меньше, тем лучше)
-                let aa_dispersion = 11; // Лазерное (идеальная точность на всю дистанцию)
+                // 1. Установка индекса разброса
+                let aa_dispersion = 11;
                 if (item.aa_type === "Пулеметное") aa_dispersion = 22;
                 else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 14; // Ракетное ПВО теперь имеет индекс 14
+                else if (item.aa_type === "Ракетное") aa_dispersion = 14;
                 
                 item.aa_dispersion = aa_dispersion; 
 
-                // 2. Математика точности (Зависимость от разброса и дальности)
-                // 11 (Лазер) — нет штрафа (точность 100%).
-                // 14 (Ракеты) — небольшой штраф на большой дистанции.
-                // 16 (Гибрид) — средний штраф.
-                // 22 (Пулемет) — максимальный штраф от отдачи.
-                let spreadPenalty = Math.max(0, aa_dispersion - 11) * (item.range * 0.7); 
-                // Радиус детонации компенсирует часть промаха (крупный подрыв прощает неточность),
-                // но не подменяет саму точность — это отдельный фактор эффективности, а не она сама.
+                // 2. Математика точности
+                let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7); 
                 let detonationCompensation = (item.detonation_radius || 0) * 0.5;
                 let effectiveMissPenalty = Math.max(0, spreadPenalty - detonationCompensation);
                 let accuracyScore = Math.max(10, 100 - effectiveMissPenalty); 
                 item.accuracyScore = accuracyScore;
                 
-                // Коэффициент попаданий
                 let hitRatio = accuracyScore / 100;
-
-                // 3. Эффективный урон (Точность + Ловушки)
-                let effectiveDpm = (item.dpm || 0) * hitRatio;
                 let effectiveBurst = (item.damage_burst || 0) * hitRatio;
-                
-                let flareCycle = 5.0; // Откат ловушек
-                
-                if (item.aa_type === "Ракетное") {
-                    let flarePenalty = Math.max(0.2, 1 - (item.reload / flareCycle)); 
-                    effectiveDpm = effectiveDpm * Math.min(0.6, flarePenalty); 
-                } 
-                else if (item.aa_type === "Гибрид") {
-                    effectiveDpm = item.dpm * 0.75; 
-                }
-                
-                // 3.5 РЕАЛЬНАЯ УГРОЗА: сверяем ПВО с усредненными характеристиками боевых ракет из БД.
-                //     Без этого система оценивалась бы "в вакууме", а не по способности сбивать ракеты.
+
+                // 3. РЕАЛЬНАЯ УГРОЗА: кинематика перехвата
                 const MW_COEF = 0.00278;
                 const threat = getThreatMissileProfile();
                 const misV0 = threat.avgStartSpeed * MW_COEF;
                 const misVmax = threat.avgMaxSpeed * MW_COEF;
 
-                // Время, за которое типичная атакующая ракета пролетает зону поражения этого ПВО
-                // (от границы дальности до цели) — это и есть "окно перехвата".
                 let engageWindow = missileFlightTime(misV0, misVmax, threat.avgAccelTime, item.range || 3);
                 item.avgEngageWindow = engageWindow;
 
-                // Шанс, что собственная ракета-перехватчик ПВО вообще успевает поймать типичную
-                // по скорости атакующую ракету (актуально для "Ракетное"/"Гибрид" — у них есть
-                // разгон и своя баллистика, а не мгновенный луч/поток снарядов).
                 let vsMissileSpeedFactor = 1;
                 if ((item.accel_time || 0) > 0 && misVmax > 0) {
                     const aaVmax = (item.max_speed || 0) * MW_COEF;
@@ -2334,40 +2308,84 @@
                 }
                 item.vsMissileSpeedFactor = vsMissileSpeedFactor;
 
-                // Сколько выстрелов/пусков ПВО реально успевает сделать за окно перехвата
-                // (обойма + перезарядка + задержка выстрела).
                 const fireDelay = item.fire_delay || 0.2;
                 const clip = item.ammo_clip || 1;
                 const reloadT = item.reload || 3;
-                const cycleTime = Math.max(0.05, (clip * fireDelay) + reloadT);
-                const expectedShots = Math.max(0.1, (engageWindow / cycleTime) * clip);
-                item.expectedShotsVsMissile = expectedShots;
+                const flareCycle = 5.0;
 
-                // Сколько попаданий нужно, чтобы "убить" типичную ракету (по её HP), и итоговый
-                // реалистичный шанс сбить её за время подлета — ГЛАВНЫЙ практический показатель ПВО.
-                const shotsToKill = Math.max(1, threat.avgHp / Math.max(1, item.damage || 1));
-                const killChanceVsMissile = Math.min(1, (expectedShots * vsMissileSpeedFactor) / shotsToKill);
+                let pKillGun = 0;
+                let pKillMissile = 0;
+                let effectiveDpm = 0;
+
+                // --- ПУЛЕМЕТНЫЙ КАНАЛ (Лазеры тоже здесь) ---
+                if (item.aa_type === "Пулеметное" || item.aa_type === "Гибрид" || item.aa_type === "Лазерное") {
+                    const shotsInWindow = engageWindow / fireDelay;
+                    const shotsToKillGun = Math.max(1, threat.avgHp / Math.max(1, item.damage || 1));
+                    
+                    // Биномиальная аппроксимация вероятности убийства
+                    pKillGun = 1 - Math.pow(1 - hitRatio, shotsInWindow / shotsToKillGun);
+                    pKillGun = Math.max(0, Math.min(1, pKillGun));
+                    
+                    if (item.aa_type !== "Гибрид") {
+                        effectiveDpm = (item.dpm || 0) * hitRatio;
+                    }
+                }
+
+                // --- РАКЕТНЫЙ КАНАЛ ---
+                if (item.aa_type === "Ракетное" || item.aa_type === "Гибрид") {
+                    const cycleTime = Math.max(0.05, (clip * fireDelay) + reloadT);
+                    const expectedLaunches = Math.max(0.1, (engageWindow / cycleTime) * clip);
+
+                    // Вероятность подрыва зависит от сплэша и радиуса детонации
+                    const aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
+                    const detonationEfficiency = Math.min(1, 0.4 + (aoeValue / 250)); 
+                    
+                    let flareHitFactor = Math.max(0.2, 1 - (reloadT / flareCycle));
+                    
+                    // Шанс успешного поражения одним интерцептором
+                    const pHitMissile = hitRatio * detonationEfficiency * flareHitFactor * vsMissileSpeedFactor;
+                    const missilesToKill = Math.max(1, threat.avgHp / Math.max(1, item.damage_burst || item.damage || 1));
+
+                    pKillMissile = 1 - Math.pow(1 - pHitMissile, expectedLaunches / missilesToKill);
+                    pKillMissile = Math.max(0, Math.min(1, pKillMissile));
+                    
+                    if (item.aa_type !== "Гибрид") {
+                        effectiveDpm = (item.dpm || 0) * hitRatio * flareHitFactor;
+                    }
+                }
+
+                // --- ОБЪЕДИНЕНИЕ (HYBRID OR LOGIC) ---
+                let killChanceVsMissile = 0;
+                
+                if (item.aa_type === "Гибрид") {
+                    killChanceVsMissile = 1 - (1 - pKillGun) * (1 - pKillMissile);
+                    
+                    // Честный расчет DPM для гибрида: убираем старый множитель 0.75
+                    // Т.к. в базе нет разделения на урон пушки/ракеты, делим базовый DPM пополам
+                    let flareHitFactor = Math.max(0.2, 1 - (reloadT / flareCycle));
+                    let gunDpmShare = (item.dpm || 0) * 0.5 * hitRatio;
+                    let misDpmShare = (item.dpm || 0) * 0.5 * hitRatio * flareHitFactor;
+                    effectiveDpm = gunDpmShare + misDpmShare;
+                } else if (item.aa_type === "Ракетное") {
+                    killChanceVsMissile = pKillMissile;
+                } else {
+                    killChanceVsMissile = pKillGun;
+                }
+
                 item.killChanceVsMissile = killChanceVsMissile;
-
                 item.effectiveDpm = effectiveDpm * vsMissileSpeedFactor;
                 item.effectiveBurst = effectiveBurst;
 
-                // 4. Фундаментальный урон с учетом точности + реальный шанс сбить ракету
+                // 4. Начисление очков (используем ваши трекеры _T / _N для разбора рейтинга)
                 score += _T("Эффективный DPM", ((item.effectiveDpm / 200000) * 180)); 
-                score += _T("Эффективный альфа-страйк", ((effectiveBurst / 20000) * 60)); 
-                score += _T("Шанс сбить ракету", (killChanceVsMissile * 250)); // главный вклад: реально ли собьет типичную ракету
+                score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 20000) * 60)); 
+                score += _T("Шанс сбить ракету", (killChanceVsMissile * 250)); // Теперь честная цифра от 0 до 1
 
-                // 5. Оценка дальности и чистоты попаданий
                 score += _T("Дальность", (((item.range || 3) / 6) * 80)); 
-                // Чем МЕНЬШЕ разброс (ближе к 11), тем БОЛЬШЕ бонус к очкам рейтинга
                 let dispersionBonus = ((22 - aa_dispersion) / 11) * 80; 
                 score += _T("Чистота попаданий", (dispersionBonus)); 
-
-                // 6. Баллистика и скорость перехвата — теперь относительно скорости РЕАЛЬНОЙ
-                //    атакующей ракеты, а не абсолютной шкалы "чем быстрее, тем лучше"
                 score += _T("Скорость перехвата", (vsMissileSpeedFactor * 130));
 
-                // 7. АОЕ и Сплэш (Эффективность против роев ракет)
                 if (item.splash_radius > 0 || item.detonation_radius > 0) {
                     let aoeValue = ((item.splash_radius || 0) * 2.0) + ((item.detonation_radius || 0) * 4.0);
                     if (item.splash_damage > 0) {
@@ -2376,16 +2394,8 @@
                     score += _T("Сплэш и радиус взрыва", (Math.min(200, aoeValue))); 
                 }
 
-                // 8. Плотность огня (Боезапас)
-                if (item.ammo_clip > 1) {
-                    score += _T("Плотность огня", (Math.min(100, (item.ammo_clip / 150) * 80)));
-                }
-                
-                // 9. Критический урон
-                if (item.crit_chance > 0) {
-                    score += _T("Шанс крита", ((item.crit_chance / 40) * 30));
-                }
-
+                if (item.ammo_clip > 1) score += _T("Плотность огня", (Math.min(100, (item.ammo_clip / 150) * 80)));
+                if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 40) * 30));
                 if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
 
                 return Math.round(score);
