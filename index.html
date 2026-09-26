@@ -600,6 +600,9 @@
         .tier-cat { margin-bottom: 34px; scroll-margin-top: 90px; }
         .tier-cat-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 12px; display: flex; align-items: baseline; gap: 10px; }
         .tier-cat-title small { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; }
+        .tier-subgroup { margin-bottom: 22px; padding-left: 14px; border-left: 3px solid var(--accent-dim); }
+        .tier-subgroup-title { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: baseline; gap: 8px; }
+        .tier-subgroup-title small { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; opacity: 0.7; }
         .tier-row { display: flex; margin-bottom: 10px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 18px; overflow: hidden; }
         .tier-badge { flex: 0 0 64px; display: flex; align-items: center; justify-content: center; font-size: 1.9rem; font-weight: 900; color: #fff; }
         .tier-S { background: var(--primary); color: var(--on-primary); }
@@ -1800,7 +1803,7 @@
             "cas": { name: "C-AS", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 11, dpm: 382387, damage_burst: 30399, damage: 14949, reload: 4.55, lock_time: 0.25, detonation_radius: 33, splash_damage: 250, splash_radius: 166, projectiles: 2, range: 7.80, max_speed: 388, start_speed: 136, accel_time: 1.04, hp: 120, fire_penalty: 35, anti_jamming: 0, air_target: 1, gl_type: "missile", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/CAS.png" },
             "astros": { name: "ASTROS II MK6", category: "Гранатометы", country: "Бразилия", rarity: "Эпический", recoil: 11, dpm: 261931, damage_burst: 29999, damage: 7474, reload: 5.95, lock_time: 1.50, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 4, range: 8.67, max_speed: 369, start_speed: 77, accel_time: 1.88, hp: 60, fire_penalty: 35, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/AstrosIIMK6.png" },
             "ws3": { name: "WS-3 (400 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 233276, damage_burst: 30840, damage: 4940, reload: 6.30, lock_time: 1.0, detonation_radius: 26, splash_damage: 200, splash_radius: 133, projectiles: 6, range: 10.40, max_speed: 388, start_speed: 77, accel_time: 2.29, hp: 65, fire_penalty: 35, anti_jamming: 1, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/WS3.png" },
-            "pinaka": { name: "PINAKA MK3", category: "Гранатометы", country: "Индия", rarity: "Эпический", recoil: 11, dpm: 268513, damage_burst: 41172, damage: 2210, reload: 7.00, crit_chance: 20, detonation_radius: 166, splash_damage: 1000, splash_radius: 200, projectiles: 1, ammo_clip: 16, range: 13.00, max_speed: 456, start_speed: 456, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "manual", can_hit_subs: 0, can_hit_torpedoes: 1, img: "img/PinakaMK3.png" },
+            "pinaka": { name: "PINAKA MK3", category: "Гранатометы", country: "Индия", rarity: "Эпический", recoil: 11, dpm: 268513, damage_burst: 41172, damage: 2210, reload: 7.00, crit_chance: 20, detonation_radius: 166, splash_damage: 1000, splash_radius: 200, projectiles: 1, ammo_clip: 16, range: 13.00, max_speed: 456, start_speed: 456, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "manual", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/PinakaMK3.png" },
             "mar290": { name: "MAR-290 (290 MM)", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 15, dpm: 253231, damage_burst: 33300, damage: 8124, reload: 7.35, detonation_radius: 26, splash_damage: 200, splash_radius: 166, projectiles: 4, range: 11.27, max_speed: 515, start_speed: 515, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/MAR290.png" },
             
             // ----- АВТОПУШКИ -----
@@ -4129,6 +4132,72 @@
         // =========================================================
         // ТИР-ЛИСТ: классы S/A/B по всем категориям на одной странице
         // =========================================================
+        // Подкатегория оборудования внутри его основной категории — чтобы в тир-листе не мешать
+        // в одну кучу принципиально разные по механике вещи (лазерное ПВО vs пулемётное,
+        // ракетный гранатомёт vs пушечный и т.д.). Возвращает null, если для категории
+        // подкатегорий не предусмотрено (тогда рендерим как раньше, единым списком).
+        function getSubtype(item) {
+            if (item.category === 'ПВО') {
+                return item.aa_type || L('Прочее', 'Other');
+            }
+            if (item.category === 'Гранатометы') {
+                const typeLabel = {
+                    gun: L('Пушечные', 'Gun'),
+                    missile: L('Ракетные', 'Missile'),
+                    laser: L('Лазерные', 'Laser'),
+                    mixed: L('Смешанные', 'Mixed')
+                }[item.gl_type] || L('Прочие', 'Other');
+                // fire_mode: 'burst' — стреляет залпом сразу всем боекомплектом (пока не перезарядится),
+                // 'manual' — по одному снаряду за выстрел.
+                const modeLabel = item.fire_mode === 'burst' ? L('Залповые', 'Salvo')
+                    : (item.fire_mode === 'manual' ? L('Одиночные', 'Single-fire') : null);
+                return modeLabel ? `${typeLabel} · ${modeLabel}` : typeLabel;
+            }
+            if (item.category === 'Автопушки') {
+                // У "Автопушек" нет отдельного поля с типом, поэтому определяем его по формуле:
+                // если есть оба канала урона (пушка + ракета) — это гибрид, как и у ПВО;
+                // если снаряд стартует с разгоном (есть start_speed) — по факту это ракета,
+                // а не пушечный выстрел с мгновенной начальной скоростью;
+                // иначе — обычная скорострельная пушка.
+                if (item.dpm_gun !== undefined && item.dpm_missile !== undefined) return L('Гибрид', 'Hybrid');
+                if (item.start_speed !== undefined) return L('Ракетные', 'Missile');
+                return L('Пушечные', 'Gun');
+            }
+            return null;
+        }
+
+        // Порядок подкатегорий внутри тир-листа (только для категорий, где getSubtype что-то возвращает)
+        const TIER_SUBTYPE_ORDER = {
+            'ПВО': [L('Лазерное', 'Laser'), L('Пулеметное', 'Machine-gun'), L('Ракетное', 'Missile'), L('Гибрид', 'Hybrid')],
+            'Гранатометы': [
+                `${L('Пушечные', 'Gun')} · ${L('Залповые', 'Salvo')}`, `${L('Пушечные', 'Gun')} · ${L('Одиночные', 'Single-fire')}`,
+                `${L('Ракетные', 'Missile')} · ${L('Залповые', 'Salvo')}`, `${L('Ракетные', 'Missile')} · ${L('Одиночные', 'Single-fire')}`,
+                `${L('Лазерные', 'Laser')} · ${L('Залповые', 'Salvo')}`, `${L('Лазерные', 'Laser')} · ${L('Одиночные', 'Single-fire')}`,
+                `${L('Смешанные', 'Mixed')} · ${L('Залповые', 'Salvo')}`, `${L('Смешанные', 'Mixed')} · ${L('Одиночные', 'Single-fire')}`
+            ],
+            'Автопушки': [L('Пушечные', 'Gun'), L('Ракетные', 'Missile'), L('Гибрид', 'Hybrid')]
+        };
+
+        function renderTierRarityRows(keys) {
+            let rowsHtml = '';
+            ['S', 'A', 'B'].forEach(letter => {
+                const inRow = keys.filter(k => rarityLetter(DB[k].rarity) === letter);
+                if (!inRow.length) return;
+                inRow.sort((a, b) => isAuth ? (DB[b].rating - DB[a].rating) : DB[a].name.localeCompare(DB[b].name));
+                rowsHtml += `<div class="tier-row">
+                    <div class="tier-badge tier-${letter}">${letter}</div>
+                    <div class="tier-items">${inRow.map(k => `
+                        <button class="tier-tile" onclick="openInArsenal('${k}')" title="${itemName(DB[k])} · ${trCountry(DB[k].country)}">
+                            <span class="tier-img" style="background-image:url('${DB[k].img}')"></span>
+                            <span class="tier-name">${itemName(DB[k])}</span>
+                            ${isAuth ? `<span class="tier-rating">${DB[k].rating}</span>` : ''}
+                        </button>`).join('')}
+                    </div>
+                </div>`;
+            });
+            return rowsHtml;
+        }
+
         function renderTierList() {
             const root = document.getElementById('tier-root');
             if (!root) return;
@@ -4145,25 +4214,37 @@
                 const keys = Object.keys(DB).filter(k => DB[k].category === cat && (!country || DB[k].country === country));
                 if (!keys.length) return;
                 jump.innerHTML += `<button class="cat-btn-sub tier-jump-btn" onclick="scrollToTierCat(${ci})">${cat}</button>`;
-                let rowsHtml = '';
-                ['S', 'A', 'B'].forEach(letter => {
-                    const inRow = keys.filter(k => rarityLetter(DB[k].rarity) === letter);
-                    if (!inRow.length) return;
-                    inRow.sort((a, b) => isAuth ? (DB[b].rating - DB[a].rating) : DB[a].name.localeCompare(DB[b].name));
-                    rowsHtml += `<div class="tier-row">
-                        <div class="tier-badge tier-${letter}">${letter}</div>
-                        <div class="tier-items">${inRow.map(k => `
-                            <button class="tier-tile" onclick="openInArsenal('${k}')" title="${itemName(DB[k])} · ${trCountry(DB[k].country)}">
-                                <span class="tier-img" style="background-image:url('${DB[k].img}')"></span>
-                                <span class="tier-name">${itemName(DB[k])}</span>
-                                ${isAuth ? `<span class="tier-rating">${DB[k].rating}</span>` : ''}
-                            </button>`).join('')}
-                        </div>
-                    </div>`;
-                });
+
+                let bodyHtml = '';
+                const order = TIER_SUBTYPE_ORDER[cat];
+                if (order) {
+                    const grouped = {};
+                    keys.forEach(k => {
+                        const st = getSubtype(DB[k]) || L('Прочее', 'Other');
+                        (grouped[st] = grouped[st] || []).push(k);
+                    });
+                    const rendered = new Set();
+                    const renderGroup = (st) => {
+                        if (rendered.has(st) || !grouped[st] || !grouped[st].length) return;
+                        rendered.add(st);
+                        const rows = renderTierRarityRows(grouped[st]);
+                        if (!rows) return;
+                        bodyHtml += `<div class="tier-subgroup">
+                            <h3 class="tier-subgroup-title">${st}<small>${grouped[st].length}</small></h3>
+                            ${rows}
+                        </div>`;
+                    };
+                    order.forEach(renderGroup);
+                    // подстраховка: если у какого-то предмета подкатегория не попала в предопределённый
+                    // порядок (например, появится новый gl_type/aa_type в базе) — не теряем его молча
+                    Object.keys(grouped).forEach(renderGroup);
+                } else {
+                    bodyHtml = renderTierRarityRows(keys);
+                }
+
                 html += `<section class="tier-cat" id="tier-cat-${ci}">
                     <h2 class="tier-cat-title">${cat}<small>${keys.length}</small></h2>
-                    ${rowsHtml}
+                    ${bodyHtml}
                 </section>`;
             });
             root.innerHTML = html || `<div class="tier-empty">Для этой фракции ничего не найдено. Выберите другую.</div>`;
