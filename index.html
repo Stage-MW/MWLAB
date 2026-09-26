@@ -203,6 +203,9 @@
         .mech-checkbox { display: none; }
         .mech-checkbox:checked + .cat-btn-sub { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
         .cat-btn-sub { background: var(--surface-alt); border: 1px solid var(--line); color: var(--text-muted); padding: 6px 20px; border-radius: 20px; font-family: 'Inter'; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.3px;}
+        .gl-subtabs-bar { display: none; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+        .gl-subtab-btn { background: var(--surface-alt); border: 1px solid var(--line); color: var(--text-muted); padding: 8px 24px; border-radius: 20px; font-family: 'Inter'; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .gl-subtab-btn:hover, .gl-subtab-btn.active { border-color: var(--secondary); color: var(--on-primary); background: var(--secondary); }
 
         /* --- BARS --- */
         .stats-container { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; width: 100%; }
@@ -911,6 +914,10 @@
                 <button class="roster-class-tab" data-rarity="Редкий" onclick="setRarityTab('Редкий', this)">B</button>
             </div>
 
+            <div class="gl-subtabs-bar" id="gl-subtabs-bar"></div>
+            <div class="gl-subtabs-bar" id="aa-subtabs-bar"></div>
+            <div class="gl-subtabs-bar" id="auto-subtabs-bar"></div>
+
             <div class="mechanics-filters" id="dynamic-mechanics-filters"></div>
 
             <div class="roster-layout">
@@ -1193,6 +1200,9 @@
             // Перерисовать динамические блоки, зависящие от языка (каталог, тир-лист и т.д.)
             if (typeof handleFilter === 'function') handleFilter();
             if (typeof renderCategoryBar === 'function') renderCategoryBar();
+            if (typeof renderGLSubTabs === 'function') renderGLSubTabs();
+            if (typeof renderAASubTabs === 'function') renderAASubTabs();
+            if (typeof renderAutoSubTabs === 'function') renderAutoSubTabs();
             if (typeof renderDynamicFilters === 'function') renderDynamicFilters();
             if (typeof updateCompareTray === 'function') updateCompareTray();
         }
@@ -1312,6 +1322,9 @@
 
         const ALL_CATEGORIES = ["Ракеты", "Ракеты А/А", "Пушки", "Торпеды", "Гранатометы", "Автопушки", "ПВО"];
         let currentCategory = "Ракеты";
+        let currentGLType = "";
+        let currentAAType = "";
+        let currentAutoType = "";
         let searchQuery = "";
         
         const CATEGORY_MAX_STATS = {
@@ -2560,14 +2573,92 @@
                 btn.innerText = cat;
                 
                 btn.onclick = () => { 
-                    currentCategory = cat; compareQueue = []; 
+                    currentCategory = cat; currentGLType = ""; currentAAType = ""; currentAutoType = ""; compareQueue = []; 
                     document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">${L('СЛОТ 1','SLOT 1')}</h3><div class="stats-container" id="stats-equip-1"></div>`;
                     document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">${L('СЛОТ 2','SLOT 2')}</h3><div class="stats-container" id="stats-equip-2"></div>`;
                     document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Inter'; font-size:1.1rem; text-align:center;">${L('ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...','WAITING FOR TARGET INPUT...')}</p>`;
-                    renderCategoryBar(); renderDynamicFilters(); handleFilter(); 
+                    renderCategoryBar(); renderGLSubTabs(); renderAASubTabs(); renderAutoSubTabs(); renderDynamicFilters(); handleFilter(); 
                     switchMainPage('page-catalog', document.getElementById('nav-catalog'));
                 };
                 bar.appendChild(btn);
+            });
+        }
+
+        // Подкатегории гранатометов: СЗО (ствольные), РСЗО (ракетные/лазерные), Гибрид
+        const GL_SUBTABS = [
+            { key: "",        ru: "ВСЕ",    en: "ALL" },
+            { key: "gun",     ru: "СЗО",    en: "SZO" },
+            { key: "missile", ru: "РСЗО",   en: "RSZO" },
+            { key: "mixed",   ru: "ГИБРИД", en: "HYBRID" }
+        ];
+        function renderGLSubTabs() {
+            const wrap = document.getElementById('gl-subtabs-bar');
+            if (!wrap) return;
+            if (currentCategory !== "Гранатометы") {
+                wrap.style.display = 'none';
+                wrap.innerHTML = '';
+                return;
+            }
+            wrap.style.display = 'flex';
+            wrap.innerHTML = '';
+            GL_SUBTABS.forEach(st => {
+                const btn = document.createElement('button');
+                btn.className = `gl-subtab-btn ${currentGLType === st.key ? 'active' : ''}`;
+                btn.innerText = L(st.ru, st.en);
+                btn.onclick = () => { currentGLType = st.key; renderGLSubTabs(); handleFilter(); };
+                wrap.appendChild(btn);
+            });
+        }
+
+        // Подкатегории ПВО: Лазерное / Пулеметное / Ракетное / Гибрид
+        const AA_SUBTABS = [
+            { key: "",           ru: "ВСЕ",       en: "ALL" },
+            { key: "Лазерное",   ru: "ЛАЗЕРНОЕ",  en: "LASER" },
+            { key: "Пулеметное", ru: "ПУЛЕМЕТНОЕ", en: "GUN" },
+            { key: "Ракетное",   ru: "РАКЕТНОЕ",  en: "MISSILE" },
+            { key: "Гибрид",     ru: "ГИБРИД",    en: "HYBRID" }
+        ];
+        function renderAASubTabs() {
+            const wrap = document.getElementById('aa-subtabs-bar');
+            if (!wrap) return;
+            if (currentCategory !== "ПВО") {
+                wrap.style.display = 'none';
+                wrap.innerHTML = '';
+                return;
+            }
+            wrap.style.display = 'flex';
+            wrap.innerHTML = '';
+            AA_SUBTABS.forEach(st => {
+                const btn = document.createElement('button');
+                btn.className = `gl-subtab-btn ${currentAAType === st.key ? 'active' : ''}`;
+                btn.innerText = L(st.ru, st.en);
+                btn.onclick = () => { currentAAType = st.key; renderAASubTabs(); handleFilter(); };
+                wrap.appendChild(btn);
+            });
+        }
+
+        // Подкатегории автопушек: ПВО / ПЛО / Все
+        const AUTO_SUBTABS = [
+            { key: "",    ru: "ВСЕ", en: "ALL" },
+            { key: "air", ru: "ПВО", en: "AA" },
+            { key: "sub", ru: "ПЛО", en: "ASW" }
+        ];
+        function renderAutoSubTabs() {
+            const wrap = document.getElementById('auto-subtabs-bar');
+            if (!wrap) return;
+            if (currentCategory !== "Автопушки") {
+                wrap.style.display = 'none';
+                wrap.innerHTML = '';
+                return;
+            }
+            wrap.style.display = 'flex';
+            wrap.innerHTML = '';
+            AUTO_SUBTABS.forEach(st => {
+                const btn = document.createElement('button');
+                btn.className = `gl-subtab-btn ${currentAutoType === st.key ? 'active' : ''}`;
+                btn.innerText = L(st.ru, st.en);
+                btn.onclick = () => { currentAutoType = st.key; renderAutoSubTabs(); handleFilter(); };
+                wrap.appendChild(btn);
             });
         }
 
@@ -2598,24 +2689,14 @@
                 `;
             } else if (currentCategory === "Гранатометы") {
                 container.innerHTML = `
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-gl-flared" onchange="handleFilter()"><span class="cat-btn-sub">ОТВОДИМЫЕ</span></label>
+                    <label><input type="checkbox" class="mech-checkbox" id="cb-gl-unflared" onchange="handleFilter()"><span class="cat-btn-sub">НЕОТВОДИМЫЕ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-torpedo" onchange="handleFilter()"><span class="cat-btn-sub">БЬЕТ ТОРПЕДЫ</span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-sub" onchange="handleFilter()"><span class="cat-btn-sub">БЬЕТ ПЛ</span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-burst" onchange="handleFilter()"><span class="cat-btn-sub">ЗАЛПОВЫЕ (BURST)</span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-missile" onchange="handleFilter()"><span class="cat-btn-sub">РАКЕТНЫЕ</span></label>
                 `;
             } else if (currentCategory === "Автопушки") {
                 container.innerHTML = `
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-auto-air" onchange="handleFilter()"><span class="cat-btn-sub">БЬЮТ ВОЗДУХ (ПВО)</span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-auto-sub" onchange="handleFilter()"><span class="cat-btn-sub">БЬЮТ ПОДЛОДКИ (ПЛО)</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-auto-splash" onchange="handleFilter()"><span class="cat-btn-sub">ЕСТЬ СПЛЭШ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-auto-crit" onchange="handleFilter()"><span class="cat-btn-sub">С КРИТОМ</span></label>
-                `;
-            } else if (currentCategory === "ПВО") {
-                container.innerHTML = `
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-missile" onchange="handleFilter()"><span class="cat-btn-sub">РАКЕТНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-gun" onchange="handleFilter()"><span class="cat-btn-sub">ПУЛЕМЕТНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-laser" onchange="handleFilter()"><span class="cat-btn-sub">ЛАЗЕРНОЕ </span></label>
-                    <label><input type="checkbox" class="mech-checkbox" id="cb-aa-hybrid" onchange="handleFilter()"><span class="cat-btn-sub">ГИБРИД </span></label>
                 `;
             }
         }
@@ -2656,20 +2737,21 @@
                     const cbJam = document.getElementById('cb-jamming'); if (cbJam && cbJam.checked && item.anti_jamming !== 1) return false;
                     const cbClip = document.getElementById('cb-clip'); if (cbClip && cbClip.checked && (!item.ammo_clip || item.ammo_clip <= 1)) return false;
                 } else if (currentCategory === "Гранатометы") {
+                    if (currentGLType === "missile") {
+                        if (item.gl_type !== "missile" && item.gl_type !== "laser") return false;
+                    } else if (currentGLType) {
+                        if (item.gl_type !== currentGLType) return false;
+                    }
+                    const cbFlared = document.getElementById('cb-gl-flared'); if (cbFlared && cbFlared.checked && item.anti_jamming !== 0) return false;
+                    const cbUnflared = document.getElementById('cb-gl-unflared'); if (cbUnflared && cbUnflared.checked && item.anti_jamming !== 1) return false;
                     const cbTorp = document.getElementById('cb-torpedo'); if (cbTorp && cbTorp.checked && item.can_hit_torpedoes !== 1) return false;
-                    const cbSub = document.getElementById('cb-sub'); if (cbSub && cbSub.checked && item.can_hit_subs !== 1) return false;
-                    const cbBurst = document.getElementById('cb-burst'); if (cbBurst && cbBurst.checked && item.fire_mode !== "burst") return false;
-                    const cbMissile = document.getElementById('cb-missile'); if (cbMissile && cbMissile.checked && (item.gl_type !== "missile" && item.gl_type !== "laser")) return false;
                 } else if (currentCategory === "Автопушки") {
-                    const cbAir = document.getElementById('cb-auto-air'); if (cbAir && cbAir.checked && item.air_target !== 1) return false;
-                    const cbSub = document.getElementById('cb-auto-sub'); if (cbSub && cbSub.checked && item.can_hit_subs !== 1) return false;
+                    if (currentAutoType === "air") { if (item.air_target !== 1) return false; }
+                    else if (currentAutoType === "sub") { if (item.can_hit_subs !== 1) return false; }
                     const cbSplash = document.getElementById('cb-auto-splash'); if (cbSplash && cbSplash.checked && (!item.splash_damage || item.splash_damage <= 0)) return false;
                     const cbCrit = document.getElementById('cb-auto-crit'); if (cbCrit && cbCrit.checked && (!item.crit_chance || item.crit_chance <= 0)) return false;
                 } else if (currentCategory === "ПВО") {
-                    const cbMissile = document.getElementById('cb-aa-missile'); if (cbMissile && cbMissile.checked && item.aa_type !== "Ракетное") return false;
-                    const cbGun = document.getElementById('cb-aa-gun'); if (cbGun && cbGun.checked && item.aa_type !== "Пулеметное") return false;
-                    const cbLaser = document.getElementById('cb-aa-laser'); if (cbLaser && cbLaser.checked && item.aa_type !== "Лазерное") return false;
-                    const cbHybrid = document.getElementById('cb-aa-hybrid'); if (cbHybrid && cbHybrid.checked && item.aa_type !== "Гибрид") return false;
+                    if (currentAAType && item.aa_type !== currentAAType) return false;
                 }
                 return true;
             });
@@ -3820,13 +3902,16 @@
             if (!item) return;
             closeModal('breakdown-modal');
             currentCategory = item.category;
+            currentGLType = '';
+            currentAAType = '';
+            currentAutoType = '';
             searchQuery = '';
             const si = document.getElementById('search-input-catalog'); if (si) si.value = '';
             document.getElementById('filter-country-catalog').value = '';
             document.getElementById('filter-rarity-catalog').value = '';
             document.querySelectorAll('.roster-class-tab').forEach(b => b.classList.toggle('active', b.dataset.rarity === ''));
             compareQueue = [];
-            renderCategoryBar(); renderDynamicFilters();
+            renderCategoryBar(); renderGLSubTabs(); renderAASubTabs(); renderAutoSubTabs(); renderDynamicFilters();
             switchMainPage('page-catalog', document.getElementById('nav-catalog'));
             previewRosterItem(itemId);
             const el = document.querySelector('.catalog-item[data-id="' + itemId + '"]');
@@ -4495,6 +4580,9 @@
             updateCompareTray();
             updateAuthStateUI();
             renderCategoryBar();
+            renderGLSubTabs();
+            renderAASubTabs();
+            renderAutoSubTabs();
             renderDynamicFilters();
             handleFilter();
             addBuildSlot(1);
