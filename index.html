@@ -1820,7 +1820,7 @@
             "mar290": { name: "MAR-290 (290 MM)", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 15, dpm: 253231, damage_burst: 33300, damage: 8124, reload: 7.35, detonation_radius: 26, splash_damage: 200, splash_radius: 166, projectiles: 4, range: 11.27, max_speed: 515, start_speed: 515, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/MAR290.png" },
             
             // ----- АВТОПУШКИ -----
-            "skyranger_buckshot": { name: "OERLIKON SKYRANGER BUCKSHOT", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 1, dpm: 156773, damage_burst: 24375, damage: 97, reload: 4.90, detonation_radius: 15, projectiles: 10, ammo_clip: 25, fire_delay: 0.12, range: 3.25, max_speed: 728, fire_penalty: 9, accuracy: 33, img: "img/OerlikonSkyrangerBuckshot.png" },
+            "skyranger_buckshot": { name: "OERLIKON SKYRANGER BUCKSHOT", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 1, dpm: 156773, damage_burst: 24375, damage: 97, reload: 4.90, detonation_radius: 15, projectiles: 10, ammo_clip: 25, fire_delay: 0.12, range: 3.25, max_speed: 728, fire_penalty: 9, accuracy: 33, is_buckshot: 1, img: "img/OerlikonSkyrangerBuckshot.png" },
             "rapidfire_40": { name: "RAPIDFIRE (40 MM)", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 40210, damage_burst: 3753, damage: 227, reload: 2.80, crit_chance: 20, detonation_radius: 33, projectiles: 1, ammo_clip: 15, fire_delay: 0.15, range: 3.03, max_speed: 680, fire_penalty: 9, accuracy: 100, img: "img/RapidFire.png" },
            "rapidfire_lmm": { name: "RAPIDFIRE LMM", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 30734, dpm_gun: 16552, damage_gun: 160, ammo_clip_gun: 20, reload_gun: 8.0, dpm_missile: 14182, damage_missile: 600, ammo_clip_missile: 3, reload_missile: 7.5, damage_burst: 5000, damage: 160, reload: 8.0, detonation_radius: 26, splash_damage: 50, splash_radius: 66, projectiles: 1, ammo_clip: 20, fire_delay: 0.20, range: 4.77, start_speed: 174, max_speed: 349, accel_time: 1.80, fire_penalty: 12, accuracy: 100, img: "img/RapidFireLMM.png" },
             "type30_jeag": { name: "TYPE-30 JEAG (40 MM)", category: "Автопушки", country: "Япония", rarity: "Легендарный", air_target: 1, dpm: 45348, damage_burst: 3250, damage: 650, reload: 3.50, detonation_radius: 20, projectiles: 1, ammo_clip: 5, fire_delay: 0.15, range: 3.47, max_speed: 933, fire_penalty: 12, accuracy: 100, img: "img/40mmJPRailgun.png" },
@@ -3680,9 +3680,15 @@
             }
         }
 
-        // Точность оружия: явное поле accuracy (автопушки/бакшот) либо расчет по разбросу для ПВО
+        // Точность оружия.
+        // Картечные/дробовые стволы (is_buckshot) — разброс дроби, а не ошибка наведения,
+        // поэтому у них всегда явное поле accuracy, независимо от категории.
+        // ПВО и Автопушки (кроме картечи) — точность считается по индексу разброса (dispersion),
+        // который зависит от типа наведения/боеприпаса, а не берётся напрямую из базы.
+        // Прочие категории (обычные пушки, гранатомёты и т.п.) — как и раньше, явное поле accuracy.
         function getEffectiveAccuracy(item) {
-            if (item.accuracy != null) return item.accuracy / 100;
+            if (item.is_buckshot) return item.accuracy != null ? item.accuracy / 100 : 1;
+
             if (item.category === "ПВО") {
                 let aa_dispersion = 11;
                 if (item.aa_type === "Пулеметное") aa_dispersion = 22;
@@ -3691,6 +3697,19 @@
                 let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7);
                 return Math.max(0.10, (100 - spreadPenalty) / 100);
             }
+
+            if (item.category === "Автопушки") {
+                // Подтип — та же формула, что и в getSubtype()/тир-листе:
+                // оба канала (пушка+ракета) -> Гибрид; есть start_speed (снаряд разгоняется) -> Ракетные;
+                // иначе -> обычный скорострельный ствол (Пушечные).
+                let auto_dispersion = 11; // Пушечные — наводится мгновенно, как лазерное ПВО
+                if (item.dpm_gun !== undefined && item.dpm_missile !== undefined) auto_dispersion = 16; // Гибрид
+                else if (item.start_speed !== undefined) auto_dispersion = 14; // Ракетные
+                let spreadPenalty = Math.max(0, auto_dispersion - 11) * ((item.range || 3) * 0.7);
+                return Math.max(0.10, (100 - spreadPenalty) / 100);
+            }
+
+            if (item.accuracy != null) return item.accuracy / 100;
             return 1;
         }
 
@@ -3843,6 +3862,124 @@
                      singleMissileHP: singleMissileHP, destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
                      survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile };
         }
+        // ^ computeAAEngagement — используется ТОЛЬКО рейтингом ПВО (строка с getRatingScore/threatMissile)
+        // и симулятором дуэли кораблей. Формула идентична simulateAABreakthrough ниже, но это два
+        // раздельных места в коде специально: если понадобится поменять поведение только в одном из
+        // сценариев (например, доработать именно калькулятор прорыва, не трогая рейтинг/дуэль),
+        // правки в одной функции больше не затронут другую.
+
+        // Расчёт прорыва ПВО для интерактивного симулятора (кнопка "РАССЧИТАТЬ ВЕРОЯТНОСТЬ").
+        // Полная копия computeAAEngagement на момент разделения (2026): те же шаги (время подлёта
+        // цели, окно после вычета реакции, обойма/fire_delay/reload по каналам, гибрид = пушечный +
+        // ракетный канал параллельно, точность через getEffectiveAccuracy). Общие вспомогательные
+        // функции (missileFlightTime, getEffectiveAccuracy, AA_REACTION_TIME) переиспользуются —
+        // дублируется только сама логика розыгрыша боя, чтобы её можно было менять независимо.
+        function simulateAABreakthrough(aa, aaQty, mis, misQty, distance) {
+            const MW_COEF = 0.00278;
+
+            let misV0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
+            let misVmax = (mis.max_speed || 0) * MW_COEF;
+            let misAccelTime = mis.accel_time || 0.1;
+
+            let flyTime = missileFlightTime(misV0, misVmax, misAccelTime, distance);
+
+            let aaRange = aa.range || 3.0;
+            let timeToEnterAARange = 0;
+            if (distance > aaRange) {
+                let distToAa = distance - aaRange;
+                timeToEnterAARange = missileFlightTime(misV0, misVmax, misAccelTime, distToAa);
+            }
+            let engageTime = Math.max(0, flyTime - timeToEnterAARange);
+
+            let projectilesPerLaunch = mis.projectiles || 1;
+            let totalMissiles = misQty * projectilesPerLaunch;
+            let singleMissileHP = mis.hp || 50;
+            let totalMissileHP = singleMissileHP * totalMissiles;
+
+            let aaHasMissileProfile = (aa.accel_time || 0) > 0;
+            let aaV0 = (aa.start_speed || aa.max_speed || 0) * MW_COEF;
+            let aaVmax = (aa.max_speed || 0) * MW_COEF;
+            let aaAccelTime = aa.accel_time || 0;
+
+            let reactionTime = AA_REACTION_TIME[aa.aa_type];
+            if (reactionTime === undefined) reactionTime = aaHasMissileProfile ? 0.6 : 0.4;
+            engageTime = Math.max(0, engageTime - reactionTime);
+
+            let speedFactor = 1;
+            if (aaHasMissileProfile && misVmax > 0) {
+                let ratio = Math.min(1, aaVmax / misVmax);
+                speedFactor = Math.pow(ratio, 2);
+            }
+
+            let accuracy = getEffectiveAccuracy(aa);
+
+            let totalAADamage = 0;
+            let shotsFired = 0, shotsLanded = 0;
+
+            let isHybrid = (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined);
+
+            function simulateChannel(damage, reload, clipSize, fireDelay, useKinematics) {
+                let currentTime = 0;
+                let clipLeft = clipSize || 1;
+                let expectedHits = 0;
+                const TIMING_SHARPNESS = 0.6;
+
+                while (currentTime < engageTime) {
+                    if (clipLeft > 0) {
+                        let timingProb = 1;
+                        if (useKinematics) {
+                            let remainingShare = Math.max(0, 1 - (currentTime / (engageTime || 1)));
+                            let requiredDist = aaRange * remainingShare;
+                            let interceptFlightTime = missileFlightTime(aaV0, aaVmax, aaAccelTime, requiredDist);
+                            let timeMargin = engageTime - (currentTime + interceptFlightTime);
+                            timingProb = 1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS));
+                        }
+                        let shotHitProb = timingProb * accuracy * (useKinematics ? speedFactor : 1);
+                        expectedHits += shotHitProb;
+
+                        shotsFired++;
+                        clipLeft--;
+                        currentTime += (fireDelay || 0.2);
+                    } else {
+                        currentTime += (reload || 3.0);
+                        clipLeft = clipSize || 1;
+                    }
+                }
+                shotsLanded += expectedHits;
+                return expectedHits * (damage || 0);
+            }
+
+            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
+                let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false);
+                totalAADamage = channelDamage * aaQty;
+            } else if (isHybrid) {
+                let missileChannelDamage = simulateChannel(
+                    aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay, aaHasMissileProfile
+                );
+                if (mis.anti_jamming === 0) missileChannelDamage *= 0.6;
+
+                let gunChannelDamage = simulateChannel(
+                    aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false
+                );
+
+                totalAADamage = (missileChannelDamage + gunChannelDamage) * aaQty;
+            } else {
+                let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile);
+                if (mis.anti_jamming === 0 && aa.aa_type === "Ракетное") channelDamage *= 0.6;
+                totalAADamage = channelDamage * aaQty;
+            }
+
+            let destroyedMissiles = Math.floor(totalAADamage / singleMissileHP);
+            destroyedMissiles = Math.min(destroyedMissiles, totalMissiles);
+
+            let survivedMissiles = totalMissiles - destroyedMissiles;
+            let survivalProbability = (survivedMissiles / totalMissiles) * 100;
+
+            return { engageTime: engageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy, totalAADamage: totalAADamage,
+                     shotsFired: shotsFired, shotsLanded: shotsLanded, totalMissiles: totalMissiles, totalMissileHP: totalMissileHP,
+                     singleMissileHP: singleMissileHP, destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
+                     survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile };
+        }
 
         function simulateAA() {
             const aaKey = document.getElementById('wrapper-sim-aa').dataset.value;
@@ -3856,7 +3993,7 @@
             const aa = DB[aaKey];
             const mis = DB[misKey];
 
-            const R = computeAAEngagement(aa, aaQty, mis, misQty, distance);
+            const R = simulateAABreakthrough(aa, aaQty, mis, misQty, distance);
             const { engageTime, reactionTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
                     destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
 
