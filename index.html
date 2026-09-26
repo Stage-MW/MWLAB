@@ -1970,6 +1970,22 @@
         function _T(label, v) { if (_bdLog) _bdLog.push({ label: label, value: +v }); return v; }
         function _N(label, v) { if (_bdLog) _bdLog.push({ label: label, value: -v }); return v; }
 
+        // Глобальный объект конфигурации меты (позволяет легко менять тайминги или привязывать их к
+        // ползункам UI).
+        const META_CONFIG = {
+            flareCycleMissile: 11.0, // Базовый цикл перезарядки ловушек для ракет
+            flareCycleTorpedo: 29.0, // Базовый цикл ловушек для торпед
+            gunMetaDistance: 7.5,    // Средняя дистанция перестрелки для расчета падения точности пушек
+            softCapFactor: 0.25      // Коэффициент полезности дальности свыше "меты" (даёт 25% баллов вместо отсечения)
+        };
+
+        // Мягкое ограничение дальности: раньше Math.min(range, cap) полностью обнулял пользу от
+        // дальности сверх "меты" — теперь избыток даёт softCapFactor (25%) баллов вместо жёсткого среза.
+        function getEffectiveRange(range, cap) {
+            if (range <= cap) return range;
+            return cap + (range - cap) * META_CONFIG.softCapFactor;
+        }
+
         const RATING_CALCULATORS = {
             "Пушки": function(item) {
                 let score = 100;
@@ -1978,9 +1994,8 @@
                 let totalShots = pCount * (item.ammo_clip || 1); 
                 
                 let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
-                let metaDistance = 7.5;
                 let speedFactor = 800 / item.max_speed; 
-                let evasionPenalty = (metaDistance * speedFactor * 1.5);
+                let evasionPenalty = (META_CONFIG.gunMetaDistance * speedFactor * 1.5);
                 
                 item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty); 
                 item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
@@ -2008,8 +2023,8 @@
 
                 score += _T("Скорость снаряда", ((item.max_speed / 1200) * 130)); 
                 
-                let cappedRange = Math.min(item.range, 11);
-                score += _T("Дальность", ((cappedRange / 11) * 20)); 
+                let effectiveRange = getEffectiveRange(item.range, 11);
+                score += _T("Дальность", ((effectiveRange / 11) * 20)); 
                 if (item.range < 11.0) {
                     score -= _N("Штраф: дальность ниже 11 км", (((11.0 - item.range) * 8)));
                 }
@@ -2045,7 +2060,7 @@
                     
                     item.effectiveBurst = item.damage_burst;
                     
-                    let flareCycle = 11.0; 
+                    let flareCycle = META_CONFIG.flareCycleMissile; 
                     let hitRatio = 0;
 
                     if (item.reload <= (flareCycle / 2)) {
@@ -2111,8 +2126,8 @@
                 score -= _N("Штраф: время разгона", ((item.accel_time * 25)));  
                 score += _T("Максимальная скорость", ((item.max_speed / 600) * 100)); 
                 
-                let cappedRange = Math.min(item.range, 10);
-                score += _T("Дальность", ((cappedRange / 10) * 20));
+                let effectiveRange = getEffectiveRange(item.range, 10);
+                score += _T("Дальность", ((effectiveRange / 10) * 20));
                 if (item.range < 11.5) {
                     score -= _N("Штраф: дальность ниже 11.5 км", (((11.5 - item.range) * 20)));
                 }
@@ -2140,7 +2155,7 @@
                     item.effectiveDpm = item.dpm;
                     item.effectiveBurst = item.damage_burst;
                 } else {
-                    let trapCycle = 29.0; 
+                    let trapCycle = META_CONFIG.flareCycleTorpedo; 
                     let hitRatio = 0;
 
                     let speedCoeff = Math.min(1.2, item.max_speed / 120);
@@ -2172,8 +2187,8 @@
                     score += _T("Торпеды в залпе", ((item.projectiles * 25))); 
                 }
                 
-                let cappedRange = Math.min(item.range, 12);
-                score += _T("Дальность", ((cappedRange / 12) * 30));
+                let effectiveRange = getEffectiveRange(item.range, 12);
+                score += _T("Дальность", ((effectiveRange / 12) * 30));
 
                 if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 6000) * 20)); 
                 if (item.detonation_radius) score += _T("Сплэш и взрыв", ((item.detonation_radius / 40) * 20));
@@ -2193,9 +2208,8 @@
 
                 if (item.gl_type === "gun" || item.gl_type === "mixed") {
                     let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
-                    let metaDistance = 7.5;
                     let speedFactor = 800 / item.max_speed; 
-                    let evasionPenalty = (metaDistance * speedFactor * 1.5);
+                    let evasionPenalty = (META_CONFIG.gunMetaDistance * speedFactor * 1.5);
                     
                     let projCount = item.projectiles || 1;
                     let spreadPenalty = (item.range / 10) * recoil * (1 + (projCount * 0.1));
@@ -2231,7 +2245,7 @@
                     // масштабирует effectiveDpm/effectiveBurst.
                     let hitRatio = 1;
                     if (isFlarable) {
-                        let flareCycle = 11.0;
+                        let flareCycle = META_CONFIG.flareCycleMissile;
                         if (item.reload <= (flareCycle / 2)) {
                             hitRatio = 1.2 - (item.reload / flareCycle); 
                         } else if (item.reload < flareCycle) {
@@ -2305,8 +2319,8 @@
 
                 if (item.air_target === 1) score += _T("Атака авиации", (60));
                 score += _T("Дальность", ((item.range * 2)));
-                let cappedRange = Math.min(item.range, 12);
-                score += _T("Дальность", ((cappedRange / 12) * 20));
+                let effectiveRange = getEffectiveRange(item.range, 12);
+                score += _T("Дальность", ((effectiveRange / 12) * 20));
 
                 return score;
             },
@@ -2328,7 +2342,7 @@
                 
                 // Проверяем, является ли автопушка гибридной (есть ракетный канал)
                 if (item.dpm_missile !== undefined) {
-                    let flareCycle = 11.0; 
+                    let flareCycle = META_CONFIG.flareCycleMissile; 
                     let misReload = item.reload_missile || 5.0;
                     
                     // Шанс попадания ракеты из автопушки сквозь ловушки врага
@@ -2362,7 +2376,8 @@
                 if (item.air_target === 1) score += _T("Атака авиации", (150)); 
                 if (item.can_hit_subs === 1) score += _T("Атака подлодок", (250)); 
                 
-                score += _T("Дальность", ((item.range / 10) * 60));
+                let effectiveRange = getEffectiveRange(item.range, 10);
+                score += _T("Дальность", ((effectiveRange / 10) * 60));
                 score += _T("Скорость снаряда", ((item.max_speed / 1000) * 50));
                 
                 if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 30) * 30));
@@ -2409,8 +2424,8 @@
                 // поэтому большая дальность и так даёт более длинное окно перехвата (больше выстрелов,
                 // выше "Реальный шанс сбить ракету"). Отдельный явный бонус за дальность снижен, чтобы
                 // не начислять его повторно поверх уже заложенного эффекта в основном показателе.
-                let cappedRange = Math.min(item.range || 0, 5);
-                score += _T("Дальность", ((cappedRange / 5) * 25));
+                let effectiveRange = getEffectiveRange(item.range || 0, 5);
+                score += _T("Дальность", ((effectiveRange / 5) * 25));
 
                 if (item.aa_type === "Гибрид") score += _T("Двухканальность (пушка + ракета)", 40);
                 if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 20) * 20));
@@ -2432,7 +2447,8 @@
 
         function calculateRating(item) {
             if (RATING_CALCULATORS[item.category]) {
-                return Math.min(1000, Math.max(50, Math.round(RATING_CALCULATORS[item.category](item))));
+                // Искусственный потолок в 1000 очков удалён. Оставлен только минимальный порог в 1 очко.
+                return Math.max(1, Math.round(RATING_CALCULATORS[item.category](item)));
             }
             return 500;
         }
