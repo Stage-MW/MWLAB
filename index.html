@@ -1885,6 +1885,24 @@
            "type730c": { name: "TYPE 730C", category: "ПВО", aa_type: "Гибрид", country: "Китай", rarity: "Эпический", dpm: 18592, dpm_gun: 9768, damage_gun: 42, ammo_clip_gun: 75, reload_gun: 5.8, dpm_missile: 8824, damage_missile: 500, ammo_clip_missile: 2, reload_missile: 6.5, damage_burst: 1000, damage: 500, reload: 6.5, crit_chance: 15, detonation_radius: 13, range: 3.90, max_speed: 311, start_speed: 155, accel_time: 1.33, ammo_clip: 2, fire_penalty: 15, fire_delay: 0.2, img: "img/Type730C.png" },
          };
 // Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
+        // Задержка реакции ПВО: время на обнаружение цели, сопровождение радаром/оптикой и разворот
+        // ствола/пусковой на цель ДО начала фактической стрельбы. Раньше стрельба начиналась в ту же
+        // секунду, когда ракета входила в зону поражения — окно перехвата (engageTime) целиком уходило
+        // на выстрелы. Разница по типам отражает реальную специфику: лазеру/пулемётной установке нужно
+        // только довернуть ствол (быстро), ракетному ПВО — ещё и подготовить/захватить цель перед
+        // пуском собственной ракеты (дольше), гибриду — среднее между стволом и ракетой.
+        // ВАЖНО: объявлена здесь, ДО подсчёта рейтингов (см. "for (let key in DB)" ниже) и до
+        // определения computeAAEngagement. Раньше константа была объявлена через const ближе к концу
+        // файла, а computeAAEngagement (объявление функции, поднимается автоматически) уже вызывался
+        // из калькулятора рейтинга ПВО значительно раньше по ходу выполнения скрипта — обращение к ещё
+        // неинициализированной const-переменной валило рейтинг ПВО с ReferenceError (temporal dead zone).
+        const AA_REACTION_TIME = {
+            "Лазерное": 0.3,
+            "Пулеметное": 0.4,
+            "Гибрид": 0.6,
+            "Ракетное": 1.0
+        };
+
         function getSafeDistance(item) {
             const MW_COEF = 0.00278; 
             let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
@@ -3598,6 +3616,15 @@
             let aaVmax = (aa.max_speed || 0) * MW_COEF;
             let aaAccelTime = aa.accel_time || 0;
 
+            // 4.2 Задержка реакции. Раньше AA_REACTION_TIME была объявлена рядом с этой функцией, но
+            // из-за TDZ ломала рейтинг ПВО при вызове из калькулятора рейтингов (см. её новое
+            // объявление ближе к началу скрипта). Здесь она реально вычитается из engageTime: для
+            // типов без явного aa_type (обычные автопушки в роли ПВО) используется 0.6с, если у них
+            // есть собственная летящая ракета (гибридный канал), иначе 0.4с.
+            let reactionTime = AA_REACTION_TIME[aa.aa_type];
+            if (reactionTime === undefined) reactionTime = aaHasMissileProfile ? 0.6 : 0.4;
+            engageTime = Math.max(0, engageTime - reactionTime);
+
             // 4.1 Фактор "не успевает поймать скоростную цель": сравниваем макс. скорость ракеты
             //     ПВО с макс. скоростью атакующей ракеты. Чем медленнее интерцептор — тем резче
             //     падает шанс довести наведение до попадания (квадратичный штраф).
@@ -3700,7 +3727,7 @@
             let survivedMissiles = totalMissiles - destroyedMissiles;
             let survivalProbability = (survivedMissiles / totalMissiles) * 100;
 
-            return { engageTime: engageTime, speedFactor: speedFactor, accuracy: accuracy, totalAADamage: totalAADamage,
+            return { engageTime: engageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy, totalAADamage: totalAADamage,
                      shotsFired: shotsFired, shotsLanded: shotsLanded, totalMissiles: totalMissiles, totalMissileHP: totalMissileHP,
                      singleMissileHP: singleMissileHP, destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
                      survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile };
@@ -3719,7 +3746,7 @@
             const mis = DB[misKey];
 
             const R = computeAAEngagement(aa, aaQty, mis, misQty, distance);
-            const { engageTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
+            const { engageTime, reactionTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
                     destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
 
             let resColor = survivalProbability > 0 ? 'var(--primary)' : 'var(--secondary)';
@@ -3734,7 +3761,8 @@
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
                 <div style="font-family:'Inter'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
-                    ${L('Время реакции ПВО','AA reaction time')}: <b style="color:var(--text-main);">${engageTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
+                    ${L('Время реакции ПВО','AA reaction time')}: <b style="color:var(--text-main);">${reactionTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
+                    ${L('Окно на перехват (после реакции)','Intercept window (after reaction)')}: <b style="color:var(--text-main);">${engageTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
                     ${aaHasMissileProfile ? `${L('Фактор скорости перехвата','Intercept speed factor')}: <b style="color:var(--text-main);">${(speedFactor*100).toFixed(0)}%</b> (${L('ожидаемо результативных пусков','expected effective launches')}: ${shotsLanded.toFixed(1)} ${L('из','of')} ${shotsFired})<br>` : ''}
                     ${L('Точность системы','System accuracy')}: <b style="color:var(--text-main);">${(accuracy*100).toFixed(0)}%</b><br>
                     ${L('Математический урон ПВО','Expected AA damage')}: <b style="color:var(--primary);">${Math.round(totalAADamage).toLocaleString(LANG === 'en' ? 'en' : 'ru')} HP</b><br>
