@@ -3658,9 +3658,15 @@
             }
 
             if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                // Луч/поток снарядов долетает практически мгновенно: 'урон' = урон в секунду (DPS)
-                let dps = aa.damage || 0;
-                totalAADamage = dps * engageTime * aaQty * accuracy;
+                // Раньше здесь был плоский DPS: damage * engageTime, то есть луч/поток считался
+                // бесконечным — обойма (ammo_clip) и время перезарядки нигде не участвовали, и два
+                // ствола с одинаковым damage, но обоймой 50 и 175 выстрелов, получали одинаковый урон.
+                // Теперь ствол стреляет через тот же цикл "выстрел каждые fire_delay -> опустошение
+                // обоймы (ammo_clip) -> пауза на reload -> снова", что и остальные типы ПВО: чем
+                // больше обойма, тем дольше идёт непрерывный огонь до вынужденной паузы, и тем больше
+                // суммарный урон за то же окно перехвата (engageTime) — а значит, выше шанс сбить ракету.
+                let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false);
+                totalAADamage = channelDamage * aaQty;
             } else if (isHybrid) {
                 // --- Ракетный канал: своя кинематика, штраф по таймингу и по скорости относительно цели ---
                 let missileChannelDamage = simulateChannel(
