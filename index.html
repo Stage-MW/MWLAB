@@ -2222,8 +2222,32 @@
                     score += _T("Живучесть (HP)", ((effectiveHp / 200) * 120));
                     
                     let isFlarable = (item.anti_jamming === 0);
-                    item.effectiveDpm = item.dpm * (isFlarable ? 0.6 : 0.85); 
-                    item.effectiveBurst = item.damage_burst * (isFlarable ? 0.4 : 0.85); 
+
+                    // Раньше effectiveDpm/effectiveBurst считались через фиксированный множитель
+                    // (0.6/0.4), а более точный hitRatio по циклу отвода ловушек (зависит от
+                    // reload) считался отдельно и шёл только в бонус "Проходимость через ловушки" —
+                    // то есть реальная скорострельность вообще не влияла на эффективный урон, только
+                    // на добавочные очки. Теперь hitRatio, как и у обычных ракет/торпед, напрямую
+                    // масштабирует effectiveDpm/effectiveBurst.
+                    let hitRatio = 1;
+                    if (isFlarable) {
+                        let flareCycle = 11.0;
+                        if (item.reload <= (flareCycle / 2)) {
+                            hitRatio = 1.2 - (item.reload / flareCycle); 
+                        } else if (item.reload < flareCycle) {
+                            hitRatio = 0.70; 
+                        } else {
+                            hitRatio = 0.40; 
+                        }
+                        // Верхняя граница: при перезарядке короче ~2.2с hitRatio иначе уходил выше 1.0
+                        // (>100% проходимости через ловушки). Ограничено единицей, как у обычных ракет.
+                        hitRatio = Math.min(1, hitRatio);
+                        item.effectiveDpm = item.dpm * hitRatio;
+                        item.effectiveBurst = item.damage_burst * hitRatio;
+                    } else {
+                        item.effectiveDpm = item.dpm * 0.85;
+                        item.effectiveBurst = item.damage_burst * 0.85;
+                    }
                     
                     score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220)); 
                     score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200)); 
@@ -2237,21 +2261,6 @@
                     
                     if (!isFlarable) {
                         score += _T("Помехозащита (РЭБ)", (100)); 
-                    } else {
-                        let flareCycle = 11.0; 
-                        let hitRatio = 0;
-                        if (item.reload <= (flareCycle / 2)) {
-                            hitRatio = 1.2 - (item.reload / flareCycle); 
-                        } else if (item.reload < flareCycle) {
-                            hitRatio = 0.70; 
-                        } else {
-                            hitRatio = 0.40; 
-                        }
-                        // Раньше не было верхней границы: при перезарядке короче ~2.2с hitRatio уходил
-                        // выше 1.0 (>100% проходимости через ловушки). Ограничено единицей, как в
-                        // аналогичном расчёте для обычных ракет.
-                        hitRatio = Math.min(1, hitRatio);
-                        score += _T("Проходимость через ловушки", (80 * hitRatio)); 
                     }
 
                     if (item.projectiles > 3) score += _T("Залповая плотность", (30)); 
@@ -2304,8 +2313,18 @@
            "Автопушки": function(item) {
                 let score = 100;
                 
-                let effDpm = item.dpm;
-                let effBurst = item.damage_burst;
+                // Точность оружия (accuracy): у обычных стволов почти всегда 100%, но у "картечных"
+                // (Skyranger Buckshot и т.п.) она искусственно занижена (разброс дроби/картечи) —
+                // раньше это поле нигде не участвовало в расчёте, и такие стволы получали рейтинг
+                // так, будто ВСЕ снаряды долетают в цель. Это разброс именно ствола, поэтому он
+                // должен уменьшать только пушечную часть урона, а не ракетный канал гибридного
+                // оружия — у ракеты своя точность наведения, и её "проходимость" уже отдельно
+                // считается через hitRatio (уклонение от ловушек) ниже.
+                let accuracyFactor = item.accuracy != null ? (item.accuracy / 100) : 1;
+                item.accuracyScore = item.accuracy != null ? item.accuracy : 100;
+
+                let effDpm = item.dpm * accuracyFactor;
+                let effBurst = item.damage_burst * accuracyFactor;
                 
                 // Проверяем, является ли автопушка гибридной (есть ракетный канал)
                 if (item.dpm_missile !== undefined) {
@@ -2322,25 +2341,16 @@
                         hitRatio = 0.30;
                     }
                     
-                    let gunDpm = item.dpm_gun || 0;
+                    let gunDpm = (item.dpm_gun || 0) * accuracyFactor;
                     let misDpm = item.dpm_missile || 0;
                     
                     effDpm = gunDpm + (misDpm * hitRatio);
                     
                     // Эффективный альфа-страйк (урон барабана пушки + ракеты, дошедшие через ловушки)
-                    let gunBurst = (item.damage_gun || 0) * (item.ammo_clip_gun || 1);
+                    let gunBurst = (item.damage_gun || 0) * (item.ammo_clip_gun || 1) * accuracyFactor;
                     let misBurst = (item.damage_missile || 0) * (item.ammo_clip_missile || 1);
                     effBurst = gunBurst + (misBurst * hitRatio); 
                 } 
-                
-                // Точность оружия (accuracy): у обычных стволов почти всегда 100%, но у "картечных"
-                // (Skyranger Buckshot и т.п.) она искусственно занижена (разброс дроби/картечи) —
-                // раньше это поле нигде не участвовало в расчёте, и такие стволы получали рейтинг
-                // так, будто ВСЕ снаряды долетают в цель.
-                let accuracyFactor = item.accuracy != null ? (item.accuracy / 100) : 1;
-                item.accuracyScore = item.accuracy != null ? item.accuracy : 100;
-                effDpm *= accuracyFactor;
-                effBurst *= accuracyFactor;
                 
                 item.effectiveDpm = effDpm;
                 item.effectiveBurst = effBurst;
