@@ -1919,6 +1919,17 @@
             "Ракетное": 1.0
         };
 
+        // Параметры разброса роя атакующих ракет (см. runInterceptEngine/buildMissileSwarm ниже —
+        // "нюанс" о том, что ракеты залпа не летят в одну линию). ВАЖНО: объявлены здесь, ДО подсчёта
+        // рейтингов (см. "for (let key in DB)"), а не рядом с самим движком ближе к концу файла —
+        // иначе по той же причине, что и с AA_REACTION_TIME выше (temporal dead zone для ещё не
+        // инициализированной const), рейтинг ПВО упал бы с ReferenceError при первом же проходе по базе.
+        const AA_SWARM_SPREAD = {
+            perProjectile: 0.15,    // сек: разнос между боеголовками ОДНОГО пуска (разные траектории)
+            perLaunch: 0.35,        // сек: разнос между РАЗНЫМИ пусками/ракетами (не идеальный "залп стенкой")
+            maxShareOfWindow: 0.45  // разброс не должен "съедать" больше 45% базового окна перехвата
+        };
+
         function getSafeDistance(item) {
             const MW_COEF = 0.00278; 
             let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
@@ -1946,22 +1957,64 @@
             // немного завышало итоговый рейтинг всех систем ПВО. Теперь профиль строится только
             // по ударным противокорабельным ракетам.
             const threatKeys = Object.keys(DB).filter(k => DB[k].category === "Ракеты");
-            let sums = { max_speed: 0, start_speed: 0, accel_time: 0, hp: 0, n: 0 };
+            let sums = { max_speed: 0, start_speed: 0, accel_time: 0, hp: 0, projectiles: 0, n: 0 };
             threatKeys.forEach(k => {
                 const m = DB[k];
                 sums.max_speed += (m.max_speed || 0);
                 sums.start_speed += (m.start_speed || m.max_speed || 0);
                 sums.accel_time += (m.accel_time || 0.1);
                 sums.hp += (m.hp || 50);
+                // Средняя "кучность" залпа боевых ракет (сколько боеголовок обычно прилетает
+                // за один пуск) — нужна, чтобы рейтинг ПВО считался против реалистичного РОЯ
+                // ракет, а не против вакуумной одиночной ракеты (см. нюанс "не в одну линию").
+                sums.projectiles += (m.projectiles || 1);
                 sums.n++;
             });
             _threatMissileProfileCache = sums.n > 0 ? {
                 avgMaxSpeed: sums.max_speed / sums.n,
                 avgStartSpeed: sums.start_speed / sums.n,
                 avgAccelTime: sums.accel_time / sums.n,
-                avgHp: sums.hp / sums.n
-            } : { avgMaxSpeed: 400, avgStartSpeed: 100, avgAccelTime: 2, avgHp: 250 };
+                avgHp: sums.hp / sums.n,
+                avgProjectiles: sums.projectiles / sums.n
+            } : { avgMaxSpeed: 400, avgStartSpeed: 100, avgAccelTime: 2, avgHp: 250, avgProjectiles: 1 };
             return _threatMissileProfileCache;
+        }
+
+        // Тюнинг модификатора точности ПВО по радиусу детонации (см. getEffectiveAccuracy ниже).
+        // Базовые индексы точности по типам (11/14/16/22) заданы вручную по ощущению от игры и
+        // остаются "истиной" — они выражают разницу МЕХАНИК наведения (лазер/пулемёт бьют мгновенно
+        // без баллистики, ракетное/гибрид — со своей наводящейся ракетой). Радиус детонации не может
+        // и не должен эту иерархию отменять — конкретный юнит внутри своего типа лишь слегка точнее
+        // или хуже среднего представителя ТОГО ЖЕ типа, если его радиус поражения больше/меньше
+        // среднего (больше радиус — легче "простить" небольшой промах мимо цели).
+        // ВАЖНО: объявлено здесь, ДО подсчёта рейтингов (см. "for (let key in DB)" ниже), а не рядом
+        // с getEffectiveAccuracy ближе к концу файла — по той же причине TDZ, что и AA_REACTION_TIME/
+        // AA_SWARM_SPREAD выше.
+        const AA_DISPERSION_RADIUS_TUNING = {
+            sensitivity: 0.15, // сколько пунктов dispersion снимается/добавляется за 1 ед. radius отклонения от среднего по типу
+            cap: 1.5           // жёсткий потолок модификатора — меньше минимального зазора между соседними базовыми индексами (16-14=2),
+                                // чтобы лучший юнит одного типа мог приблизиться к соседнему типу, но не перепрыгнуть через него
+        };
+
+        // Средний "радиус детонации" по каждому типу ПВО — считается только по юнитам, где это поле
+        // реально задано в базе. Юниты БЕЗ этого поля (RIM-7, SEA RAM, KASHTAN-M на момент написания)
+        // получают модификатор 0 (ведут себя как средний представитель своего типа) — это честнее
+        // жёсткого дефолтного числа, которое тянуло бы их точность вверх или вниз произвольно.
+        let _aaDispersionProfileCache = null;
+        function getAADispersionProfile() {
+            if (_aaDispersionProfileCache) return _aaDispersionProfileCache;
+            let sums = {};
+            Object.keys(DB).forEach(k => {
+                const it = DB[k];
+                if (it.category !== "ПВО" || it.detonation_radius == null) return;
+                if (!sums[it.aa_type]) sums[it.aa_type] = { sum: 0, n: 0 };
+                sums[it.aa_type].sum += it.detonation_radius;
+                sums[it.aa_type].n++;
+            });
+            let avgByType = {};
+            Object.keys(sums).forEach(t => { avgByType[t] = sums[t].sum / sums[t].n; });
+            _aaDispersionProfileCache = avgByType;
+            return _aaDispersionProfileCache;
         }
 
         // --- Трекер очков рейтинга: каждая надбавка/штраф в формулах ниже записывается с названием,
@@ -2419,6 +2472,11 @@
                     max_speed: threat.avgMaxSpeed,
                     accel_time: threat.avgAccelTime,
                     hp: threat.avgHp,
+                    // Реалистичная "кучность" залпа: реальная ракета редко летит в одиночку — берём
+                    // среднее число боеголовок за пуск по всей базе боевых ракет. Дальше движок
+                    // runInterceptEngine раскладывает их как отдельные цели с разнесённым дедлайном
+                    // (не "в одну линию") и последовательным фокус-огнём ПВО — см. его комментарий.
+                    projectiles: Math.max(1, Math.round(threat.avgProjectiles || 1)),
                     anti_jamming: 0 // средний случай: у части атакующих ракет РЭБ нет — иначе рейтинг
                                     // никак не наказывал бы медленные ракетные/гибридные ПВО за это
                 };
@@ -2430,7 +2488,11 @@
                 const R = computeAAEngagement(item, 1, threatMissile, 1, engagementDistance);
 
                 item.accuracyScore = Math.round(R.accuracy * 100);
-                item.killChanceVsMissile = Math.min(1, R.totalAADamage / (R.singleMissileHP || 1));
+                // Доля суммарного HP типичного роя, которую ПВО успевает снять за окно перехвата —
+                // честная метрика и для одиночной ракеты (n=1), и для роя из нескольких боеголовок:
+                // чем крупнее рой, тем больше totalMissileHP и тем труднее сбить его полностью,
+                // как и должно быть.
+                item.killChanceVsMissile = R.totalMissileHP > 0 ? Math.min(1, R.totalAADamage / R.totalMissileHP) : 0;
                 item.effectiveDpm = item.dpm;
                 item.effectiveBurst = item.damage_burst;
 
@@ -3711,6 +3773,24 @@
                 if (item.aa_type === "Пулеметное") aa_dispersion = 22;
                 else if (item.aa_type === "Гибрид") aa_dispersion = 16;
                 else if (item.aa_type === "Ракетное") aa_dispersion = 14;
+
+                // Модификатор по радиусу детонации: юнит с радиусом БОЛЬШЕ среднего по своему же типу
+                // прощает промах чуть лучше (dispersion немного ниже), с радиусом МЕНЬШЕ среднего —
+                // чуть хуже. Сравнение строго внутри своего типа (см. getAADispersionProfile), поэтому
+                // базовая иерархия точности между типами никогда не нарушается — только смягчается/
+                // усиливается ВНУТРИ неё, в пределах жёсткого потолка cap.
+                if (item.detonation_radius != null) {
+                    let avgByType = getAADispersionProfile();
+                    let typeAvgRadius = avgByType[item.aa_type];
+                    if (typeAvgRadius != null) {
+                        let raw = (item.detonation_radius - typeAvgRadius) * AA_DISPERSION_RADIUS_TUNING.sensitivity;
+                        let modifier = Math.max(-AA_DISPERSION_RADIUS_TUNING.cap, Math.min(AA_DISPERSION_RADIUS_TUNING.cap, raw));
+                        aa_dispersion -= modifier;
+                    }
+                }
+                // Юниты без detonation_radius (RIM-7, SEA RAM, KASHTAN-M и т.п.) модификатор не получают
+                // и остаются ровно на базовом индексе своего типа — как средний представитель.
+
                 let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7);
                 return Math.max(0.10, (100 - spreadPenalty) / 100);
             }
@@ -3730,198 +3810,78 @@
             return 1;
         }
 
-        function computeAAEngagement(aa, aaQty, mis, misQty, distance) {
-            const MW_COEF = 0.00278;
+        // =========================================================
+        // ЕДИНЫЙ ДВИЖОК ПЕРЕХВАТА ПВО (доработка "нюансов роя")
+        // =========================================================
+        // Раньше весь залп атакующих ракет считался ОДНИМ общим "окном перехвата" (engageTime) и
+        // ОДНИМ общим пулом урона (totalAADamage), который в конце просто делился на HP одной ракеты
+        // (floor(totalAADamage / singleMissileHP)). У этого было два нереалистичных допущения:
+        //   1) Все ракеты роя как будто летят "в одну линию" и одновременно проходят через ТОЧНО
+        //      одинаковое окно перехвата — как будто это одна точка, а не N разных ракет на разных,
+        //      слегка разнесённых по времени траекториях (разные боеголовки одного пуска, разные пуски).
+        //   2) Урон "размазывался" по завершении расчёта одним делением, без явной модели того, КАК
+        //      именно ПВО ведёт огонь по рою. В игре все точки/каналы ПВО стреляют по ОДНОЙ ракете, и
+        //      только когда она уничтожена — перенацеливаются на следующую (последовательный
+        //      фокус-огонь), а не "размазывают" урон по всем ракетам роя одновременно.
+        //
+        // Новая модель:
+        //  - Каждая ракета роя — отдельная цель со своим индивидуальным дедлайном (временем долёта
+        //    до корабля), слегка смещённым относительно "средней" ракеты залпа: боеголовки одного
+        //    пуска (mis.projectiles) разнесены слабо (свои траектории, но пуск один), ракеты разных
+        //    пусков (misQty) — чуть сильнее (не идеально синхронизированы между собой).
+        //  - Все стволы/каналы ПВО (aaQty штук, плюс пушечный+ракетный канал у гибридов) стреляют
+        //    ПО ОДНОЙ И ТОЙ ЖЕ, ближайшей по дедлайну живой ракете. Как только суммарный урон по ней
+        //    достигает её HP — она уничтожается, и огонь МГНОВЕННО переключается на следующую ракету
+        //    в очереди. Если дедлайн текущей цели наступает раньше, чем её добили — она прорывается
+        //    (survives), а огонь также переключается дальше, не "теряя" оставшиеся выстрелы.
+        //  - Все прежние временные расчёты (задержка реакции, сигмоида по запасу времени на перехват,
+        //    квадратичный штраф по скорости интерцептора, гибридные каналы, лазер/пулемёт, шанс
+        //    пробития ловушек) остаются такими же — меняется только то, ПРОТИВ КАКОЙ именно ракеты
+        //    роя и с каким индивидуальным дедлайном они считаются в каждый момент времени.
+        //
+        // computeAAEngagement (рейтинг ПВО, дуэль кораблей) и simulateAABreakthrough (интерактивный
+        // калькулятор "РАССЧИТАТЬ ВЕРОЯТНОСТЬ") теперь — тонкие обёртки над этим общим движком, чтобы
+        // рой ракет и логика фокус-огня считались абсолютно одинаково в обоих местах и никогда не
+        // расходились между собой.
+        // (Константы AA_SWARM_SPREAD объявлены выше, рядом с AA_REACTION_TIME — см. комментарий там.)
 
-            // 1. Физика полета АТАКУЮЩЕЙ ракеты (нач. скорость -> макс. скорость за accel_time)
-            let misV0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
-            let misVmax = (mis.max_speed || 0) * MW_COEF;
-            let misAccelTime = mis.accel_time || 0.1;
-
-            let flyTime = missileFlightTime(misV0, misVmax, misAccelTime, distance);
-
-            // 2. Время до входа в зону поражения ПВО (по дальности aa.range)
-            let aaRange = aa.range || 3.0;
-            let timeToEnterAARange = 0;
-            if (distance > aaRange) {
-                let distToAa = distance - aaRange;
-                timeToEnterAARange = missileFlightTime(misV0, misVmax, misAccelTime, distToAa);
+        // Строит рой из N отдельных ракет-целей с индивидуальными дедлайнами вокруг baseEngageTime.
+        function buildMissileSwarm(baseEngageTime, projectilesPerLaunch, misQty, singleMissileHP) {
+            const totalMissiles = Math.max(1, misQty * projectilesPerLaunch);
+            if (totalMissiles === 1) {
+                return [{ hp: singleMissileHP, deadline: Math.max(0.05, baseEngageTime) }];
             }
-            let engageTime = Math.max(0, flyTime - timeToEnterAARange);
-
-            // 3. Формирование ракетного роя
-            let projectilesPerLaunch = mis.projectiles || 1;
-            let totalMissiles = misQty * projectilesPerLaunch;
-            let singleMissileHP = mis.hp || 50;
-            let totalMissileHP = singleMissileHP * totalMissiles;
-
-            // 4. Кинематика ПЕРЕХВАТЧИКА (собственная нач./макс. скорость и время разгона ПВО-ракеты).
-            //    Применяется к "Ракетное"/"Гибрид" ПВО, а также к гибридным автопушкам с accel_time
-            //    (Гибка, Комар, Тайфун-NLOS, Пакет-НК и т.п.) — у них тоже летит своя ракета/снаряд.
-            let aaHasMissileProfile = (aa.accel_time || 0) > 0;
-            let aaV0 = (aa.start_speed || aa.max_speed || 0) * MW_COEF;
-            let aaVmax = (aa.max_speed || 0) * MW_COEF;
-            let aaAccelTime = aa.accel_time || 0;
-
-            // 4.2 Задержка реакции. Раньше AA_REACTION_TIME была объявлена рядом с этой функцией, но
-            // из-за TDZ ломала рейтинг ПВО при вызове из калькулятора рейтингов (см. её новое
-            // объявление ближе к началу скрипта). Здесь она реально вычитается из engageTime: для
-            // типов без явного aa_type (обычные автопушки в роли ПВО) используется 0.6с, если у них
-            // есть собственная летящая ракета (гибридный канал), иначе 0.4с.
-            let reactionTime = AA_REACTION_TIME[aa.aa_type];
-            if (reactionTime === undefined) reactionTime = aaHasMissileProfile ? 0.6 : 0.4;
-            engageTime = Math.max(0, engageTime - reactionTime);
-
-            // 4.1 Фактор "не успевает поймать скоростную цель": сравниваем макс. скорость ракеты
-            //     ПВО с макс. скоростью атакующей ракеты. Чем медленнее интерцептор — тем резче
-            //     падает шанс довести наведение до попадания (квадратичный штраф).
-            let speedFactor = 1;
-            if (aaHasMissileProfile && misVmax > 0) {
-                let ratio = Math.min(1, aaVmax / misVmax);
-                speedFactor = Math.pow(ratio, 2);
-            }
-
-            let accuracy = getEffectiveAccuracy(aa);
-
-            // 5. Урон ПВО
-            let totalAADamage = 0;
-            let shotsFired = 0, shotsLanded = 0;
-
-            // Гибрид = отдельные пушечный (dpm_gun/damage_gun/...) и ракетный (dpm_missile/damage_missile/...)
-            // каналы огня одной и той же установки. Раньше в симуляции участвовал только "общий" канал
-            // (aa.damage/aa.reload/aa.ammo_clip), который для гибридов физически хранит РАКЕТНЫЕ цифры —
-            // пушечный ствол в бою не стрелял вообще. Теперь считаем оба канала параллельно и складываем урон.
-            let isHybrid = (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined);
-
-            // Универсальный симулятор одного канала (очередь/пуски -> ожидаемое число попаданий за engageTime).
-            // useKinematics=true — канал имеет свою баллистику/разгон и получает штраф по времени/скорости
-            // (ракетный канал у "Ракетное"/"Гибрид" ПВО и у гибридных автопушек с accel_time).
-            // useKinematics=false — канал долетает практически мгновенно (пушечный ствол, обычная автопушка).
-            // chAccuracy — точность именно ЭТОГО канала (по умолчанию общий "accuracy" сверху).
-            // Введено, чтобы у гибридов пушечный и ракетный канал могли иметь разную точность:
-            // разброс ствола (accuracy/дисперсия) — свойство пушки, а не наводящейся ракеты.
-            function simulateChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy) {
-                if (chAccuracy === undefined) chAccuracy = accuracy;
-                let currentTime = 0;
-                let clipLeft = clipSize || 1;
-                let expectedHits = 0;
-                const TIMING_SHARPNESS = 0.6; // сек.: масштаб "мягкости" временного окна перехвата
-
-                while (currentTime < engageTime) {
-                    if (clipLeft > 0) {
-                        let timingProb = 1;
-                        if (useKinematics) {
-                            // Дистанция, которую нужно пролететь ракете-перехватчику, сокращается
-                            // по мере приближения атакующей ракеты (цель уже ближе к кораблю)
-                            let remainingShare = Math.max(0, 1 - (currentTime / (engageTime || 1)));
-                            let requiredDist = aaRange * remainingShare;
-                            let interceptFlightTime = missileFlightTime(aaV0, aaVmax, aaAccelTime, requiredDist);
-                            // Запас времени: положительный — перехватчик прилетает заранее, отрицательный — опаздывает
-                            let timeMargin = engageTime - (currentTime + interceptFlightTime);
-                            timingProb = 1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS));
-                        }
-                        let shotHitProb = timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
-                        expectedHits += shotHitProb;
-
-                        shotsFired++;
-                        clipLeft--;
-                        currentTime += (fireDelay || 0.2);
-                    } else {
-                        currentTime += (reload || 3.0);
-                        clipLeft = clipSize || 1;
-                    }
+            let raw = [];
+            for (let g = 0; g < misQty; g++) {
+                for (let p = 0; p < projectilesPerLaunch; p++) {
+                    raw.push(g * AA_SWARM_SPREAD.perLaunch + p * AA_SWARM_SPREAD.perProjectile);
                 }
-                shotsLanded += expectedHits;
-                return expectedHits * (damage || 0);
             }
-
-            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                // Раньше здесь был плоский DPS: damage * engageTime, то есть луч/поток считался
-                // бесконечным — обойма (ammo_clip) и время перезарядки нигде не участвовали, и два
-                // ствола с одинаковым damage, но обоймой 50 и 175 выстрелов, получали одинаковый урон.
-                // Теперь ствол стреляет через тот же цикл "выстрел каждые fire_delay -> опустошение
-                // обоймы (ammo_clip) -> пауза на reload -> снова", что и остальные типы ПВО: чем
-                // больше обойма, тем дольше идёт непрерывный огонь до вынужденной паузы, и тем больше
-                // суммарный урон за то же окно перехвата (engageTime) — а значит, выше шанс сбить ракету.
-                let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false);
-                totalAADamage = channelDamage * aaQty;
-            } else if (isHybrid) {
-                // --- Ракетный канал: своя кинематика (тайминг + отставание по скорости), но БЕЗ
-                // общего "accuracy" (chAccuracy=1) — разброс ствола (дисперсия) это свойство пушки,
-                // а не наводящейся ракеты, у которой своя система наведения. Единственный штраф
-                // ракетного канала — шанс пробить ловушки цели (hitRatio), и он теперь считается
-                // ТОЙ ЖЕ формулой, что и в рейтинге автопушек: чем короче цикл перезарядки ракетного
-                // канала относительно цикла ловушек цели, тем выше шанс попасть между сбросами
-                // ловушек, а не плоские -40% на любой гибрид независимо от скорострельности.
-                let missileChannelDamage = simulateChannel(
-                    aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay, aaHasMissileProfile, 1
-                );
-                missileChannelDamage *= getMissileHitRatio(aa.reload_missile);
-
-                // --- Пушечный канал: бьёт практически мгновенно (без кинематики/таймингового штрафа),
-                // но со своим разбросом ствола (accuracy) ---
-                let gunChannelDamage = simulateChannel(
-                    aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy
-                );
-
-                totalAADamage = (missileChannelDamage + gunChannelDamage) * aaQty;
-            } else {
-                // Ракетное ПВО (не гибрид) и обычные автопушки — единственный канал, как и раньше.
-                // Раньше исход каждого пуска был бинарным: "успел долететь до конца окна = 100% попадание".
-                // Теперь у каждого перехватчика есть вероятность попадания, а не жёсткий порог по времени:
-                // запас времени на перехват переводится в шанс через сигмоиду, поэтому пуск в притык
-                // даёт что-то около 50%, пуск с большим запасом — почти гарантированный шанс, а пуск
-                // впритык к финалу окна или "не успевающий" — плавно падающий, но не строго нулевой шанс.
-                let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile);
-                if (mis.anti_jamming === 0 && aa.aa_type === "Ракетное") channelDamage *= 0.6;
-                totalAADamage = channelDamage * aaQty;
-            }
-
-            // 6. Итоги перехвата
-            let destroyedMissiles = Math.floor(totalAADamage / singleMissileHP);
-            destroyedMissiles = Math.min(destroyedMissiles, totalMissiles);
-
-            let survivedMissiles = totalMissiles - destroyedMissiles;
-            let survivalProbability = (survivedMissiles / totalMissiles) * 100;
-
-            return { engageTime: engageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy, totalAADamage: totalAADamage,
-                     shotsFired: shotsFired, shotsLanded: shotsLanded, totalMissiles: totalMissiles, totalMissileHP: totalMissileHP,
-                     singleMissileHP: singleMissileHP, destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
-                     survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile };
+            let minOff = Math.min.apply(null, raw), maxOff = Math.max.apply(null, raw);
+            let spread = maxOff - minOff;
+            let cap = baseEngageTime * AA_SWARM_SPREAD.maxShareOfWindow;
+            let scale = (spread > cap && spread > 0) ? (cap / spread) : 1;
+            let mid = (minOff + maxOff) / 2;
+            return raw.map(function(off) {
+                return { hp: singleMissileHP, deadline: Math.max(0.05, baseEngageTime + (off - mid) * scale) };
+            });
         }
-        // ^ computeAAEngagement — используется ТОЛЬКО рейтингом ПВО (строка с getRatingScore/threatMissile)
-        // и симулятором дуэли кораблей. Формула идентична simulateAABreakthrough ниже, но это два
-        // раздельных места в коде специально: если понадобится поменять поведение только в одном из
-        // сценариев (например, доработать именно калькулятор прорыва, не трогая рейтинг/дуэль),
-        // правки в одной функции больше не затронут другую.
 
-        // Расчёт прорыва ПВО для интерактивного симулятора (кнопка "РАССЧИТАТЬ ВЕРОЯТНОСТЬ").
-        // Полная копия computeAAEngagement на момент разделения (2026): те же шаги (время подлёта
-        // цели, окно после вычета реакции, обойма/fire_delay/reload по каналам, гибрид = пушечный +
-        // ракетный канал параллельно, точность через getEffectiveAccuracy). Общие вспомогательные
-        // функции (missileFlightTime, getEffectiveAccuracy, AA_REACTION_TIME) переиспользуются —
-        // дублируется только сама логика розыгрыша боя, чтобы её можно было менять независимо.
-        function simulateAABreakthrough(aa, aaQty, mis, misQty, distance) {
+        function runInterceptEngine(aa, aaQty, mis, misQty, distance) {
             const MW_COEF = 0.00278;
 
+            // 1. Физика полёта атакующей ракеты (тип у всего роя одинаковый — один выбранный mis)
             let misV0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
             let misVmax = (mis.max_speed || 0) * MW_COEF;
             let misAccelTime = mis.accel_time || 0.1;
-
             let flyTime = missileFlightTime(misV0, misVmax, misAccelTime, distance);
 
             let aaRange = aa.range || 3.0;
             let timeToEnterAARange = 0;
             if (distance > aaRange) {
-                let distToAa = distance - aaRange;
-                timeToEnterAARange = missileFlightTime(misV0, misVmax, misAccelTime, distToAa);
+                timeToEnterAARange = missileFlightTime(misV0, misVmax, misAccelTime, distance - aaRange);
             }
-            let engageTime = Math.max(0, flyTime - timeToEnterAARange);
-
-            let projectilesPerLaunch = mis.projectiles || 1;
-            let totalMissiles = misQty * projectilesPerLaunch;
-            let singleMissileHP = mis.hp || 50;
-            let totalMissileHP = singleMissileHP * totalMissiles;
+            let baseEngageTime = Math.max(0, flyTime - timeToEnterAARange);
 
             let aaHasMissileProfile = (aa.accel_time || 0) > 0;
             let aaV0 = (aa.start_speed || aa.max_speed || 0) * MW_COEF;
@@ -3930,7 +3890,7 @@
 
             let reactionTime = AA_REACTION_TIME[aa.aa_type];
             if (reactionTime === undefined) reactionTime = aaHasMissileProfile ? 0.6 : 0.4;
-            engageTime = Math.max(0, engageTime - reactionTime);
+            baseEngageTime = Math.max(0, baseEngageTime - reactionTime);
 
             let speedFactor = 1;
             if (aaHasMissileProfile && misVmax > 0) {
@@ -3940,32 +3900,31 @@
 
             let accuracy = getEffectiveAccuracy(aa);
 
-            let totalAADamage = 0;
-            let shotsFired = 0, shotsLanded = 0;
+            // 2. Формирование роя: N отдельных ракет с индивидуальными дедлайнами (не "в одну линию")
+            let projectilesPerLaunch = mis.projectiles || 1;
+            let singleMissileHP = mis.hp || 50;
+            let swarm = buildMissileSwarm(baseEngageTime, projectilesPerLaunch, misQty, singleMissileHP)
+                .sort(function(a, b) { return a.deadline - b.deadline; })
+                .map(function(m) { return { hp: m.hp, deadline: m.deadline, status: 'pending' }; });
+            let totalMissiles = swarm.length;
+            let totalMissileHP = singleMissileHP * totalMissiles;
+            let maxDeadline = swarm[swarm.length - 1].deadline;
 
             let isHybrid = (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined);
 
-            function simulateChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy) {
-                if (chAccuracy === undefined) chAccuracy = accuracy;
+            // 3. Расписание выстрелов канала — ТОЛЬКО моменты стрельбы (обойма/fire_delay/reload).
+            //    Вероятность попадания считается позже, в общем цикле, т.к. зависит от ТЕКУЩЕЙ цели —
+            //    у каждой ракеты роя свой дедлайн, поэтому запас времени на перехват у каждого
+            //    выстрела свой, в зависимости от того, по какой ракете он в итоге стреляет.
+            function buildShotSchedule(clipSize, fireDelay, reload, maxTime) {
+                let times = [];
                 let currentTime = 0;
                 let clipLeft = clipSize || 1;
-                let expectedHits = 0;
-                const TIMING_SHARPNESS = 0.6;
-
-                while (currentTime < engageTime) {
+                let guard = 0;
+                while (currentTime < maxTime && guard < 100000) {
+                    guard++;
                     if (clipLeft > 0) {
-                        let timingProb = 1;
-                        if (useKinematics) {
-                            let remainingShare = Math.max(0, 1 - (currentTime / (engageTime || 1)));
-                            let requiredDist = aaRange * remainingShare;
-                            let interceptFlightTime = missileFlightTime(aaV0, aaVmax, aaAccelTime, requiredDist);
-                            let timeMargin = engageTime - (currentTime + interceptFlightTime);
-                            timingProb = 1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS));
-                        }
-                        let shotHitProb = timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
-                        expectedHits += shotHitProb;
-
-                        shotsFired++;
+                        times.push(currentTime);
                         clipLeft--;
                         currentTime += (fireDelay || 0.2);
                     } else {
@@ -3973,44 +3932,119 @@
                         clipLeft = clipSize || 1;
                     }
                 }
-                shotsLanded += expectedHits;
-                return expectedHits * (damage || 0);
+                return times;
+            }
+
+            const TIMING_SHARPNESS = 0.6;
+            // Вероятность попадания ОДНОГО выстрела, произведённого в момент t, по цели с дедлайном
+            // targetDeadline. useKinematics — у канала своя баллистика/разгон (сигмоида по запасу
+            // времени + квадратичный штраф по скорости интерцептора), иначе попадание ~мгновенное.
+            function shotHitProbability(t, targetDeadline, useKinematics, chAccuracy) {
+                let timingProb = 1;
+                if (useKinematics) {
+                    let remainingShare = Math.max(0, 1 - (t / (targetDeadline || 1)));
+                    let requiredDist = aaRange * remainingShare;
+                    let interceptFlightTime = missileFlightTime(aaV0, aaVmax, aaAccelTime, requiredDist);
+                    let timeMargin = targetDeadline - (t + interceptFlightTime);
+                    timingProb = 1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS));
+                }
+                return timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
+            }
+
+            // 4. Сведение всех каналов (aaQty стволов х пушечный/ракетный канал у гибридов) в один
+            //    список событий-выстрелов с весом aaQty — это и есть "все точки ПВО стреляют в одну
+            //    и ту же цель одновременно".
+            let events = [];
+            function addChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy, extraMult) {
+                if (!damage) return;
+                let times = buildShotSchedule(clipSize, fireDelay, reload, maxDeadline);
+                times.forEach(function(t) {
+                    events.push({
+                        t: t, damage: damage, useKinematics: useKinematics,
+                        chAccuracy: chAccuracy === undefined ? accuracy : chAccuracy,
+                        extraMult: extraMult === undefined ? 1 : extraMult,
+                        weight: aaQty
+                    });
+                });
             }
 
             if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false);
-                totalAADamage = channelDamage * aaQty;
+                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, 1);
             } else if (isHybrid) {
                 // Ракетный канал: без штрафа по общей точности (chAccuracy=1) — разброс ствола не
-                // относится к наводящейся ракете; вместо этого — hitRatio пробития ловушек, та же
-                // формула, что и в рейтинге автопушек (зависит от собственного цикла перезарядки).
-                let missileChannelDamage = simulateChannel(
-                    aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay, aaHasMissileProfile, 1
-                );
-                missileChannelDamage *= getMissileHitRatio(aa.reload_missile);
-
+                // относится к наводящейся ракете; вместо этого — hitRatio пробития ловушек.
+                addChannel(aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay,
+                    aaHasMissileProfile, 1, getMissileHitRatio(aa.reload_missile));
                 // Пушечный канал: свой разброс ствола (accuracy), кинематика не нужна.
-                let gunChannelDamage = simulateChannel(
-                    aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy
-                );
-
-                totalAADamage = (missileChannelDamage + gunChannelDamage) * aaQty;
+                addChannel(aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy, 1);
             } else {
-                let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile);
-                if (mis.anti_jamming === 0 && aa.aa_type === "Ракетное") channelDamage *= 0.6;
-                totalAADamage = channelDamage * aaQty;
+                let antiJamMult = (mis.anti_jamming === 0 && aa.aa_type === "Ракетное") ? 0.6 : 1;
+                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult);
             }
 
-            let destroyedMissiles = Math.floor(totalAADamage / singleMissileHP);
-            destroyedMissiles = Math.min(destroyedMissiles, totalMissiles);
+            events.sort(function(a, b) { return a.t - b.t; });
 
+            // 5. Прогон роя: ОДИН общий указатель "текущая цель" для всех каналов/стволов сразу —
+            //    ровно как в игре ("все точки стреляют в одну, как только сбивают — в другую").
+            let totalAADamage = 0, shotsFired = 0, shotsLanded = 0;
+            let targetPtr = 0;
+
+            function advancePastLeaked(t) {
+                while (targetPtr < swarm.length &&
+                       (swarm[targetPtr].status !== 'pending' || swarm[targetPtr].deadline <= t)) {
+                    if (swarm[targetPtr].status === 'pending' && swarm[targetPtr].deadline <= t) {
+                        swarm[targetPtr].status = 'leaked'; // ракета долетела раньше, чем её успели добить
+                    }
+                    targetPtr++;
+                }
+            }
+
+            for (let i = 0; i < events.length; i++) {
+                let ev = events[i];
+                advancePastLeaked(ev.t);
+                if (targetPtr >= swarm.length) break; // весь рой уже уничтожен или прорвался — стрелять не по кому
+
+                let target = swarm[targetPtr];
+                let p = shotHitProbability(ev.t, target.deadline, ev.useKinematics, ev.chAccuracy) * ev.extraMult;
+                let expectedHits = ev.weight * p;
+                let expectedDamage = expectedHits * ev.damage;
+
+                shotsFired += ev.weight;
+                shotsLanded += expectedHits;
+                totalAADamage += expectedDamage;
+                target.hp -= expectedDamage;
+
+                if (target.hp <= 0) {
+                    target.status = 'destroyed';
+                    targetPtr++; // мгновенное перенацеливание на следующую живую ракету роя
+                }
+            }
+            // Ракеты, до которых очередь так и не дошла (кончились выстрелы раньше их дедлайна) — прорвались
+            advancePastLeaked(maxDeadline + 1);
+
+            let destroyedMissiles = swarm.filter(function(m) { return m.status === 'destroyed'; }).length;
             let survivedMissiles = totalMissiles - destroyedMissiles;
             let survivalProbability = (survivedMissiles / totalMissiles) * 100;
 
-            return { engageTime: engageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy, totalAADamage: totalAADamage,
-                     shotsFired: shotsFired, shotsLanded: shotsLanded, totalMissiles: totalMissiles, totalMissileHP: totalMissileHP,
-                     singleMissileHP: singleMissileHP, destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
-                     survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile };
+            return { engageTime: baseEngageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy,
+                     totalAADamage: totalAADamage, shotsFired: shotsFired, shotsLanded: shotsLanded,
+                     totalMissiles: totalMissiles, totalMissileHP: totalMissileHP, singleMissileHP: singleMissileHP,
+                     destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
+                     survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile,
+                     swarmSpreadSec: (maxDeadline - swarm[0].deadline) };
+        }
+
+        // Обёртка: используется рейтингом ПВО (RATING_CALCULATORS["ПВО"]) и симулятором дуэли кораблей.
+        function computeAAEngagement(aa, aaQty, mis, misQty, distance) {
+            return runInterceptEngine(aa, aaQty, mis, misQty, distance);
+        }
+
+        // Обёртка: используется интерактивным калькулятором (кнопка "РАССЧИТАТЬ ВЕРОЯТНОСТЬ").
+        // Раньше это была отдельная копия формулы — теперь оба места используют один и тот же движок
+        // runInterceptEngine, поэтому рой ракет и логика фокус-огня считаются идентично везде и больше
+        // не могут разойтись между собой.
+        function simulateAABreakthrough(aa, aaQty, mis, misQty, distance) {
+            return runInterceptEngine(aa, aaQty, mis, misQty, distance);
         }
 
         function simulateAA() {
