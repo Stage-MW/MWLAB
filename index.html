@@ -1986,6 +1986,33 @@
             return cap + (range - cap) * META_CONFIG.softCapFactor;
         }
 
+        // Общий шанс наводящейся ракеты пробить ловушки цели (флары/РЭБ). Раньше эта формула была
+        // продублирована в 4 местах (рейтинг "Ракеты", рейтинг "Автопушки", computeAAEngagement,
+        // simulateAABreakthrough) — теперь один источник истины, чтобы тир-лист и бой не расходились.
+        // Чем короче цикл перезарядки ракетного канала относительно цикла сброса ловушек цели,
+        // тем выше шанс попасть в "чистое" окно между сбросами.
+        function getMissileHitRatio(misReload, flareCycle) {
+            flareCycle = flareCycle || META_CONFIG.flareCycleMissile;
+            misReload = misReload != null ? misReload : 5.0;
+            if (misReload <= flareCycle / 2) return 1 - (misReload / flareCycle);
+            if (misReload < flareCycle) return 0.50;
+            return 0.30;
+        }
+
+        // "Шкала отдельного орудия автопушки": те же веса, что и у обычной (негибридной) автопушки.
+        // Используется для пушечного канала гибридов, чтобы он оценивался ровно как самостоятельный
+        // ствол, а не как произвольная доля смешанного числа.
+        function scoreAsGunChannel(effDpm, effBurst) {
+            return ((effDpm / 250000) * 300) + ((effBurst / 30000) * 150);
+        }
+
+        // "Шкала отдельной ракеты": те же веса, что и у категории "Ракеты" (см. calculateRating).
+        // Используется для ракетного канала гибридов — по логике отдельного ракетного оружия,
+        // а не подогнанная под шкалу автопушки/ПВО.
+        function scoreAsMissileChannel(effDpm, effBurst) {
+            return ((effDpm / 300000) * 250) + ((effBurst / 60000) * 100);
+        }
+
         const RATING_CALCULATORS = {
             "Пушки": function(item) {
                 let score = 100;
@@ -2059,19 +2086,8 @@
                     let clusterBonus = hasCluster ? 0.1 : 0; 
                     
                     item.effectiveBurst = item.damage_burst;
-                    
-                    let flareCycle = META_CONFIG.flareCycleMissile; 
-                    let hitRatio = 0;
 
-                    if (item.reload <= (flareCycle / 2)) {
-                        hitRatio = 1 - (item.reload / flareCycle);
-                    } 
-                    else if (item.reload < flareCycle) {
-                        hitRatio = 0.50; 
-                    } 
-                    else {
-                        hitRatio = 0.30; 
-                    }
+                    let hitRatio = getMissileHitRatio(item.reload);
 
                     item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
                 }
@@ -2339,38 +2355,39 @@
 
                 let effDpm = item.dpm * accuracyFactor;
                 let effBurst = item.damage_burst * accuracyFactor;
-                
+
                 // Проверяем, является ли автопушка гибридной (есть ракетный канал)
-                if (item.dpm_missile !== undefined) {
-                    let flareCycle = META_CONFIG.flareCycleMissile; 
-                    let misReload = item.reload_missile || 5.0;
-                    
-                    // Шанс попадания ракеты из автопушки сквозь ловушки врага
-                    let hitRatio = 0;
-                    if (misReload <= (flareCycle / 2)) {
-                        hitRatio = 1 - (misReload / flareCycle);
-                    } else if (misReload < flareCycle) {
-                        hitRatio = 0.50;
-                    } else {
-                        hitRatio = 0.30;
-                    }
-                    
-                    let gunDpm = (item.dpm_gun || 0) * accuracyFactor;
-                    let misDpm = item.dpm_missile || 0;
-                    
-                    effDpm = gunDpm + (misDpm * hitRatio);
-                    
-                    // Эффективный альфа-страйк (урон барабана пушки + ракеты, дошедшие через ловушки)
-                    let gunBurst = (item.damage_gun || 0) * (item.ammo_clip_gun || 1) * accuracyFactor;
-                    let misBurst = (item.damage_missile || 0) * (item.ammo_clip_missile || 1);
-                    effBurst = gunBurst + (misBurst * hitRatio); 
-                } 
-                
+                let isHybridAuto = (item.dpm_missile !== undefined);
+                if (isHybridAuto) {
+                    // Шанс попадания ракеты из автопушки сквозь ловушки врага — общая формула,
+                    // та же, что и у категории "Ракеты" и у боевого симулятора.
+                    let hitRatio = getMissileHitRatio(item.reload_missile);
+
+                    let gunEffDpm = (item.dpm_gun || 0) * accuracyFactor;
+                    let gunEffBurst = (item.damage_gun || 0) * (item.ammo_clip_gun || 1) * accuracyFactor;
+                    let misEffDpm = (item.dpm_missile || 0) * hitRatio;
+                    let misEffBurst = (item.damage_missile || 0) * (item.ammo_clip_missile || 1) * hitRatio;
+
+                    effDpm = gunEffDpm + misEffDpm;
+                    effBurst = gunEffBurst + misEffBurst;
+
+                    // Раньше смешанный effDpm/effBurst (пушка + ракета одной суммой) целиком
+                    // прогонялся через единую шкалу автопушек — как будто оба канала однородны.
+                    // Но пушечный и ракетный залп по своей природе устроены по-разному (скорострельность,
+                    // масштаб урона за выстрел), поэтому теперь очки начисляются раздельно: пушечный
+                    // канал — по шкале обычной (негибридной) автопушки, ракетный — по шкале отдельного
+                    // ракетного оружия (категория "Ракеты"). Это и есть "расчёт как для пулемёта и как
+                    // для ракеты по отдельности", а не одна усреднённая формула на двоих.
+                    score += _T("Пушечный канал (эфф. DPM + альфа, шкала автопушки)", scoreAsGunChannel(gunEffDpm, gunEffBurst));
+                    score += _T("Ракетный канал (эфф. DPM + альфа, шкала ракеты)", scoreAsMissileChannel(misEffDpm, misEffBurst));
+                } else {
+                    score += _T("Эффективный DPM", ((effDpm / 250000) * 300));
+                    score += _T("Эффективный альфа-страйк", ((effBurst / 30000) * 150));
+                }
+
                 item.effectiveDpm = effDpm;
                 item.effectiveBurst = effBurst;
-                
-                score += _T("Эффективный DPM", ((effDpm / 250000) * 300));
-                score += _T("Эффективный альфа-страйк", ((effBurst / 30000) * 150));
+
                 if (accuracyFactor < 1) score -= _N("Штраф: низкая точность (разброс)", ((1 - accuracyFactor) * 120));
                 
                 if (item.air_target === 1) score += _T("Атака авиации", (150)); 
@@ -3780,7 +3797,11 @@
             // useKinematics=true — канал имеет свою баллистику/разгон и получает штраф по времени/скорости
             // (ракетный канал у "Ракетное"/"Гибрид" ПВО и у гибридных автопушек с accel_time).
             // useKinematics=false — канал долетает практически мгновенно (пушечный ствол, обычная автопушка).
-            function simulateChannel(damage, reload, clipSize, fireDelay, useKinematics) {
+            // chAccuracy — точность именно ЭТОГО канала (по умолчанию общий "accuracy" сверху).
+            // Введено, чтобы у гибридов пушечный и ракетный канал могли иметь разную точность:
+            // разброс ствола (accuracy/дисперсия) — свойство пушки, а не наводящейся ракеты.
+            function simulateChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy) {
+                if (chAccuracy === undefined) chAccuracy = accuracy;
                 let currentTime = 0;
                 let clipLeft = clipSize || 1;
                 let expectedHits = 0;
@@ -3799,7 +3820,7 @@
                             let timeMargin = engageTime - (currentTime + interceptFlightTime);
                             timingProb = 1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS));
                         }
-                        let shotHitProb = timingProb * accuracy * (useKinematics ? speedFactor : 1);
+                        let shotHitProb = timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
                         expectedHits += shotHitProb;
 
                         shotsFired++;
@@ -3825,16 +3846,22 @@
                 let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false);
                 totalAADamage = channelDamage * aaQty;
             } else if (isHybrid) {
-                // --- Ракетный канал: своя кинематика, штраф по таймингу и по скорости относительно цели ---
+                // --- Ракетный канал: своя кинематика (тайминг + отставание по скорости), но БЕЗ
+                // общего "accuracy" (chAccuracy=1) — разброс ствола (дисперсия) это свойство пушки,
+                // а не наводящейся ракеты, у которой своя система наведения. Единственный штраф
+                // ракетного канала — шанс пробить ловушки цели (hitRatio), и он теперь считается
+                // ТОЙ ЖЕ формулой, что и в рейтинге автопушек: чем короче цикл перезарядки ракетного
+                // канала относительно цикла ловушек цели, тем выше шанс попасть между сбросами
+                // ловушек, а не плоские -40% на любой гибрид независимо от скорострельности.
                 let missileChannelDamage = simulateChannel(
-                    aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay, aaHasMissileProfile
+                    aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay, aaHasMissileProfile, 1
                 );
-                // РЭБ (ловушки) уводит только наводящуюся ракету, снаряды пушки на неё не реагируют
-                if (mis.anti_jamming === 0) missileChannelDamage *= 0.6;
+                missileChannelDamage *= getMissileHitRatio(aa.reload_missile);
 
-                // --- Пушечный канал: бьёт практически мгновенно, без штрафа по времени/скорости цели ---
+                // --- Пушечный канал: бьёт практически мгновенно (без кинематики/таймингового штрафа),
+                // но со своим разбросом ствола (accuracy) ---
                 let gunChannelDamage = simulateChannel(
-                    aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false
+                    aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy
                 );
 
                 totalAADamage = (missileChannelDamage + gunChannelDamage) * aaQty;
@@ -3918,7 +3945,8 @@
 
             let isHybrid = (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined);
 
-            function simulateChannel(damage, reload, clipSize, fireDelay, useKinematics) {
+            function simulateChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy) {
+                if (chAccuracy === undefined) chAccuracy = accuracy;
                 let currentTime = 0;
                 let clipLeft = clipSize || 1;
                 let expectedHits = 0;
@@ -3934,7 +3962,7 @@
                             let timeMargin = engageTime - (currentTime + interceptFlightTime);
                             timingProb = 1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS));
                         }
-                        let shotHitProb = timingProb * accuracy * (useKinematics ? speedFactor : 1);
+                        let shotHitProb = timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
                         expectedHits += shotHitProb;
 
                         shotsFired++;
@@ -3953,13 +3981,17 @@
                 let channelDamage = simulateChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false);
                 totalAADamage = channelDamage * aaQty;
             } else if (isHybrid) {
+                // Ракетный канал: без штрафа по общей точности (chAccuracy=1) — разброс ствола не
+                // относится к наводящейся ракете; вместо этого — hitRatio пробития ловушек, та же
+                // формула, что и в рейтинге автопушек (зависит от собственного цикла перезарядки).
                 let missileChannelDamage = simulateChannel(
-                    aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay, aaHasMissileProfile
+                    aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay, aaHasMissileProfile, 1
                 );
-                if (mis.anti_jamming === 0) missileChannelDamage *= 0.6;
+                missileChannelDamage *= getMissileHitRatio(aa.reload_missile);
 
+                // Пушечный канал: свой разброс ствола (accuracy), кинематика не нужна.
                 let gunChannelDamage = simulateChannel(
-                    aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false
+                    aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy
                 );
 
                 totalAADamage = (missileChannelDamage + gunChannelDamage) * aaQty;
