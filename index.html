@@ -2470,7 +2470,13 @@
 
                 if (item.aa_type === "Гибрид") score += _T("Двухканальность (пушка + ракета)", 40);
                 if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 20) * 20));
-                if (item.detonation_radius > 0) score += _T("Осколочное поражение", ((item.detonation_radius / 30) * 15));
+                // "Осколочное поражение" (детонация рядом с целью прощает промах) больше не начисляется
+                // отдельными очками поверх основного показателя — см. getRadiusLethalityMultiplier():
+                // тот же самый radius теперь напрямую увеличивает урон снаряда/ракеты ВНУТРИ самой
+                // симуляции перехвата (computeAAEngagement), а значит уже влияет на "Реальный шанс
+                // сбить ракету" выше. Начислять его ещё раз здесь плоскими очками — значит учитывать
+                // одну и ту же характеристику дважды, вдобавок вслепую (даже если оружие и без того
+                // гарантированно убивает рой, старая формула всё равно добавляла эти очки).
                 if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 500) * 10));
                 if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 100) * 10));
 
@@ -3811,6 +3817,34 @@
             });
         }
 
+        // Единственное поле в базе, которое буквально означает "насколько можно промахнуться мимо
+        // центра цели и снаряд всё равно сработает" — это радиус детонации (радиовзрыватель/НЗ) или,
+        // если его нет, радиус сплэша. Чем он больше у конкретного юнита — тем реалистичнее он "прощает"
+        // небольшую ошибку интерсепта. Раньше этот же самый radius просто добавлял юниту фиксированные
+        // очки в рейтинге (см. правку выше) — вне зависимости от того, помогает ли он реально сбить
+        // рой или нет. Теперь он напрямую увеличивает эффективный урон снаряда/ракеты ВНУТРИ симуляции
+        // перехвата: у юнита с радиусом на уровне максимума по базе (см. CATEGORY_MAX_STATS) шанс
+        // фактически поразить рой заметно выше — но ТОЛЬКО если рой и так не добивается стопроцентно
+        // (killChanceVsMissile всё равно ограничен сверху 100% в computeAAEngagement), то есть бонус
+        // работает честно, а не задним числом поверх уже гарантированного результата.
+        // Нормировка — на максимум ЭТОГО ЖЕ поля по категории юнита (33 м для ПВО, 66 м для Автопушек
+        // и т.п., уже существующие реальные числа из CATEGORY_MAX_STATS), а не на придуманную шкалу.
+        // Верхний предел бонуса (+50% при максимальном в базе радиусе) — единственное тюнинговое число
+        // здесь, и оно играет ту же роль, что и любой другой весовой коэффициент рейтинга в этом файле
+        // (например "dpm / 300000 * 250"): без какого-то масштаба нельзя свести метры в проценты урона,
+        // но сам факт "у кого радиус больше — тот эффективнее" и КОНКРЕТНОЕ число радиуса — из базы.
+        function getRadiusLethalityMultiplier(item) {
+            const catMax = CATEGORY_MAX_STATS[item.category];
+            if (!catMax) return 1;
+            let ratio = 0;
+            if (item.detonation_radius != null && catMax.detonation_radius) {
+                ratio = Math.min(1, item.detonation_radius / catMax.detonation_radius);
+            } else if (item.splash_radius != null && catMax.splash_radius) {
+                ratio = Math.min(1, item.splash_radius / catMax.splash_radius);
+            }
+            return 1 + ratio * 0.5;
+        }
+
         function runInterceptEngine(aa, aaQty, mis, misQty, distance) {
             const MW_COEF = 0.00278;
 
@@ -3843,6 +3877,7 @@
             }
 
             let accuracy = getEffectiveAccuracy(aa);
+            let radiusLethality = getRadiusLethalityMultiplier(aa);
 
             // 2. Формирование роя: N отдельных ракет с индивидуальными дедлайнами (не "в одну линию")
             let projectilesPerLaunch = mis.projectiles || 1;
@@ -3913,17 +3948,19 @@
             }
 
             if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, 1);
+                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, radiusLethality);
             } else if (isHybrid) {
                 // Ракетный канал: без штрафа по общей точности (chAccuracy=1) — разброс ствола не
-                // относится к наводящейся ракете; вместо этого — hitRatio пробития ловушек.
+                // относится к наводящейся ракете; вместо этого — hitRatio пробития ловушек, умноженный
+                // на тот же радиус-бонус (радиус детонации у гибридов, как правило, описывает именно
+                // боеголовку ракетного канала).
                 addChannel(aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay,
-                    aaHasMissileProfile, 1, getMissileHitRatio(aa.reload_missile));
+                    aaHasMissileProfile, 1, getMissileHitRatio(aa.reload_missile) * radiusLethality);
                 // Пушечный канал: свой разброс ствола (accuracy), кинематика не нужна.
                 addChannel(aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy, 1);
             } else {
                 let antiJamMult = (mis.anti_jamming === 0 && aa.aa_type === "Ракетное") ? 0.6 : 1;
-                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult);
+                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult * radiusLethality);
             }
 
             events.sort(function(a, b) { return a.t - b.t; });
