@@ -1102,7 +1102,7 @@
             <div id="info-aa" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
                 <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.aa">
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Реальная угроза, а не вакуум:</b> ПВО оценивается против усреднённого профиля боевых ракет из базы — считается «окно перехвата» и реальный шанс сбить типичную ракету.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность по типу:</b> Лазерное ПВО точнее Гибридного, Ракетного и Пулемётного — у каждого свой индекс разброса.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность = 100%:</b> В базе нет данных о точности ПВО, поэтому она не занижается искусственно — разницу между юнитами дают только реальные цифры (DPM, урон, скорострельность, скорость и разгон перехватчика).</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Скорость перехвата:</b> У Ракетного/Гибридного ПВО скорость и разгон собственной ракеты сравниваются со скоростью цели — медленный интерцептор резко теряет эффективность.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">АОЕ и плотность огня:</b> Сплэш, радиус детонации и размер обоймы дают бонус против роя ракет.</li>
                 </ul>
@@ -1366,7 +1366,7 @@
             },
             "ПВО": {
                 damage_burst: 20000, dpm: 200000, damage: 5000, accuracy: 100, 
-                reload: 6, range: 6, max_speed: 1500, aa_accuracy: 25,
+                reload: 6, range: 6, max_speed: 1500,
                 splash_damage: 500, splash_radius: 333, detonation_radius: 33,
                 killChanceVsMissile: 1
             }
@@ -1374,7 +1374,6 @@
 
         const STATS_LOGIC = {
             aa_type: { label: "Тип ПВО", label_en: "AA type", isString: true },
-            aa_accuracy: { label: "Индекс точности", label_en: "Accuracy index", higherIsBetter: true },
             killChanceVsMissile: { label: "Шанс сбить ракету", label_en: "Missile kill chance", higherIsBetter: true },
             damage_burst: { label: "Урон за залп", label_en: "Damage per salvo", higherIsBetter: true },
             dpm: { label: "Урон в минуту", label_en: "Damage per minute", higherIsBetter: true },
@@ -1591,11 +1590,11 @@
             },
             'kb.aa': {
                 ru: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Реальная угроза, а не вакуум:</b> ПВО оценивается против усреднённого профиля боевых ракет из базы — считается «окно перехвата» и реальный шанс сбить типичную ракету.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность по типу:</b> Лазерное ПВО точнее Гибридного, Ракетного и Пулемётного — у каждого свой индекс разброса.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность = 100%:</b> В базе нет данных о точности ПВО, поэтому она не занижается искусственно — разницу между юнитами дают только реальные цифры (DPM, урон, скорострельность, скорость и разгон перехватчика).</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Скорость перехвата:</b> У Ракетного/Гибридного ПВО скорость и разгон собственной ракеты сравниваются со скоростью цели — медленный интерцептор резко теряет эффективность.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">АОЕ и плотность огня:</b> Сплэш, радиус детонации и размер обоймы дают бонус против роя ракет.</li>`,
                 en: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">A real threat, not a vacuum:</b> AA is scored against the averaged profile of combat missiles from the database — an "intercept window" and a real chance to down a typical missile are calculated.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Accuracy by type:</b> Laser AA is more accurate than Hybrid, Missile and Machine-gun AA — each has its own spread index.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Accuracy = 100%:</b> The database has no accuracy data for AA, so it is never artificially lowered — differences between units come only from real numbers (DPM, damage, rate of fire, interceptor speed and acceleration).</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Intercept speed:</b> For Missile/Hybrid AA, its own missile's speed and acceleration are compared against the target's speed — a slow interceptor loses effectiveness sharply.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">AOE and fire density:</b> Splash, detonation radius and clip size give a bonus against a missile swarm.</li>`
             }
@@ -1978,43 +1977,6 @@
                 avgProjectiles: sums.projectiles / sums.n
             } : { avgMaxSpeed: 400, avgStartSpeed: 100, avgAccelTime: 2, avgHp: 250, avgProjectiles: 1 };
             return _threatMissileProfileCache;
-        }
-
-        // Тюнинг модификатора точности ПВО по радиусу детонации (см. getEffectiveAccuracy ниже).
-        // Базовые индексы точности по типам (11/14/16/22) заданы вручную по ощущению от игры и
-        // остаются "истиной" — они выражают разницу МЕХАНИК наведения (лазер/пулемёт бьют мгновенно
-        // без баллистики, ракетное/гибрид — со своей наводящейся ракетой). Радиус детонации не может
-        // и не должен эту иерархию отменять — конкретный юнит внутри своего типа лишь слегка точнее
-        // или хуже среднего представителя ТОГО ЖЕ типа, если его радиус поражения больше/меньше
-        // среднего (больше радиус — легче "простить" небольшой промах мимо цели).
-        // ВАЖНО: объявлено здесь, ДО подсчёта рейтингов (см. "for (let key in DB)" ниже), а не рядом
-        // с getEffectiveAccuracy ближе к концу файла — по той же причине TDZ, что и AA_REACTION_TIME/
-        // AA_SWARM_SPREAD выше.
-        const AA_DISPERSION_RADIUS_TUNING = {
-            sensitivity: 0.15, // сколько пунктов dispersion снимается/добавляется за 1 ед. radius отклонения от среднего по типу
-            cap: 1.5           // жёсткий потолок модификатора — меньше минимального зазора между соседними базовыми индексами (16-14=2),
-                                // чтобы лучший юнит одного типа мог приблизиться к соседнему типу, но не перепрыгнуть через него
-        };
-
-        // Средний "радиус детонации" по каждому типу ПВО — считается только по юнитам, где это поле
-        // реально задано в базе. Юниты БЕЗ этого поля (RIM-7, SEA RAM, KASHTAN-M на момент написания)
-        // получают модификатор 0 (ведут себя как средний представитель своего типа) — это честнее
-        // жёсткого дефолтного числа, которое тянуло бы их точность вверх или вниз произвольно.
-        let _aaDispersionProfileCache = null;
-        function getAADispersionProfile() {
-            if (_aaDispersionProfileCache) return _aaDispersionProfileCache;
-            let sums = {};
-            Object.keys(DB).forEach(k => {
-                const it = DB[k];
-                if (it.category !== "ПВО" || it.detonation_radius == null) return;
-                if (!sums[it.aa_type]) sums[it.aa_type] = { sum: 0, n: 0 };
-                sums[it.aa_type].sum += it.detonation_radius;
-                sums[it.aa_type].n++;
-            });
-            let avgByType = {};
-            Object.keys(sums).forEach(t => { avgByType[t] = sums[t].sum / sums[t].n; });
-            _aaDispersionProfileCache = avgByType;
-            return _aaDispersionProfileCache;
         }
 
         // --- Трекер очков рейтинга: каждая надбавка/штраф в формулах ниже записывается с названием,
@@ -3759,51 +3721,33 @@
             }
         }
 
-        // Точность оружия.
-        // Картечные/дробовые стволы (is_buckshot) — разброс дроби, а не ошибка наведения,
-        // поэтому у них всегда явное поле accuracy, независимо от категории.
-        // ПВО и Автопушки (кроме картечи) — точность считается по индексу разброса (dispersion),
-        // который зависит от типа наведения/боеприпаса, а не берётся напрямую из базы.
-        // Прочие категории (обычные пушки, гранатомёты и т.п.) — как и раньше, явное поле accuracy.
+        // Точность оружия — СТРОГО из полей, которые реально есть в базе. Раньше для ПВО и
+        // Автопушек здесь стояла своя таблица "индексов разброса" (11/14/16/22) по типу
+        // наведения — подобранная вручную, а не взятая из базы (в базе такого поля вообще нет
+        // ни у одного юнита ПВО). Для автопушек это было ещё и прямым рассогласованием: тир-лист
+        // (RATING_CALCULATORS["Автопушки"]) честно брал реальное поле item.accuracy из базы
+        // (100 почти у всех стволов, 33 — у картечных), а этот движок для той же самой пушки
+        // выдумывал СВОЙ, другой процент. Теперь везде используется одна и та же логика:
+        // если в базе явно указана точность — берём её; если нет — считаем 100%, а разницу между
+        // юнитами дают только реальные характеристики (DPM, урон, скорострельность, скорость/разгон
+        // снаряда или собственной ракеты-перехватчика — см. кинематику ниже в runInterceptEngine,
+        // она уже и так считается по настоящим max_speed/start_speed/accel_time/range).
         function getEffectiveAccuracy(item) {
             if (item.is_buckshot) return item.accuracy != null ? item.accuracy / 100 : 1;
 
             if (item.category === "ПВО") {
-                let aa_dispersion = 11;
-                if (item.aa_type === "Пулеметное") aa_dispersion = 22;
-                else if (item.aa_type === "Гибрид") aa_dispersion = 16;
-                else if (item.aa_type === "Ракетное") aa_dispersion = 14;
-
-                // Модификатор по радиусу детонации: юнит с радиусом БОЛЬШЕ среднего по своему же типу
-                // прощает промах чуть лучше (dispersion немного ниже), с радиусом МЕНЬШЕ среднего —
-                // чуть хуже. Сравнение строго внутри своего типа (см. getAADispersionProfile), поэтому
-                // базовая иерархия точности между типами никогда не нарушается — только смягчается/
-                // усиливается ВНУТРИ неё, в пределах жёсткого потолка cap.
-                if (item.detonation_radius != null) {
-                    let avgByType = getAADispersionProfile();
-                    let typeAvgRadius = avgByType[item.aa_type];
-                    if (typeAvgRadius != null) {
-                        let raw = (item.detonation_radius - typeAvgRadius) * AA_DISPERSION_RADIUS_TUNING.sensitivity;
-                        let modifier = Math.max(-AA_DISPERSION_RADIUS_TUNING.cap, Math.min(AA_DISPERSION_RADIUS_TUNING.cap, raw));
-                        aa_dispersion -= modifier;
-                    }
-                }
-                // Юниты без detonation_radius (RIM-7, SEA RAM, KASHTAN-M и т.п.) модификатор не получают
-                // и остаются ровно на базовом индексе своего типа — как средний представитель.
-
-                let spreadPenalty = Math.max(0, aa_dispersion - 11) * ((item.range || 3) * 0.7);
-                return Math.max(0.10, (100 - spreadPenalty) / 100);
+                // В базе нет ни одного поля accuracy у юнитов ПВО — данных о точности просто
+                // не существует. Придумывать "индекс разброса" по названию типа наведения —
+                // значит выдавать догадку за данные. Честный вариант при отсутствии данных —
+                // не штрафовать точность вообще (100%) и оценивать юнит по тому, что в базе
+                // ЕСТЬ на самом деле.
+                return 1;
             }
 
             if (item.category === "Автопушки") {
-                // Подтип — та же формула, что и в getSubtype()/тир-листе:
-                // оба канала (пушка+ракета) -> Гибрид; есть start_speed (снаряд разгоняется) -> Ракетные;
-                // иначе -> обычный скорострельный ствол (Пушечные).
-                let auto_dispersion = 11; // Пушечные — наводится мгновенно, как лазерное ПВО
-                if (item.dpm_gun !== undefined && item.dpm_missile !== undefined) auto_dispersion = 16; // Гибрид
-                else if (item.start_speed !== undefined) auto_dispersion = 14; // Ракетные
-                let spreadPenalty = Math.max(0, auto_dispersion - 11) * ((item.range || 3) * 0.7);
-                return Math.max(0.10, (100 - spreadPenalty) / 100);
+                // Точность реально задана в базе для каждой автопушки — используем её напрямую,
+                // как и тир-лист, вместо выдуманного индекса по конструктивному подтипу.
+                return item.accuracy != null ? item.accuracy / 100 : 1;
             }
 
             if (item.accuracy != null) return item.accuracy / 100;
