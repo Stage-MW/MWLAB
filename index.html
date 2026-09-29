@@ -3908,7 +3908,7 @@
             }
 
             // 4. Каналы одного модуля (у гибрида их два: пушка + ракета). Каждый из aaQty модулей —
-            //    отдельный стрелок со своим расписанием выстрелов и СВОЕЙ текущей целью.
+            //    отдельный стрелок со своим расписанием выстрелов (цель у всех общая — фокус-огонь).
             let channels = [];
             function addChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy, extraMult) {
                 if (!damage) return;
@@ -3946,52 +3946,35 @@
             }
             events.sort(function(a, b) { return (a.t - b.t) || (a.m - b.m); });
 
-            // 5. Прогон боя. Ключевое правило: ОДИН модуль = ОДНА цель одновременно.
-            //    - Модули разбирают РАЗНЫЕ ракеты (сначала самую близкую по дедлайну, среди наименее
-            //      загруженных). Если модулей больше, чем ракет, лишние добавляются к уже занятым целям.
-            //    - Когда цель сбита или прорвалась, модуль теряет retargetTime на переключение —
-            //      в это время он не стреляет.
-            //    - Цель, до которой не успели (дедлайн раньше конца добивания), прорывается.
-            let mounts = [];
-            for (let m = 0; m < aaQty; m++) mounts.push({ target: -1, busyUntil: 0 });
-            swarm.forEach(function(x) { x.endTime = 0; });
-
+            // 5. Прогон боя — ФОКУС-ОГОНЬ, как в игре: ВСЕ модули ПВО бьют ОДНУ и ту же ракету
+            //    (ближайшую по дедлайну). Как только она сбита — все модули вместе перенаводятся
+            //    на следующую, и на это уходит retargetTime, в течение которого никто не стреляет.
+            //    Если ракета долетела раньше, чем её добили, она прорывается, и тоже нужно
+            //    перенаведение. Первая цель захватывается без паузы (реакция уже учтена в окне).
+            let busyUntil = 0;
             let totalAADamage = 0, shotsFired = 0, shotsLanded = 0;
 
-            function pickTarget(t) {
-                let load = swarm.map(function() { return 0; });
-                mounts.forEach(function(mt) {
-                    if (mt.target >= 0 && swarm[mt.target].status === 'pending') load[mt.target]++;
-                });
-                let best = -1;
+            function currentTarget(t) {
                 for (let i = 0; i < swarm.length; i++) {
-                    if (swarm[i].status !== 'pending' || swarm[i].deadline <= t) continue;
-                    if (best < 0 || load[i] < load[best]) best = i; // swarm отсортирован по дедлайну
+                    let m = swarm[i];
+                    if (m.status !== 'pending') continue;
+                    if (m.deadline <= t) {
+                        m.status = 'leaked';
+                        busyUntil = Math.max(busyUntil, m.deadline + retargetTime);
+                        continue;
+                    }
+                    return m;
                 }
-                return best;
+                return null;
             }
 
             for (let i = 0; i < events.length; i++) {
                 let ev = events[i];
-                if (!swarm.some(function(x) { return x.status === 'pending'; })) break;
+                if (ev.t < busyUntil) continue;          // модули ещё перенаводятся
+                let target = currentTarget(ev.t);
+                if (!target) break;                       // весь рой уничтожен или прорвался
+                if (ev.t < busyUntil) continue;          // перенаведение после прорвавшейся ракеты
 
-                let mt = mounts[ev.m];
-                if (mt.target >= 0) {
-                    let cur = swarm[mt.target];
-                    if (cur.status === 'pending' && cur.deadline <= ev.t) { cur.status = 'leaked'; cur.endTime = cur.deadline; }
-                    if (cur.status !== 'pending') {
-                        mt.busyUntil = Math.max(mt.busyUntil, cur.endTime + retargetTime);
-                        mt.target = -1;
-                    }
-                }
-                if (ev.t < mt.busyUntil) continue;          // модуль ещё переключается
-                if (mt.target < 0) {
-                    let pick = pickTarget(ev.t);
-                    if (pick < 0) continue;                  // целей, которые ещё можно поразить, нет
-                    mt.target = pick;
-                }
-
-                let target = swarm[mt.target];
                 let p = shotHitProbability(ev.t, target.deadline, ev.useKinematics, ev.chAccuracy) * ev.extraMult;
                 let dealt = Math.min(p * ev.damage, Math.max(0, target.hp)); // без учёта переурона
                 shotsFired += 1;
@@ -3999,7 +3982,10 @@
                 totalAADamage += dealt;
                 target.hp -= p * ev.damage;
 
-                if (target.hp <= 0) { target.status = 'destroyed'; target.endTime = ev.t; }
+                if (target.hp <= 0) {
+                    target.status = 'destroyed';
+                    busyUntil = ev.t + retargetTime;
+                }
             }
             // Всё, что не добили до дедлайна, — прорвалось
             swarm.forEach(function(x) { if (x.status === 'pending') { x.status = 'leaked'; } });
