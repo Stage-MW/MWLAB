@@ -1922,6 +1922,14 @@
             "Ракетное": 1.6
         };
 
+        // Параметры оценки ПВО для РЕЙТИНГА (см. getAARatingEffectiveness). Объявлены здесь, до
+        // подсчёта рейтингов, по той же причине (temporal dead zone), что и AA_REACTION_TIME.
+        const AUTO_AA_BASE_BONUS = 40;   // за сам факт зенитной способности
+        const AUTO_AA_KILL_BONUS = 250;  // за реальную способность сбивать ракеты (доля 0..1)
+        const AA_RATING_LAUNCH_DIST = 10;   // км
+        const AA_RATING_SALVOS = [2, 3, 4]; // ракет в залпе
+        const AA_RATING_MOUNTS = [1, 2, 4]; // модулей ПВО
+
         const AA_REACTION_TIME = {
             "Лазерное": 0.3,
             "Пулеметное": 0.4,
@@ -2416,7 +2424,15 @@
 
                 if (accuracyFactor < 1) score -= _N("Штраф: низкая точность (разброс)", ((1 - accuracyFactor) * 120));
                 
-                if (item.air_target === 1) score += _T("Атака авиации", (150)); 
+                if (item.air_target === 1) {
+                    // Раньше — плоские +150 за сам факт "может бить по воздуху". Теперь считаем, сколько
+                    // ракет из типового залпа эта автопушка реально сбивает (фокус-огонь, пауза на
+                    // перенаведение, время пролёта зоны) — той же моделью, что и у категории "ПВО".
+                    const E = getAARatingEffectiveness(item);
+                    item.killChanceVsMissile = E.kill;
+                    score += _T("Атака авиации", (AUTO_AA_BASE_BONUS));
+                    score += _T("Реальный шанс сбить ракету", (E.kill * AUTO_AA_KILL_BONUS));
+                }
                 if (item.can_hit_subs === 1) score += _T("Атака подлодок", (250)); 
                 
                 let effectiveRange = getEffectiveRange(item.range, 10);
@@ -2457,15 +2473,14 @@
                 // Дистанция = собственная дальность ПВО: тогда "окно перехвата" в симуляции — это
                 // именно время прохождения ракетой всей эффективной дальности этого ПВО, честно
                 // сравнимое между разными юнитами независимо от того, на каком расстоянии их запускают.
-                const engagementDistance = item.range || 3;
-                const R = computeAAEngagement(item, 1, threatMissile, 1, engagementDistance);
+                const E = getAARatingEffectiveness(item);
 
-                item.accuracyScore = Math.round(R.accuracy * 100);
+                item.accuracyScore = Math.round(E.accuracy * 100);
                 // Доля суммарного HP типичного роя, которую ПВО успевает снять за окно перехвата —
                 // честная метрика и для одиночной ракеты (n=1), и для роя из нескольких боеголовок:
                 // чем крупнее рой, тем больше totalMissileHP и тем труднее сбить его полностью,
                 // как и должно быть.
-                item.killChanceVsMissile = R.totalMissileHP > 0 ? Math.min(1, R.totalAADamage / R.totalMissileHP) : 0;
+                item.killChanceVsMissile = E.kill;
                 item.effectiveDpm = item.dpm;
                 item.effectiveBurst = item.damage_burst;
 
@@ -3844,7 +3859,15 @@
             let aaVmax = (aa.max_speed || 0) * MW_COEF;
             let aaAccelTime = aa.accel_time || 0;
 
-            let reactionTime = AA_REACTION_TIME[aa.aa_type];
+            // Тип ПВО: у юнитов категории "ПВО" он задан в базе; у автопушек с air_target его нет,
+            // поэтому определяем по составу каналов (пушка+ракета = гибрид, только ракета = ракетное,
+            // иначе стволовое).
+            let aaKind = aa.aa_type;
+            if (!aaKind) {
+                if (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined) aaKind = "Гибрид";
+                else aaKind = aaHasMissileProfile ? "Ракетное" : "Пулеметное";
+            }
+            let reactionTime = AA_REACTION_TIME[aaKind];
             if (reactionTime === undefined) reactionTime = aaHasMissileProfile ? 0.6 : 0.4;
             baseEngageTime = Math.max(0, baseEngageTime - reactionTime);
 
@@ -3895,14 +3918,35 @@
             // Вероятность попадания ОДНОГО выстрела, произведённого в момент t, по цели с дедлайном
             // targetDeadline. useKinematics — у канала своя баллистика/разгон (сигмоида по запасу
             // времени + квадратичный штраф по скорости интерцептора), иначе попадание ~мгновенное.
+            // Скорость сближения атакующей ракеты внутри зоны ПВО (км/с): длина зоны / время пролёта зоны.
+            const zoneLen = Math.min(distance, aaRange);
+            const missileZoneSpeed = (zoneTime > 0 && zoneLen > 0) ? (zoneLen / zoneTime) : (misVmax || 1);
+            const AA_MIN_KILL_MARGIN = 0.25; // сек: ракету надо поразить хотя бы за столько до попадания в корабль
+
+            // ВСТРЕЧНЫЙ перехват: ракета ПВО и атакующая ракета летят навстречу друг другу. Точка
+            // встречи x (км от корабля) находится из условия: время полёта перехватчика до x
+            // (с разгоном) = время, за которое атакующая ракета долетит до x. Запас x / скорость_ракеты —
+            // за сколько секунд ДО попадания в корабль ракета будет поражена. (Раньше перехватчик
+            // "догонял" текущую точку ракеты, не учитывая, что она летит ему навстречу — из-за этого
+            // шанс перехвата зенитными ракетами получался близким к нулю даже при достаточном времени.)
+            function interceptLeadTime(t, targetDeadline) {
+                let tau = targetDeadline - t;
+                if (tau <= 0) return -1;
+                let d0 = missileZoneSpeed * tau; // расстояние от ракеты до корабля в момент выстрела
+                let lo = 0, hi = d0;
+                for (let it = 0; it < 30; it++) {
+                    let mid = (lo + hi) / 2;
+                    let g = missileFlightTime(aaV0, aaVmax, aaAccelTime, mid) - (d0 - mid) / missileZoneSpeed;
+                    if (g > 0) hi = mid; else lo = mid;
+                }
+                return lo / missileZoneSpeed;
+            }
+
             function shotHitProbability(t, targetDeadline, useKinematics, chAccuracy) {
                 let timingProb = 1;
                 if (useKinematics) {
-                    let remainingShare = Math.max(0, 1 - (t / (targetDeadline || 1)));
-                    let requiredDist = aaRange * remainingShare;
-                    let interceptFlightTime = missileFlightTime(aaV0, aaVmax, aaAccelTime, requiredDist);
-                    let timeMargin = targetDeadline - (t + interceptFlightTime);
-                    timingProb = 1 / (1 + Math.exp(-timeMargin / TIMING_SHARPNESS));
+                    let lead = interceptLeadTime(t, targetDeadline);
+                    timingProb = 1 / (1 + Math.exp(-(lead - AA_MIN_KILL_MARGIN) / TIMING_SHARPNESS));
                 }
                 return timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
             }
@@ -3921,18 +3965,18 @@
                 });
             }
 
-            if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, 1);
+            if (aaKind === "Лазерное" || aaKind === "Пулеметное") {
+                addChannel(aa.damage * (aa.projectiles > 1 ? aa.projectiles : 1), aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, 1);
             } else if (isHybrid) {
                 addChannel(aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay,
                     aaHasMissileProfile, 1, getMissileHitRatio(aa.reload_missile));
                 addChannel(aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy, 1);
             } else {
-                let antiJamMult = (mis.anti_jamming === 0 && aa.aa_type === "Ракетное") ? 0.6 : 1;
-                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult);
+                let antiJamMult = (mis.anti_jamming === 0 && aaKind === "Ракетное") ? 0.6 : 1;
+                addChannel(aa.damage * (aa.projectiles > 1 ? aa.projectiles : 1), aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult);
             }
 
-            let retargetTime = AA_RETARGET_TIME[aa.aa_type];
+            let retargetTime = AA_RETARGET_TIME[aaKind];
             if (retargetTime === undefined) retargetTime = aaHasMissileProfile ? 1.2 : 0.8;
 
             let events = [];
@@ -4001,6 +4045,34 @@
                      destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
                      survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile,
                      swarmSpreadSec: (maxDeadline - swarm[0].deadline) };
+        }
+
+        // Эффективность ПВО для РЕЙТИНГА. Раньше считалась как "один модуль против одной средней
+        // ракеты", из-за чего не были видны ни фокус-огонь по очереди, ни пауза на перенаведение,
+        // ни время пролёта зоны. Теперь — тот же движок, что и в симуляторе, против типовых залпов
+        // из 2/3/4 средних ударных ракет при 1/2/4 модулях, ракеты запускаются с дистанции
+        // AA_RATING_LAUNCH_DIST (за пределами зоны ПВО), поэтому время пролёта зоны определяется
+        // реальной дальностью ПВО и скоростью ракеты. Результат — средняя доля сбитых ракет (0..1).
+        function getAARatingEffectiveness(item) {
+            const threat = getThreatMissileProfile();
+            const threatMissile = {
+                start_speed: threat.avgStartSpeed,
+                max_speed: threat.avgMaxSpeed,
+                accel_time: threat.avgAccelTime,
+                hp: threat.avgHp,
+                projectiles: 1,
+                anti_jamming: 0
+            };
+            let sum = 0, n = 0, last = null;
+            AA_RATING_SALVOS.forEach(function(missiles) {
+                AA_RATING_MOUNTS.forEach(function(mounts) {
+                    const R = runInterceptEngine(item, mounts, threatMissile, missiles, AA_RATING_LAUNCH_DIST);
+                    sum += R.destroyedMissiles / R.totalMissiles;
+                    n++;
+                    last = R;
+                });
+            });
+            return { kill: n ? sum / n : 0, accuracy: last ? last.accuracy : 1 };
         }
 
         // Обёртка: используется рейтингом ПВО (RATING_CALCULATORS["ПВО"]) и симулятором дуэли кораблей.
