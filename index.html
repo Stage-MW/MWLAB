@@ -1911,6 +1911,17 @@
         // файла, а computeAAEngagement (объявление функции, поднимается автоматически) уже вызывался
         // из калькулятора рейтинга ПВО значительно раньше по ходу выполнения скрипта — обращение к ещё
         // неинициализированной const-переменной валило рейтинг ПВО с ReferenceError (temporal dead zone).
+        // Время, которое ОДИН модуль ПВО тратит на переключение на следующую цель после того, как
+        // предыдущая сбита/прорвалась (довернуть ствол/луч, захватить цель, стабилизировать наведение).
+        // Один модуль в каждый момент времени работает ТОЛЬКО по одной ракете.
+        // Значения — игровые допущения (в базе такого поля нет), их можно править.
+        const AA_RETARGET_TIME = {
+            "Лазерное": 0.75,
+            "Пулеметное": 0.9,
+            "Гибрид": 1.1,
+            "Ракетное": 1.6
+        };
+
         const AA_REACTION_TIME = {
             "Лазерное": 0.3,
             "Пулеметное": 0.4,
@@ -2470,13 +2481,7 @@
 
                 if (item.aa_type === "Гибрид") score += _T("Двухканальность (пушка + ракета)", 40);
                 if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 20) * 20));
-                // "Осколочное поражение" (детонация рядом с целью прощает промах) больше не начисляется
-                // отдельными очками поверх основного показателя — см. getRadiusLethalityMultiplier():
-                // тот же самый radius теперь напрямую увеличивает урон снаряда/ракеты ВНУТРИ самой
-                // симуляции перехвата (computeAAEngagement), а значит уже влияет на "Реальный шанс
-                // сбить ракету" выше. Начислять его ещё раз здесь плоскими очками — значит учитывать
-                // одну и ту же характеристику дважды, вдобавок вслепую (даже если оружие и без того
-                // гарантированно убивает рой, старая формула всё равно добавляла эти очки).
+                if (item.detonation_radius > 0) score += _T("Осколочное поражение", ((item.detonation_radius / 30) * 15));
                 if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 500) * 10));
                 if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 100) * 10));
 
@@ -3817,34 +3822,6 @@
             });
         }
 
-        // Единственное поле в базе, которое буквально означает "насколько можно промахнуться мимо
-        // центра цели и снаряд всё равно сработает" — это радиус детонации (радиовзрыватель/НЗ) или,
-        // если его нет, радиус сплэша. Чем он больше у конкретного юнита — тем реалистичнее он "прощает"
-        // небольшую ошибку интерсепта. Раньше этот же самый radius просто добавлял юниту фиксированные
-        // очки в рейтинге (см. правку выше) — вне зависимости от того, помогает ли он реально сбить
-        // рой или нет. Теперь он напрямую увеличивает эффективный урон снаряда/ракеты ВНУТРИ симуляции
-        // перехвата: у юнита с радиусом на уровне максимума по базе (см. CATEGORY_MAX_STATS) шанс
-        // фактически поразить рой заметно выше — но ТОЛЬКО если рой и так не добивается стопроцентно
-        // (killChanceVsMissile всё равно ограничен сверху 100% в computeAAEngagement), то есть бонус
-        // работает честно, а не задним числом поверх уже гарантированного результата.
-        // Нормировка — на максимум ЭТОГО ЖЕ поля по категории юнита (33 м для ПВО, 66 м для Автопушек
-        // и т.п., уже существующие реальные числа из CATEGORY_MAX_STATS), а не на придуманную шкалу.
-        // Верхний предел бонуса (+50% при максимальном в базе радиусе) — единственное тюнинговое число
-        // здесь, и оно играет ту же роль, что и любой другой весовой коэффициент рейтинга в этом файле
-        // (например "dpm / 300000 * 250"): без какого-то масштаба нельзя свести метры в проценты урона,
-        // но сам факт "у кого радиус больше — тот эффективнее" и КОНКРЕТНОЕ число радиуса — из базы.
-        function getRadiusLethalityMultiplier(item) {
-            const catMax = CATEGORY_MAX_STATS[item.category];
-            if (!catMax) return 1;
-            let ratio = 0;
-            if (item.detonation_radius != null && catMax.detonation_radius) {
-                ratio = Math.min(1, item.detonation_radius / catMax.detonation_radius);
-            } else if (item.splash_radius != null && catMax.splash_radius) {
-                ratio = Math.min(1, item.splash_radius / catMax.splash_radius);
-            }
-            return 1 + ratio * 0.5;
-        }
-
         function runInterceptEngine(aa, aaQty, mis, misQty, distance) {
             const MW_COEF = 0.00278;
 
@@ -3860,6 +3837,7 @@
                 timeToEnterAARange = missileFlightTime(misV0, misVmax, misAccelTime, distance - aaRange);
             }
             let baseEngageTime = Math.max(0, flyTime - timeToEnterAARange);
+            const zoneTime = baseEngageTime; // сколько ракета реально летит внутри зоны поражения ПВО
 
             let aaHasMissileProfile = (aa.accel_time || 0) > 0;
             let aaV0 = (aa.start_speed || aa.max_speed || 0) * MW_COEF;
@@ -3877,7 +3855,6 @@
             }
 
             let accuracy = getEffectiveAccuracy(aa);
-            let radiusLethality = getRadiusLethalityMultiplier(aa);
 
             // 2. Формирование роя: N отдельных ракет с индивидуальными дедлайнами (не "в одну линию")
             let projectilesPerLaunch = mis.projectiles || 1;
@@ -3930,84 +3907,109 @@
                 return timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
             }
 
-            // 4. Сведение всех каналов (aaQty стволов х пушечный/ракетный канал у гибридов) в один
-            //    список событий-выстрелов с весом aaQty — это и есть "все точки ПВО стреляют в одну
-            //    и ту же цель одновременно".
-            let events = [];
+            // 4. Каналы одного модуля (у гибрида их два: пушка + ракета). Каждый из aaQty модулей —
+            //    отдельный стрелок со своим расписанием выстрелов и СВОЕЙ текущей целью.
+            let channels = [];
             function addChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy, extraMult) {
                 if (!damage) return;
-                let times = buildShotSchedule(clipSize, fireDelay, reload, maxDeadline);
-                times.forEach(function(t) {
-                    events.push({
-                        t: t, damage: damage, useKinematics: useKinematics,
-                        chAccuracy: chAccuracy === undefined ? accuracy : chAccuracy,
-                        extraMult: extraMult === undefined ? 1 : extraMult,
-                        weight: aaQty
-                    });
+                channels.push({
+                    damage: damage,
+                    times: buildShotSchedule(clipSize, fireDelay, reload, maxDeadline),
+                    useKinematics: useKinematics,
+                    chAccuracy: chAccuracy === undefined ? accuracy : chAccuracy,
+                    extraMult: extraMult === undefined ? 1 : extraMult
                 });
             }
 
             if (aa.aa_type === "Лазерное" || aa.aa_type === "Пулеметное") {
-                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, radiusLethality);
+                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, 1);
             } else if (isHybrid) {
-                // Ракетный канал: без штрафа по общей точности (chAccuracy=1) — разброс ствола не
-                // относится к наводящейся ракете; вместо этого — hitRatio пробития ловушек, умноженный
-                // на тот же радиус-бонус (радиус детонации у гибридов, как правило, описывает именно
-                // боеголовку ракетного канала).
                 addChannel(aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay,
-                    aaHasMissileProfile, 1, getMissileHitRatio(aa.reload_missile) * radiusLethality);
-                // Пушечный канал: свой разброс ствола (accuracy), кинематика не нужна.
+                    aaHasMissileProfile, 1, getMissileHitRatio(aa.reload_missile));
                 addChannel(aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy, 1);
             } else {
                 let antiJamMult = (mis.anti_jamming === 0 && aa.aa_type === "Ракетное") ? 0.6 : 1;
-                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult * radiusLethality);
+                addChannel(aa.damage, aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult);
             }
 
-            events.sort(function(a, b) { return a.t - b.t; });
+            let retargetTime = AA_RETARGET_TIME[aa.aa_type];
+            if (retargetTime === undefined) retargetTime = aaHasMissileProfile ? 1.2 : 0.8;
 
-            // 5. Прогон роя: ОДИН общий указатель "текущая цель" для всех каналов/стволов сразу —
-            //    ровно как в игре ("все точки стреляют в одну, как только сбивают — в другую").
+            let events = [];
+            for (let m = 0; m < aaQty; m++) {
+                channels.forEach(function(ch) {
+                    ch.times.forEach(function(t) {
+                        events.push({ t: t, m: m, damage: ch.damage, useKinematics: ch.useKinematics,
+                                      chAccuracy: ch.chAccuracy, extraMult: ch.extraMult });
+                    });
+                });
+            }
+            events.sort(function(a, b) { return (a.t - b.t) || (a.m - b.m); });
+
+            // 5. Прогон боя. Ключевое правило: ОДИН модуль = ОДНА цель одновременно.
+            //    - Модули разбирают РАЗНЫЕ ракеты (сначала самую близкую по дедлайну, среди наименее
+            //      загруженных). Если модулей больше, чем ракет, лишние добавляются к уже занятым целям.
+            //    - Когда цель сбита или прорвалась, модуль теряет retargetTime на переключение —
+            //      в это время он не стреляет.
+            //    - Цель, до которой не успели (дедлайн раньше конца добивания), прорывается.
+            let mounts = [];
+            for (let m = 0; m < aaQty; m++) mounts.push({ target: -1, busyUntil: 0 });
+            swarm.forEach(function(x) { x.endTime = 0; });
+
             let totalAADamage = 0, shotsFired = 0, shotsLanded = 0;
-            let targetPtr = 0;
 
-            function advancePastLeaked(t) {
-                while (targetPtr < swarm.length &&
-                       (swarm[targetPtr].status !== 'pending' || swarm[targetPtr].deadline <= t)) {
-                    if (swarm[targetPtr].status === 'pending' && swarm[targetPtr].deadline <= t) {
-                        swarm[targetPtr].status = 'leaked'; // ракета долетела раньше, чем её успели добить
-                    }
-                    targetPtr++;
+            function pickTarget(t) {
+                let load = swarm.map(function() { return 0; });
+                mounts.forEach(function(mt) {
+                    if (mt.target >= 0 && swarm[mt.target].status === 'pending') load[mt.target]++;
+                });
+                let best = -1;
+                for (let i = 0; i < swarm.length; i++) {
+                    if (swarm[i].status !== 'pending' || swarm[i].deadline <= t) continue;
+                    if (best < 0 || load[i] < load[best]) best = i; // swarm отсортирован по дедлайну
                 }
+                return best;
             }
 
             for (let i = 0; i < events.length; i++) {
                 let ev = events[i];
-                advancePastLeaked(ev.t);
-                if (targetPtr >= swarm.length) break; // весь рой уже уничтожен или прорвался — стрелять не по кому
+                if (!swarm.some(function(x) { return x.status === 'pending'; })) break;
 
-                let target = swarm[targetPtr];
-                let p = shotHitProbability(ev.t, target.deadline, ev.useKinematics, ev.chAccuracy) * ev.extraMult;
-                let expectedHits = ev.weight * p;
-                let expectedDamage = expectedHits * ev.damage;
-
-                shotsFired += ev.weight;
-                shotsLanded += expectedHits;
-                totalAADamage += expectedDamage;
-                target.hp -= expectedDamage;
-
-                if (target.hp <= 0) {
-                    target.status = 'destroyed';
-                    targetPtr++; // мгновенное перенацеливание на следующую живую ракету роя
+                let mt = mounts[ev.m];
+                if (mt.target >= 0) {
+                    let cur = swarm[mt.target];
+                    if (cur.status === 'pending' && cur.deadline <= ev.t) { cur.status = 'leaked'; cur.endTime = cur.deadline; }
+                    if (cur.status !== 'pending') {
+                        mt.busyUntil = Math.max(mt.busyUntil, cur.endTime + retargetTime);
+                        mt.target = -1;
+                    }
                 }
+                if (ev.t < mt.busyUntil) continue;          // модуль ещё переключается
+                if (mt.target < 0) {
+                    let pick = pickTarget(ev.t);
+                    if (pick < 0) continue;                  // целей, которые ещё можно поразить, нет
+                    mt.target = pick;
+                }
+
+                let target = swarm[mt.target];
+                let p = shotHitProbability(ev.t, target.deadline, ev.useKinematics, ev.chAccuracy) * ev.extraMult;
+                let dealt = Math.min(p * ev.damage, Math.max(0, target.hp)); // без учёта переурона
+                shotsFired += 1;
+                shotsLanded += p;
+                totalAADamage += dealt;
+                target.hp -= p * ev.damage;
+
+                if (target.hp <= 0) { target.status = 'destroyed'; target.endTime = ev.t; }
             }
-            // Ракеты, до которых очередь так и не дошла (кончились выстрелы раньше их дедлайна) — прорвались
-            advancePastLeaked(maxDeadline + 1);
+            // Всё, что не добили до дедлайна, — прорвалось
+            swarm.forEach(function(x) { if (x.status === 'pending') { x.status = 'leaked'; } });
 
             let destroyedMissiles = swarm.filter(function(m) { return m.status === 'destroyed'; }).length;
             let survivedMissiles = totalMissiles - destroyedMissiles;
             let survivalProbability = (survivedMissiles / totalMissiles) * 100;
 
-            return { engageTime: baseEngageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy,
+            return { zoneTime: zoneTime, aaRange: aaRange, misSpeed: misVmax, retargetTime: retargetTime, flyTime: flyTime,
+                     engageTime: baseEngageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy,
                      totalAADamage: totalAADamage, shotsFired: shotsFired, shotsLanded: shotsLanded,
                      totalMissiles: totalMissiles, totalMissileHP: totalMissileHP, singleMissileHP: singleMissileHP,
                      destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
@@ -4041,7 +4043,7 @@
             const mis = DB[misKey];
 
             const R = simulateAABreakthrough(aa, aaQty, mis, misQty, distance);
-            const { engageTime, reactionTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
+            const { zoneTime, aaRange, misSpeed, retargetTime, engageTime, reactionTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
                     destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
 
             let resColor = survivalProbability > 0 ? 'var(--primary)' : 'var(--secondary)';
@@ -4056,6 +4058,9 @@
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
                 <div style="font-family:'Inter'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
+                    ${L('Скорость ракеты','Missile speed')}: <b style="color:var(--text-main);">${misSpeed.toFixed(2)} ${L('км/с','km/s')}</b><br>
+                    ${L('Зона поражения ПВО','AA kill zone')} (${aaRange.toFixed(2)} ${L('км','km')}) ${L('ракета пролетает за','is crossed in')}: <b style="color:var(--text-main);">${zoneTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
+                    ${L('Переключение между целями','Retarget time')}: <b style="color:var(--text-main);">${retargetTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
                     ${L('Время реакции ПВО','AA reaction time')}: <b style="color:var(--text-main);">${reactionTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
                     ${L('Окно на перехват (после реакции)','Intercept window (after reaction)')}: <b style="color:var(--text-main);">${engageTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
                     ${aaHasMissileProfile ? `${L('Фактор скорости перехвата','Intercept speed factor')}: <b style="color:var(--text-main);">${(speedFactor*100).toFixed(0)}%</b> (${L('ожидаемо результативных пусков','expected effective launches')}: ${shotsLanded.toFixed(1)} ${L('из','of')} ${shotsFired})<br>` : ''}
