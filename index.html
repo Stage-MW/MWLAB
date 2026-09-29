@@ -286,6 +286,12 @@
         /* --- BUILDER & EXPORT --- */
         .build-columns { display: flex; gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto 30px auto; flex-wrap: wrap; }
         .build-col { flex: 1; min-width: 300px; }
+        .sim-add-btn { width: 100%; margin-top: 4px; padding: 11px; border: 1px dashed var(--line); border-radius: 10px; background: transparent; color: var(--text-main); font-family: 'Inter'; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+        .sim-add-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .sim-add-btn:disabled { opacity: 0.4; cursor: default; }
+        .sim-slot-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-family: 'Inter'; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
+        .sim-slot-remove { background: none; border: 1px solid var(--line); color: var(--text-muted); border-radius: 8px; padding: 2px 10px; cursor: pointer; font-size: 0.85rem; }
+        .sim-slot-remove:hover { color: var(--secondary); border-color: var(--secondary); }
         .build-slot-container { 
             display: flex; align-items: center; justify-content: center; gap: 15px; 
             padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary); 
@@ -791,58 +797,15 @@
                     <!-- ПВО -->
                     <div style="flex: 1; min-width: 250px; background: var(--surface-alt); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary);">
                         <h3 style="color:var(--primary); margin-bottom: 15px; font-family:'Inter';" data-i18n="aa.system">СИСТЕМА ПВО</h3>
-                        <div id="sim-aa" style="position:relative; margin-bottom: 10px;">
-                            <div class="custom-select-wrapper" id="wrapper-sim-aa" data-value="" style="max-width:100%;">
-                                <div class="custom-select-trigger" onclick="toggleBuildDropdown('sim-aa')">
-                                    <div class="trigger-left">
-                                        <div class="trigger-img" id="img-sim-aa"></div>
-                                        <div class="trigger-text" id="text-sim-aa" data-i18n="aa.pick">ВЫБЕРИТЕ ПВО</div>
-                                    </div>
-                                    <div>▼</div>
-                                </div>
-                                <div class="custom-select-dropdown" id="dropdown-sim-aa">
-                                    <div class="dropdown-filter">
-                                        <input type="text" id="search-sim-aa" placeholder="ПОИСК ПВО..." oninput="renderSimAAOptions()" onclick="event.stopPropagation()" data-i18n-placeholder="aa.search">
-                                    </div>
-                                    <div class="dropdown-list" id="list-sim-aa"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';" data-i18n="aa.qtylabel">Количество модулей ПВО:</label>
-                        <select id="sim-aa-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
-                            <option value="1">1 слот</option><option value="2">2 слота</option>
-                            <option value="3">3 слота</option><option value="4" selected>4 слота</option>
-                            <option value="5">5 слотов</option><option value="6">6 слотов</option>
-                            <option value="7">7 слотов</option><option value="8">8 слотов</option>
-                        </select>
+                        <div id="sim-aa-slots"></div>
+                        <button type="button" id="sim-add-aa" class="sim-add-btn" onclick="addSimSlot('aa')" data-i18n="aa.addaa">+ ДОБАВИТЬ СЛОТ ПВО</button>
                     </div>
 
                     <!-- Ракеты -->
                     <div style="flex: 1; min-width: 250px; background: var(--surface-alt); padding: 20px; border-radius: 12px; border-left: 4px solid var(--secondary);">
                         <h3 style="color:var(--secondary); margin-bottom: 15px; font-family:'Inter';" data-i18n="aa.salvo">РАКЕТНЫЙ ЗАЛП</h3>
-                        <div id="sim-missile" style="position:relative; margin-bottom: 10px;">
-                            <div class="custom-select-wrapper" id="wrapper-sim-missile" data-value="" style="max-width:100%;">
-                                <div class="custom-select-trigger" onclick="toggleBuildDropdown('sim-missile')">
-                                    <div class="trigger-left">
-                                        <div class="trigger-img" id="img-sim-missile"></div>
-                                        <div class="trigger-text" id="text-sim-missile" data-i18n="aa.pickmissile">ВЫБЕРИТЕ РАКЕТУ</div>
-                                    </div>
-                                    <div>▼</div>
-                                </div>
-                                <div class="custom-select-dropdown" id="dropdown-sim-missile">
-                                    <div class="dropdown-filter">
-                                        <input type="text" id="search-sim-missile" placeholder="ПОИСК..." data-i18n-placeholder="common.search" oninput="renderSimMissileOptions()" onclick="event.stopPropagation()">
-
-                                    </div>
-                                    <div class="dropdown-list" id="list-sim-missile"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';" data-i18n="aa.launcherqty">Количество пусковых установок:</label>
-                        <select id="sim-missile-qty" class="search-input" style="width: 100%; margin-top: 5px; text-align: left;">
-                            <option value="1">1 слот</option><option value="2" selected>2 слота</option>
-                            <option value="3">3 слота</option><option value="4">4 слота</option>
-                        </select>
+                        <div id="sim-missile-slots"></div>
+                        <button type="button" id="sim-add-missile" class="sim-add-btn" onclick="addSimSlot('missile')" data-i18n="aa.addmis">+ ДОБАВИТЬ СЛОТ РАКЕТ</button>
                     </div>
                 </div>
 
@@ -1184,7 +1147,7 @@
                 if (entry) el.title = entry[LANG];
             });
             // Опции количества слотов (1 слот / 2 слота / ... ↔ 1 slot / 2 slots / ...)
-            document.querySelectorAll('#sim-aa-qty option, #sim-missile-qty option').forEach(opt => {
+            document.querySelectorAll('.sim-qty option').forEach(opt => {
                 const n = parseInt(opt.value, 10);
                 if (!n) return;
                 opt.textContent = LANG === 'en'
@@ -1477,6 +1440,8 @@
             'aa.launcherqty': { ru: 'Количество пусковых установок:', en: 'Number of launchers:' },
             'aa.distlabel': { ru: 'Дистанция пуска:', en: 'Launch distance:' },
             'aa.calc': { ru: 'РАССЧИТАТЬ ВЕРОЯТНОСТЬ', en: 'CALCULATE PROBABILITY' },
+            'aa.addaa': { ru: '+ ДОБАВИТЬ СЛОТ ПВО', en: '+ ADD AA SLOT' },
+            'aa.addmis': { ru: '+ ДОБАВИТЬ СЛОТ РАКЕТ', en: '+ ADD MISSILE SLOT' },
             'duel.title': { ru: 'ДУЭЛЬ КОРАБЛЕЙ', en: 'SHIP DUEL' },
             'duel.desc': { ru: 'Бой двух сборок из конструктора выше: кто первым уничтожит противника на выбранной дистанции.', en: 'A fight between the two builds from the Builder above: who destroys the enemy first at the chosen distance.' },
             'duel.hp1': { ru: 'HP корабля 1', en: 'Ship 1 HP' },
@@ -3339,6 +3304,7 @@
         function closeAllBuildDropdowns() {
             document.querySelectorAll('.custom-select-dropdown').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.build-slot-container').forEach(el => el.style.zIndex = '1');
+            document.querySelectorAll('.sim-select-box').forEach(el => el.style.zIndex = '');
         }
 
         function toggleBuildDropdown(slotId) {
@@ -3657,9 +3623,10 @@
 
         // --- СИМУЛЯТОР ПВО И РАКЕТ ---
 
-        // ПВО: только категория ПВО. Ракетное ПВО временно убрано из симулятора.
+        // ПВО в симуляторе: ВСЕ системы категории "ПВО" (стволовые, лазерные, ракетные, гибридные) плюс
+        // автопушки, которые умеют бить по воздуху (air_target = 1, включая ракетные и гибридные).
         function getSimAAOptions() {
-            let opts = Object.keys(DB).filter(k => DB[k].category === "ПВО" && DB[k].aa_type !== "Ракетное");
+            let opts = Object.keys(DB).filter(k => DB[k].category === "ПВО" || (DB[k].category === "Автопушки" && DB[k].air_target === 1));
             opts.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
             return opts;
         }
@@ -3671,38 +3638,31 @@
             return opts;
         }
 
-        function renderSimAAOptions() {
-            const list = document.getElementById('list-sim-aa');
-            const searchVal = document.getElementById('search-sim-aa').value.toLowerCase();
-            let html = '';
-            getSimAAOptions().forEach(key => {
-                const item = DB[key];
-                if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
-                html += `
-                <div class="dropdown-option" onclick="selectSimOption('sim-aa', '${key}', event)">
-                    <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
-                    <div class="dropdown-option-text">
-                        ${itemName(item)}
-                        <span class="dropdown-option-sub">${trCountry(item.country)}</span>
-                    </div>
-                </div>`;
-            });
-            list.innerHTML = html || `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Inter'; font-weight:bold;">Не найдено</div>`;
+        function simAAKindLabel(item) {
+            if (item.category === "Автопушки") return L('Автопушка', 'Autocannon');
+            if (item.aa_type === "Ракетное") return L('Ракетное', 'Missile');
+            if (item.aa_type === "Гибрид") return L('Гибрид', 'Hybrid');
+            if (item.aa_type === "Лазерное") return L('Лазер', 'Laser');
+            return L('Пушка', 'Gun');
         }
 
-        function renderSimMissileOptions() {
-            const list = document.getElementById('list-sim-missile');
-            const searchVal = document.getElementById('search-sim-missile').value.toLowerCase();
+        function renderSimOptions(prefix) {
+            const wrapper = document.getElementById('wrapper-' + prefix);
+            const kind = wrapper.dataset.kind;
+            const list = document.getElementById('list-' + prefix);
+            const searchVal = document.getElementById('search-' + prefix).value.toLowerCase();
+            const keys = kind === 'aa' ? getSimAAOptions() : getSimMissileOptions();
             let html = '';
-            getSimMissileOptions().forEach(key => {
+            keys.forEach(key => {
                 const item = DB[key];
                 if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
+                const sub = trCountry(item.country) + (kind === 'aa' ? ' · ' + simAAKindLabel(item) : '');
                 html += `
-                <div class="dropdown-option" onclick="selectSimOption('sim-missile', '${key}', event)">
+                <div class="dropdown-option" onclick="selectSimOption('${prefix}', '${key}', event)">
                     <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
                     <div class="dropdown-option-text">
                         ${itemName(item)}
-                        <span class="dropdown-option-sub">${trCountry(item.country)}</span>
+                        <span class="dropdown-option-sub">${sub}</span>
                     </div>
                 </div>`;
             });
@@ -3718,15 +3678,103 @@
             closeAllBuildDropdowns();
         }
 
+        // --- Слоты симулятора: любое число разных систем ПВО и разных ракет в одном расчёте ---
+        const SIM_MAX_SLOTS = 6;
+        let _simSlotSeq = { aa: 1, missile: 1 };
+
+        function simQtyText(n) {
+            return LANG === 'en'
+                ? (n + (n === 1 ? ' slot' : ' slots'))
+                : (n + ' ' + (n === 1 ? 'слот' : (n >= 2 && n <= 4 ? 'слота' : 'слотов')));
+        }
+        function simQtyOptionsHTML(max, selected) {
+            let h = '';
+            for (let n = 1; n <= max; n++) h += `<option value="${n}"${n === selected ? ' selected' : ''}>${simQtyText(n)}</option>`;
+            return h;
+        }
+
+        function simSlotHTML(kind, prefix, isFirst, index) {
+            const isAA = kind === 'aa';
+            const qtyLabel = isAA ? L('Количество модулей ПВО:', 'Number of AA modules:') : L('Количество пусковых установок:', 'Number of launchers:');
+            const search = isAA ? L('ПОИСК ПВО...', 'SEARCH AA...') : L('ПОИСК...', 'SEARCH...');
+            const title = isAA ? L('ПВО', 'AA') : L('РАКЕТЫ', 'MISSILES');
+            const head = isFirst ? '' : `
+                <div class="sim-slot-head"><span>${title} #${index}</span>
+                    <button type="button" class="sim-slot-remove" onclick="removeSimSlot('${prefix}')" title="${L('Убрать слот', 'Remove slot')}">✕</button>
+                </div>`;
+            return `
+            <div class="sim-slot" data-prefix="${prefix}" data-kind="${kind}" style="margin-bottom: 14px; ${isFirst ? '' : 'padding-top: 12px; border-top: 1px dashed var(--line);'}">
+                ${head}
+                <div id="${prefix}" class="sim-select-box" style="position:relative; margin-bottom: 10px;">
+                    <div class="custom-select-wrapper" id="wrapper-${prefix}" data-value="" data-kind="${kind}" style="max-width:100%;">
+                        <div class="custom-select-trigger" onclick="toggleBuildDropdown('${prefix}')">
+                            <div class="trigger-left">
+                                <div class="trigger-img" id="img-${prefix}"></div>
+                                <div class="trigger-text" id="text-${prefix}"></div>
+                            </div>
+                            <div>▼</div>
+                        </div>
+                        <div class="custom-select-dropdown" id="dropdown-${prefix}">
+                            <div class="dropdown-filter">
+                                <input type="text" id="search-${prefix}" placeholder="${search}" oninput="renderSimOptions('${prefix}')" onclick="event.stopPropagation()">
+                            </div>
+                            <div class="dropdown-list" id="list-${prefix}"></div>
+                        </div>
+                    </div>
+                </div>
+                <label style="color:var(--text-muted); font-size: 0.85rem; font-family:'Inter';">${qtyLabel}</label>
+                <select id="${prefix}-qty" class="search-input sim-qty" style="width: 100%; margin-top: 5px; text-align: left;">
+                    ${simQtyOptionsHTML(isAA ? 8 : 6, isFirst ? (isAA ? 4 : 2) : 1)}
+                </select>
+            </div>`;
+        }
+
+        function simSlotsContainer(kind) { return document.getElementById(kind === 'aa' ? 'sim-aa-slots' : 'sim-missile-slots'); }
+
+        function addSimSlot(kind, preferredKey) {
+            const box = simSlotsContainer(kind);
+            const count = box.querySelectorAll('.sim-slot').length;
+            if (count >= SIM_MAX_SLOTS) return;
+            const isFirst = count === 0;
+            const seq = _simSlotSeq[kind]++;
+            const base = kind === 'aa' ? 'sim-aa' : 'sim-missile';
+            const prefix = isFirst ? base : (base + '-' + seq);
+            box.insertAdjacentHTML('beforeend', simSlotHTML(kind, prefix, isFirst, count + 1));
+            // по умолчанию — первая ещё не использованная позиция списка (чтобы слоты сразу отличались)
+            const keys = kind === 'aa' ? getSimAAOptions() : getSimMissileOptions();
+            const used = Array.from(box.querySelectorAll('.custom-select-wrapper')).map(w => w.dataset.value);
+            const pick = preferredKey || keys.find(k => used.indexOf(k) < 0) || keys[0];
+            if (pick) selectSimOption(prefix, pick);
+            renderSimOptions(prefix);
+            updateSimAddButtons();
+        }
+
+        function removeSimSlot(prefix) {
+            const el = document.querySelector('.sim-slot[data-prefix="' + prefix + '"]');
+            if (!el) return;
+            const kind = el.dataset.kind;
+            el.remove();
+            // перенумеровать заголовки оставшихся слотов
+            simSlotsContainer(kind).querySelectorAll('.sim-slot').forEach((slot, i) => {
+                const span = slot.querySelector('.sim-slot-head span');
+                if (span) span.textContent = (kind === 'aa' ? L('ПВО', 'AA') : L('РАКЕТЫ', 'MISSILES')) + ' #' + (i + 1);
+            });
+            updateSimAddButtons();
+        }
+
+        function updateSimAddButtons() {
+            [['aa', 'sim-add-aa'], ['missile', 'sim-add-missile']].forEach(pair => {
+                const btn = document.getElementById(pair[1]);
+                if (btn) btn.disabled = simSlotsContainer(pair[0]).querySelectorAll('.sim-slot').length >= SIM_MAX_SLOTS;
+            });
+        }
+
         function initAASimulator() {
-            const aaOptions = getSimAAOptions();
-            const misOptions = getSimMissileOptions();
-
-            if (aaOptions.length) selectSimOption('sim-aa', aaOptions[0]);
-            if (misOptions.length) selectSimOption('sim-missile', misOptions[0]);
-
-            renderSimAAOptions();
-            renderSimMissileOptions();
+            simSlotsContainer('aa').innerHTML = '';
+            simSlotsContainer('missile').innerHTML = '';
+            _simSlotSeq = { aa: 2, missile: 2 };
+            addSimSlot('aa');
+            addSimSlot('missile');
         }
 
         // Время полета снаряда/ракеты с разгоном (v0 -> vmax за accelTime) на дистанцию distance
@@ -3837,64 +3885,88 @@
             });
         }
 
-        function runInterceptEngine(aa, aaQty, mis, misQty, distance) {
+        // Общий движок для ЛЮБОГО числа групп ПВО и групп ракет (слоты симулятора).
+        //   aaGroups  = [{ aa, qty }, ...]  — разные системы ПВО, у каждой своё число модулей
+        //   misGroups = [{ mis, qty }, ...] — разные ракеты, у каждой своё число пусковых
+        // Все ракеты стартуют одновременно с дистанции distance. У каждой пары (ПВО × ракета) своё окно:
+        // ракета входит в зону конкретной ПВО в свой момент и летит внутри неё своё время.
+        // Правила те же, что и раньше: фокус-огонь по ближайшей по времени долёта живой ракете, пауза на
+        // перенаведение (у каждой ПВО своя), реакция ПВО, встречный перехват для ракетных каналов.
+        // Для ОДНОЙ группы ПВО и ОДНОЙ группы ракет результат совпадает с прежним движком.
+        function runInterceptEngineMulti(aaGroups, misGroups, distance) {
             const MW_COEF = 0.00278;
+            const TIMING_SHARPNESS = 0.6;
+            const AA_MIN_KILL_MARGIN = 0.25; // сек: ракету надо поразить хотя бы за столько до попадания в корабль
 
-            // 1. Физика полёта атакующей ракеты (тип у всего роя одинаковый — один выбранный mis)
-            let misV0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
-            let misVmax = (mis.max_speed || 0) * MW_COEF;
-            let misAccelTime = mis.accel_time || 0.1;
-            let flyTime = missileFlightTime(misV0, misVmax, misAccelTime, distance);
+            // 1. Атакующие ракеты по группам
+            const mg = misGroups.map(function(g) {
+                const mis = g.mis;
+                const v0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
+                const vmax = (mis.max_speed || 0) * MW_COEF;
+                const accel = mis.accel_time || 0.1;
+                return { mis: mis, qty: g.qty, v0: v0, vmax: vmax, accel: accel,
+                         flyTime: missileFlightTime(v0, vmax, accel, distance),
+                         hp: mis.hp || 50, projectiles: mis.projectiles || 1 };
+            });
 
-            let aaRange = aa.range || 3.0;
-            let timeToEnterAARange = 0;
-            if (distance > aaRange) {
-                timeToEnterAARange = missileFlightTime(misV0, misVmax, misAccelTime, distance - aaRange);
-            }
-            let baseEngageTime = Math.max(0, flyTime - timeToEnterAARange);
-            const zoneTime = baseEngageTime; // сколько ракета реально летит внутри зоны поражения ПВО
+            // 2. Группы ПВО
+            const ag = aaGroups.map(function(g) {
+                const aa = g.aa;
+                const hasProfile = (aa.accel_time || 0) > 0;
+                const isHybrid = (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined);
+                // Тип ПВО: у категории "ПВО" задан в базе; у автопушек с air_target определяем по каналам.
+                let kind = aa.aa_type;
+                if (!kind) {
+                    if (isHybrid) kind = "Гибрид";
+                    else kind = hasProfile ? "Ракетное" : "Пулеметное";
+                }
+                let reaction = AA_REACTION_TIME[kind];
+                if (reaction === undefined) reaction = hasProfile ? 0.6 : 0.4;
+                let retarget = AA_RETARGET_TIME[kind];
+                if (retarget === undefined) retarget = hasProfile ? 1.2 : 0.8;
+                return { aa: aa, qty: g.qty, range: aa.range || 3.0,
+                         v0: (aa.start_speed || aa.max_speed || 0) * MW_COEF,
+                         vmax: (aa.max_speed || 0) * MW_COEF,
+                         accel: aa.accel_time || 0,
+                         hasProfile: hasProfile, isHybrid: isHybrid, kind: kind,
+                         reaction: reaction, retarget: retarget,
+                         accuracy: getEffectiveAccuracy(aa) };
+            });
 
-            let aaHasMissileProfile = (aa.accel_time || 0) > 0;
-            let aaV0 = (aa.start_speed || aa.max_speed || 0) * MW_COEF;
-            let aaVmax = (aa.max_speed || 0) * MW_COEF;
-            let aaAccelTime = aa.accel_time || 0;
+            // 3. Окно каждой пары (ПВО a × ракета g)
+            const pair = ag.map(function(a) {
+                return mg.map(function(m) {
+                    const enter = distance > a.range ? missileFlightTime(m.v0, m.vmax, m.accel, distance - a.range) : 0;
+                    const zoneTime = Math.max(0, m.flyTime - enter);   // сколько ракета летит внутри зоны этой ПВО
+                    const base = Math.max(0, zoneTime - a.reaction);   // окно после реакции
+                    const zoneLen = Math.min(distance, a.range);
+                    const zoneSpeed = (zoneTime > 0 && zoneLen > 0) ? (zoneLen / zoneTime) : (m.vmax || 1);
+                    let speedFactor = 1;
+                    if (a.hasProfile && m.vmax > 0) speedFactor = Math.pow(Math.min(1, a.vmax / m.vmax), 2);
+                    return { enter: enter, zoneTime: zoneTime, base: base, open: enter + a.reaction,
+                             zoneSpeed: zoneSpeed, speedFactor: speedFactor };
+                });
+            });
 
-            // Тип ПВО: у юнитов категории "ПВО" он задан в базе; у автопушек с air_target его нет,
-            // поэтому определяем по составу каналов (пушка+ракета = гибрид, только ракета = ракетное,
-            // иначе стволовое).
-            let aaKind = aa.aa_type;
-            if (!aaKind) {
-                if (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined) aaKind = "Гибрид";
-                else aaKind = aaHasMissileProfile ? "Ракетное" : "Пулеметное";
-            }
-            let reactionTime = AA_REACTION_TIME[aaKind];
-            if (reactionTime === undefined) reactionTime = aaHasMissileProfile ? 0.6 : 0.4;
-            baseEngageTime = Math.max(0, baseEngageTime - reactionTime);
+            // 4. Рой: каждая ракета — отдельная цель со временем долёта (arrival, от момента пуска).
+            //    Разброс внутри группы считается по самой "широкой" ПВО (с наибольшим окном), чтобы результат
+            //    не зависел от порядка слотов; для одной ПВО это ровно прежний расчёт.
+            let swarm = [];
+            mg.forEach(function(m, gi) {
+                let ref = 0;
+                for (let ai = 1; ai < ag.length; ai++) if (pair[ai][gi].base > pair[ref][gi].base) ref = ai;
+                const P = pair[ref][gi];
+                buildMissileSwarm(P.base, m.projectiles, m.qty, m.hp).forEach(function(sm) {
+                    swarm.push({ g: gi, hp: sm.hp, arrival: P.open + sm.deadline, status: 'pending' });
+                });
+            });
+            swarm.sort(function(x, y) { return (x.arrival - y.arrival) || (x.g - y.g); });
+            const totalMissiles = swarm.length;
+            let totalMissileHP = 0;
+            swarm.forEach(function(sm) { totalMissileHP += sm.hp; });
+            const maxArrival = swarm[swarm.length - 1].arrival;
 
-            let speedFactor = 1;
-            if (aaHasMissileProfile && misVmax > 0) {
-                let ratio = Math.min(1, aaVmax / misVmax);
-                speedFactor = Math.pow(ratio, 2);
-            }
-
-            let accuracy = getEffectiveAccuracy(aa);
-
-            // 2. Формирование роя: N отдельных ракет с индивидуальными дедлайнами (не "в одну линию")
-            let projectilesPerLaunch = mis.projectiles || 1;
-            let singleMissileHP = mis.hp || 50;
-            let swarm = buildMissileSwarm(baseEngageTime, projectilesPerLaunch, misQty, singleMissileHP)
-                .sort(function(a, b) { return a.deadline - b.deadline; })
-                .map(function(m) { return { hp: m.hp, deadline: m.deadline, status: 'pending' }; });
-            let totalMissiles = swarm.length;
-            let totalMissileHP = singleMissileHP * totalMissiles;
-            let maxDeadline = swarm[swarm.length - 1].deadline;
-
-            let isHybrid = (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined);
-
-            // 3. Расписание выстрелов канала — ТОЛЬКО моменты стрельбы (обойма/fire_delay/reload).
-            //    Вероятность попадания считается позже, в общем цикле, т.к. зависит от ТЕКУЩЕЙ цели —
-            //    у каждой ракеты роя свой дедлайн, поэтому запас времени на перехват у каждого
-            //    выстрела свой, в зависимости от того, по какой ракете он в итоге стреляет.
+            // 5. Расписание выстрелов (только моменты стрельбы — вероятность считается в момент выстрела)
             function buildShotSchedule(clipSize, fireDelay, reload, maxTime) {
                 let times = [];
                 let currentTime = 0;
@@ -3914,137 +3986,144 @@
                 return times;
             }
 
-            const TIMING_SHARPNESS = 0.6;
-            // Вероятность попадания ОДНОГО выстрела, произведённого в момент t, по цели с дедлайном
-            // targetDeadline. useKinematics — у канала своя баллистика/разгон (сигмоида по запасу
-            // времени + квадратичный штраф по скорости интерцептора), иначе попадание ~мгновенное.
-            // Скорость сближения атакующей ракеты внутри зоны ПВО (км/с): длина зоны / время пролёта зоны.
-            const zoneLen = Math.min(distance, aaRange);
-            const missileZoneSpeed = (zoneTime > 0 && zoneLen > 0) ? (zoneLen / zoneTime) : (misVmax || 1);
-            const AA_MIN_KILL_MARGIN = 0.25; // сек: ракету надо поразить хотя бы за столько до попадания в корабль
+            let events = [];
+            ag.forEach(function(a, ai) {
+                const aa = a.aa;
+                // ПВО начинает стрелять, когда ПЕРВАЯ ракета вошла в её зону и прошла реакция
+                let start = Infinity;
+                pair[ai].forEach(function(P) { if (P.open < start) start = P.open; });
+                const span = Math.max(0.05, maxArrival - start);
 
-            // ВСТРЕЧНЫЙ перехват: ракета ПВО и атакующая ракета летят навстречу друг другу. Точка
-            // встречи x (км от корабля) находится из условия: время полёта перехватчика до x
-            // (с разгоном) = время, за которое атакующая ракета долетит до x. Запас x / скорость_ракеты —
-            // за сколько секунд ДО попадания в корабль ракета будет поражена. (Раньше перехватчик
-            // "догонял" текущую точку ракеты, не учитывая, что она летит ему навстречу — из-за этого
-            // шанс перехвата зенитными ракетами получался близким к нулю даже при достаточном времени.)
-            function interceptLeadTime(t, targetDeadline) {
-                let tau = targetDeadline - t;
+                let channels = [];
+                function addChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy, extraMult, antiJamSensitive) {
+                    if (!damage) return;
+                    channels.push({ damage: damage, times: buildShotSchedule(clipSize, fireDelay, reload, span),
+                                    useKinematics: useKinematics, chAccuracy: chAccuracy, extraMult: extraMult,
+                                    antiJamSensitive: !!antiJamSensitive });
+                }
+                const pellets = (aa.projectiles > 1 ? aa.projectiles : 1);
+                if (a.kind === "Лазерное" || a.kind === "Пулеметное") {
+                    addChannel(aa.damage * pellets, aa.reload, aa.ammo_clip, aa.fire_delay, false, a.accuracy, 1, false);
+                } else if (a.isHybrid) {
+                    addChannel(aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay,
+                        a.hasProfile, 1, getMissileHitRatio(aa.reload_missile), false);
+                    addChannel(aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, a.accuracy, 1, false);
+                } else {
+                    addChannel(aa.damage * pellets, aa.reload, aa.ammo_clip, aa.fire_delay, a.hasProfile, a.accuracy, 1,
+                        a.kind === "Ракетное");
+                }
+                for (let m = 0; m < a.qty; m++) {
+                    channels.forEach(function(ch) {
+                        ch.times.forEach(function(off) {
+                            events.push({ t: start + off, a: ai, m: m, ch: ch });
+                        });
+                    });
+                }
+            });
+            events.sort(function(x, y) { return (x.t - y.t) || (x.a - y.a) || (x.m - y.m); });
+
+            // 6. Встречный перехват: ракета ПВО и атакующая ракета летят навстречу друг другу. Точка встречи x
+            //    (км от корабля) — из условия: время полёта перехватчика до x (с разгоном) = время, за которое
+            //    атакующая ракета долетит до x. Запас x / скорость_ракеты — за сколько секунд ДО попадания в
+            //    корабль ракета будет поражена.
+            function interceptLeadTime(t, arrival, a, P) {
+                let tau = arrival - t;
                 if (tau <= 0) return -1;
-                let d0 = missileZoneSpeed * tau; // расстояние от ракеты до корабля в момент выстрела
+                let d0 = P.zoneSpeed * tau; // расстояние от ракеты до корабля в момент выстрела
                 let lo = 0, hi = d0;
                 for (let it = 0; it < 30; it++) {
                     let mid = (lo + hi) / 2;
-                    let g = missileFlightTime(aaV0, aaVmax, aaAccelTime, mid) - (d0 - mid) / missileZoneSpeed;
-                    if (g > 0) hi = mid; else lo = mid;
+                    let gap = missileFlightTime(a.v0, a.vmax, a.accel, mid) - (d0 - mid) / P.zoneSpeed;
+                    if (gap > 0) hi = mid; else lo = mid;
                 }
-                return lo / missileZoneSpeed;
+                return lo / P.zoneSpeed;
             }
-
-            function shotHitProbability(t, targetDeadline, useKinematics, chAccuracy) {
+            function shotHitProbability(t, arrival, ch, a, P) {
                 let timingProb = 1;
-                if (useKinematics) {
-                    let lead = interceptLeadTime(t, targetDeadline);
+                if (ch.useKinematics) {
+                    let lead = interceptLeadTime(t, arrival, a, P);
                     timingProb = 1 / (1 + Math.exp(-(lead - AA_MIN_KILL_MARGIN) / TIMING_SHARPNESS));
                 }
-                return timingProb * chAccuracy * (useKinematics ? speedFactor : 1);
+                return timingProb * ch.chAccuracy * (ch.useKinematics ? P.speedFactor : 1);
             }
 
-            // 4. Каналы одного модуля (у гибрида их два: пушка + ракета). Каждый из aaQty модулей —
-            //    отдельный стрелок со своим расписанием выстрелов (цель у всех общая — фокус-огонь).
-            let channels = [];
-            function addChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy, extraMult) {
-                if (!damage) return;
-                channels.push({
-                    damage: damage,
-                    times: buildShotSchedule(clipSize, fireDelay, reload, maxDeadline),
-                    useKinematics: useKinematics,
-                    chAccuracy: chAccuracy === undefined ? accuracy : chAccuracy,
-                    extraMult: extraMult === undefined ? 1 : extraMult
-                });
-            }
-
-            if (aaKind === "Лазерное" || aaKind === "Пулеметное") {
-                addChannel(aa.damage * (aa.projectiles > 1 ? aa.projectiles : 1), aa.reload, aa.ammo_clip, aa.fire_delay, false, accuracy, 1);
-            } else if (isHybrid) {
-                addChannel(aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay,
-                    aaHasMissileProfile, 1, getMissileHitRatio(aa.reload_missile));
-                addChannel(aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, accuracy, 1);
-            } else {
-                let antiJamMult = (mis.anti_jamming === 0 && aaKind === "Ракетное") ? 0.6 : 1;
-                addChannel(aa.damage * (aa.projectiles > 1 ? aa.projectiles : 1), aa.reload, aa.ammo_clip, aa.fire_delay, aaHasMissileProfile, accuracy, antiJamMult);
-            }
-
-            let retargetTime = AA_RETARGET_TIME[aaKind];
-            if (retargetTime === undefined) retargetTime = aaHasMissileProfile ? 1.2 : 0.8;
-
-            let events = [];
-            for (let m = 0; m < aaQty; m++) {
-                channels.forEach(function(ch) {
-                    ch.times.forEach(function(t) {
-                        events.push({ t: t, m: m, damage: ch.damage, useKinematics: ch.useKinematics,
-                                      chAccuracy: ch.chAccuracy, extraMult: ch.extraMult });
-                    });
-                });
-            }
-            events.sort(function(a, b) { return (a.t - b.t) || (a.m - b.m); });
-
-            // 5. Прогон боя — ФОКУС-ОГОНЬ, как в игре: ВСЕ модули ПВО бьют ОДНУ и ту же ракету
-            //    (ближайшую по дедлайну). Как только она сбита — все модули вместе перенаводятся
-            //    на следующую, и на это уходит retargetTime, в течение которого никто не стреляет.
-            //    Если ракета долетела раньше, чем её добили, она прорывается, и тоже нужно
-            //    перенаведение. Первая цель захватывается без паузы (реакция уже учтена в окне).
-            let busyUntil = 0;
+            // 7. Прогон боя — ФОКУС-ОГОНЬ: каждая ПВО бьёт ближайшую по времени долёта живую ракету, которую уже
+            //    может поражать (в зоне + реакция прошла). Когда цель сбита или прорвалась, ПВО, которые по ней
+            //    работали, вместе перенаводятся — каждая теряет свой retarget-время, в которое не стреляет.
+            const busyUntil = ag.map(function() { return 0; });
+            let pending = swarm.length;
             let totalAADamage = 0, shotsFired = 0, shotsLanded = 0;
 
-            function currentTarget(t) {
+            function markLeak(sm) {
+                sm.status = 'leaked'; pending--;
+                for (let bi = 0; bi < ag.length; bi++) {
+                    if (pair[bi][sm.g].open <= sm.arrival) busyUntil[bi] = Math.max(busyUntil[bi], sm.arrival + ag[bi].retarget);
+                }
+            }
+            function pickTarget(ai, t) {
                 for (let i = 0; i < swarm.length; i++) {
-                    let m = swarm[i];
-                    if (m.status !== 'pending') continue;
-                    if (m.deadline <= t) {
-                        m.status = 'leaked';
-                        busyUntil = Math.max(busyUntil, m.deadline + retargetTime);
-                        continue;
-                    }
-                    return m;
+                    let sm = swarm[i];
+                    if (sm.status !== 'pending') continue;
+                    if (sm.arrival <= t) { markLeak(sm); continue; }
+                    if (t < pair[ai][sm.g].open) continue; // ещё не в зоне этой ПВО / не прошла реакция
+                    return sm;
                 }
                 return null;
             }
 
             for (let i = 0; i < events.length; i++) {
                 let ev = events[i];
-                if (ev.t < busyUntil) continue;          // модули ещё перенаводятся
-                let target = currentTarget(ev.t);
-                if (!target) break;                       // весь рой уничтожен или прорвался
-                if (ev.t < busyUntil) continue;          // перенаведение после прорвавшейся ракеты
+                if (pending <= 0) break;
+                if (ev.t < busyUntil[ev.a] - 1e-9) continue;          // ПВО перенаводится
+                let target = pickTarget(ev.a, ev.t);
+                if (!target) continue;
+                if (ev.t < busyUntil[ev.a] - 1e-9) continue;          // перенаведение после прорвавшейся ракеты
 
-                let p = shotHitProbability(ev.t, target.deadline, ev.useKinematics, ev.chAccuracy) * ev.extraMult;
-                let dealt = Math.min(p * ev.damage, Math.max(0, target.hp)); // без учёта переурона
+                const a = ag[ev.a], P = pair[ev.a][target.g], ch = ev.ch;
+                let extra = ch.extraMult;
+                if (ch.antiJamSensitive && mg[target.g].mis.anti_jamming === 0) extra *= 0.6;
+                let p = shotHitProbability(ev.t, target.arrival, ch, a, P) * extra;
+                let dealt = Math.min(p * ch.damage, Math.max(0, target.hp)); // без учёта переурона
                 shotsFired += 1;
                 shotsLanded += p;
                 totalAADamage += dealt;
-                target.hp -= p * ev.damage;
+                target.hp -= p * ch.damage;
 
                 if (target.hp <= 0) {
-                    target.status = 'destroyed';
-                    busyUntil = ev.t + retargetTime;
+                    target.status = 'destroyed'; pending--;
+                    for (let bi = 0; bi < ag.length; bi++) {
+                        if (pair[bi][target.g].open <= ev.t) busyUntil[bi] = Math.max(busyUntil[bi], ev.t + ag[bi].retarget);
+                    }
                 }
             }
-            // Всё, что не добили до дедлайна, — прорвалось
-            swarm.forEach(function(x) { if (x.status === 'pending') { x.status = 'leaked'; } });
+            swarm.forEach(function(sm) { if (sm.status === 'pending') sm.status = 'leaked'; });
 
-            let destroyedMissiles = swarm.filter(function(m) { return m.status === 'destroyed'; }).length;
+            let destroyedMissiles = swarm.filter(function(sm) { return sm.status === 'destroyed'; }).length;
             let survivedMissiles = totalMissiles - destroyedMissiles;
             let survivalProbability = (survivedMissiles / totalMissiles) * 100;
 
-            return { zoneTime: zoneTime, aaRange: aaRange, misSpeed: misVmax, retargetTime: retargetTime, flyTime: flyTime,
-                     engageTime: baseEngageTime, reactionTime: reactionTime, speedFactor: speedFactor, accuracy: accuracy,
+            const A0 = ag[0], M0 = mg[0], P0 = pair[0][0];
+            return { zoneTime: P0.zoneTime, aaRange: A0.range, misSpeed: M0.vmax, retargetTime: A0.retarget, flyTime: M0.flyTime,
+                     engageTime: P0.base, reactionTime: A0.reaction, speedFactor: P0.speedFactor, accuracy: A0.accuracy,
                      totalAADamage: totalAADamage, shotsFired: shotsFired, shotsLanded: shotsLanded,
-                     totalMissiles: totalMissiles, totalMissileHP: totalMissileHP, singleMissileHP: singleMissileHP,
+                     totalMissiles: totalMissiles, totalMissileHP: totalMissileHP, singleMissileHP: M0.hp,
                      destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
-                     survivalProbability: survivalProbability, aaHasMissileProfile: aaHasMissileProfile,
-                     swarmSpreadSec: (maxDeadline - swarm[0].deadline) };
+                     survivalProbability: survivalProbability, aaHasMissileProfile: A0.hasProfile,
+                     swarmSpreadSec: (maxArrival - swarm[0].arrival),
+                     // подробности по группам (для режима с несколькими слотами)
+                     aaInfo: ag.map(function(a) { return { aa: a.aa, qty: a.qty, kind: a.kind, range: a.range, reaction: a.reaction,
+                                                          retarget: a.retarget, accuracy: a.accuracy, hasProfile: a.hasProfile }; }),
+                     misInfo: mg.map(function(m, gi) {
+                         let total = 0, destroyed = 0;
+                         swarm.forEach(function(sm) { if (sm.g === gi) { total++; if (sm.status === 'destroyed') destroyed++; } });
+                         return { mis: m.mis, qty: m.qty, speed: m.vmax, total: total, destroyed: destroyed };
+                     }),
+                     pair: pair };
+        }
+
+        // Один тип ПВО против одного типа ракет — то, что используют рейтинг и дуэль кораблей.
+        function runInterceptEngine(aa, aaQty, mis, misQty, distance) {
+            return runInterceptEngineMulti([{ aa: aa, qty: aaQty }], [{ mis: mis, qty: misQty }], distance);
         }
 
         // Эффективность ПВО для РЕЙТИНГА. Раньше считалась как "один модуль против одной средней
@@ -4088,19 +4167,71 @@
             return runInterceptEngine(aa, aaQty, mis, misQty, distance);
         }
 
+        // Результат для комбинации из нескольких слотов ПВО и/или ракет
+        function simMultiResultHTML(R, distance, resColor, verdict) {
+            const km = L('км', 'km'), sec = L('сек.', 'sec.');
+            const num = n => Math.round(n).toLocaleString(LANG === 'en' ? 'en' : 'ru');
+            const aaRows = R.aaInfo.map(a => `<div style="margin-bottom:4px;"><b style="color:var(--primary);">${itemName(a.aa)}</b> ×${a.qty}<br>
+                <span style="font-size:0.85rem; color:var(--text-muted);">${L('зона','zone')} ${a.range.toFixed(2)} ${km} · ${L('реакция','reaction')} ${a.reaction.toFixed(2)} ${sec} · ${L('перенаведение','retarget')} ${a.retarget.toFixed(2)} ${sec} · ${L('точность','accuracy')} ${(a.accuracy*100).toFixed(0)}%</span></div>`).join('');
+            const misRows = R.misInfo.map((m, gi) => {
+                const zt = R.pair.map(row => row[gi].zoneTime);
+                const zmin = Math.min.apply(null, zt), zmax = Math.max.apply(null, zt);
+                const zoneTxt = Math.abs(zmax - zmin) < 0.005 ? zmin.toFixed(2) : (zmin.toFixed(2) + '–' + zmax.toFixed(2));
+                return `<div style="margin-bottom:4px;"><b style="color:var(--secondary);">${itemName(m.mis)}</b> ×${m.qty}
+                    — ${L('сбито','destroyed')} <b style="color:var(--text-main);">${m.destroyed}</b> ${L('из','of')} <b style="color:var(--text-main);">${m.total}</b><br>
+                    <span style="font-size:0.85rem; color:var(--text-muted);">${L('скорость','speed')} ${m.speed.toFixed(2)} ${L('км/с','km/s')} · ${L('пролёт зоны ПВО','zone crossing')} ${zoneTxt} ${sec}</span></div>`;
+            }).join('');
+            let warnings = [];
+            R.aaInfo.forEach((a, ai) => R.misInfo.forEach((m, gi) => {
+                if (a.hasProfile && R.pair[ai][gi].speedFactor < 0.5) {
+                    warnings.push(`⚠ ${itemName(a.aa)} ${L('слишком медленная против','is too slow against')} ${itemName(m.mis)}`);
+                }
+            }));
+            const warnHTML = warnings.slice(0, 4).map(w => `<div style="margin-top:6px; color: var(--secondary); font-size:0.85rem; line-height:1.5;">${w}</div>`).join('');
+            return `
+                <div style="font-family:'Inter'; font-size:1.05rem; color:var(--text-main); line-height: 1.7; text-align:left;">
+                    <div style="font-weight:800; margin-bottom:6px;">${L('ПВО','AA')}</div>${aaRows}
+                    <div style="font-weight:800; margin: 12px 0 6px 0;">${L('Ракетный залп','Missile salvo')} (${L('дистанция','distance')} ${distance.toFixed(1)} ${km})</div>${misRows}
+                    <div style="margin-top:12px; text-align:center;">
+                        ${L('Математический урон ПВО','Expected AA damage')}: <b style="color:var(--primary);">${num(R.totalAADamage)} HP</b><br>
+                        ${L('Прочность роя ракет','Missile swarm HP')} (${R.totalMissiles} ${L('шт.','pcs')}): <b style="color:var(--secondary);">${num(R.totalMissileHP)} HP</b>
+                    </div>
+                    <div style="margin: 15px 0 0 0; border-top: 1px solid var(--line); padding-top: 15px; text-align:center;">
+                        <span style="font-weight:900; font-size:1.4rem; color:${resColor};">${verdict}</span><br>
+                        ${L('Сбито ракет','Missiles destroyed')}: <b style="font-size:1.2rem;">${R.destroyedMissiles}</b> ${L('из','of')} <b style="font-size:1.2rem;">${R.totalMissiles}</b><br>
+                        ${L('Проходимость урона','Damage that gets through')}: <b style="font-size:1.8rem; color:${resColor};">${R.survivalProbability.toFixed(1)}%</b>
+                    </div>
+                    ${warnHTML}
+                </div>`;
+        }
+
         function simulateAA() {
-            const aaKey = document.getElementById('wrapper-sim-aa').dataset.value;
-            const misKey = document.getElementById('wrapper-sim-missile').dataset.value;
-            const aaQty = parseInt(document.getElementById('sim-aa-qty').value);
-            const misQty = parseInt(document.getElementById('sim-missile-qty').value);
             const distance = parseFloat(document.getElementById('sim-dist').value);
 
-            if (!aaKey || !misKey) return showToast(L("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО","ERROR: WEAPON NOT SELECTED"), true);
+            // Собираем ВСЕ слоты: любое число разных систем ПВО и разных ракет
+            function collect(containerId) {
+                const groups = [];
+                document.querySelectorAll('#' + containerId + ' .sim-slot').forEach(slot => {
+                    const pfx = slot.dataset.prefix;
+                    const key = document.getElementById('wrapper-' + pfx).dataset.value;
+                    const qty = parseInt(document.getElementById(pfx + '-qty').value);
+                    if (key && DB[key] && qty > 0) groups.push({ key: key, qty: qty });
+                });
+                return groups;
+            }
+            const aaSel = collect('sim-aa-slots');
+            const misSel = collect('sim-missile-slots');
 
-            const aa = DB[aaKey];
-            const mis = DB[misKey];
+            if (!aaSel.length || !misSel.length) return showToast(L("ОШИБКА: ОРУЖИЕ НЕ ВЫБРАНО","ERROR: WEAPON NOT SELECTED"), true);
 
-            const R = simulateAABreakthrough(aa, aaQty, mis, misQty, distance);
+            const aaGroups = aaSel.map(g => ({ aa: DB[g.key], qty: g.qty }));
+            const misGroups = misSel.map(g => ({ mis: DB[g.key], qty: g.qty }));
+            const isMulti = aaGroups.length > 1 || misGroups.length > 1;
+
+            const aa = aaGroups[0].aa;
+            const mis = misGroups[0].mis;
+
+            const R = runInterceptEngineMulti(aaGroups, misGroups, distance);
             const { zoneTime, aaRange, misSpeed, retargetTime, engageTime, reactionTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
                     destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
 
@@ -4114,6 +4245,11 @@
 
             const resDiv = document.getElementById('sim-result');
             resDiv.style.display = 'block';
+            if (isMulti) {
+                resDiv.innerHTML = simMultiResultHTML(R, distance, resColor, verdict);
+                showToast(L("СИМУЛЯЦИЯ ЗАВЕРШЕНА","SIMULATION COMPLETE"));
+                return;
+            }
             resDiv.innerHTML = `
                 <div style="font-family:'Inter'; font-size:1.1rem; color:var(--text-main); line-height: 1.8;">
                     ${L('Скорость ракеты','Missile speed')}: <b style="color:var(--text-main);">${misSpeed.toFixed(2)} ${L('км/с','km/s')}</b><br>
