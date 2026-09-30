@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="MWLAB">
     <meta name="application-name" content="MWLAB">
     <meta name="format-detection" content="telephone=no">
-    <meta name="description" content="MWLAB — анализатор, арсенал, конструктор сборок и тир-лист для Modern Warships.">
+    <meta name="description" content="MWLAB — арсенал, конструктор сборок и тир-лист для Modern Warships.">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
@@ -61,6 +61,8 @@
             --grain-opacity: 0.10;
             --field-bg: rgba(255, 255, 255, 0.55);
             --halo: rgba(10, 11, 14, 0.06);
+            --tabbar-h: 66px;
+            --bar-bg: rgba(246, 247, 249, 0.82);
         }
 
         :root[data-theme="dark"] {
@@ -91,11 +93,12 @@
             --grain-opacity: 0.13;
             --field-bg: rgba(255, 255, 255, 0.05);
             --halo: rgba(255, 255, 255, 0.07);
+            --bar-bg: rgba(10, 11, 14, 0.78);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
-        html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; overflow-x: clip; width: 100%; }
+        html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; overflow-x: clip; width: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
 
         ::selection { background: var(--secondary); color: #fff; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -204,7 +207,7 @@
         @keyframes veilFade { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes veilSweep { 0% { transform: translateX(-5vw); } 100% { transform: translateX(105vw); } }
 
-        .app-wrapper { position: relative; z-index: 10; width: 100%; }
+        .app-wrapper { position: relative; z-index: 10; width: 100%; padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
 
         /* =====================================================================
            ЖИДКОЕ СТЕКЛО
@@ -456,7 +459,6 @@
 
         .weapon-showcase { position: relative; width: 100%; height: 260px; margin-bottom: 22px; display: flex; justify-content: center; align-items: flex-end; perspective: 1000px; border-radius: 28px; background: radial-gradient(70% 70% at 50% 60%, var(--halo), transparent 75%); }
         .equip-img-container { width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center bottom; position: absolute; bottom: 30px; z-index: 3; transition: opacity 0.4s ease; filter: drop-shadow(0 22px 26px rgba(0, 0, 0, 0.5)); }
-        .floating-weapon { animation: floatItem 4.5s ease-in-out infinite; }
         @keyframes floatItem { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
         .holo-base { position: absolute; bottom: 8px; width: 62%; height: 16px; background: radial-gradient(ellipse at center, var(--text-muted) 0%, transparent 70%); filter: blur(5px); z-index: 1; opacity: 0.7; animation: pulseBase 4.5s ease-in-out infinite; }
         .holo-rays { position: absolute; bottom: 18px; width: 90%; height: 120%; background: linear-gradient(to top, var(--halo) 0%, transparent 80%); clip-path: polygon(30% 100%, 70% 100%, 100% 0, 0 0); z-index: 2; opacity: 0.6; animation: holoFlicker 2.5s infinite alternate; pointer-events: none; }
@@ -474,10 +476,6 @@
         .analysis-cols { display: flex; gap: 14px; width: 100%; margin-bottom: 20px; }
         .analysis-col { flex: 1; padding: 18px; border: 1px solid var(--line); border-radius: 24px; background: var(--surface-alt); }
         .col-title { font-family: var(--f-hud); font-weight: 600; color: var(--text-main); margin-bottom: 14px; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; text-align: center; }
-        .pro-item { color: var(--text-main); font-size: 0.84rem; margin-bottom: 12px; line-height: 1.5; padding-left: 18px; position: relative; }
-        .pro-item::before { content: ""; position: absolute; left: 0; top: 7px; width: 7px; height: 7px; background: var(--text-main); border-radius: 50%; box-shadow: 0 0 10px var(--text-muted); }
-        .con-item { color: var(--text-muted); font-size: 0.84rem; margin-bottom: 12px; line-height: 1.5; padding-left: 18px; position: relative; }
-        .con-item::before { content: ""; position: absolute; left: 0; top: 10px; width: 8px; height: 2px; background: var(--secondary); border-radius: 2px; box-shadow: 0 0 8px var(--secondary); }
         .final-summary-block { width: 100%; margin-top: auto; padding: 22px; background: var(--surface-alt); border-radius: 26px; border: 1px solid var(--line); text-align: center; }
         .radar-container { width: 100%; max-width: 400px; margin: 0 auto; }
         .meta-legend { margin-top: 15px; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--line); padding-top: 12px; line-height: 1.6; }
@@ -642,7 +640,7 @@
            ВЫКЛЮЧЕНИЕ ЭФФЕКТОВ
            ===================================================================== */
         html.effects-off #sparks-container, html.effects-off #bg-fx, html.effects-off body::after, html.effects-off #veil, html.effects-off .hero-bars { display: none !important; }
-        html.effects-off #global-mwl-text, html.effects-off .floating-weapon, html.effects-off .roster-portrait, html.effects-off .holo-base, html.effects-off .holo-rays, html.effects-off .holo-scanline,
+        html.effects-off #global-mwl-text, html.effects-off .roster-portrait, html.effects-off .holo-base, html.effects-off .holo-rays, html.effects-off .holo-scanline,
         html.effects-off .spark, html.effects-off .led, html.effects-off .home-title::after, html.effects-off .roster-stage-glow { animation: none !important; }
         html.effects-off .home-title::before { display: none; }
         html.effects-off .glass-panel::before { display: none; }
@@ -843,7 +841,6 @@
 
         /* Поля форм (Дуэль) */
         .cf-field { display: flex; flex-direction: column; gap: 8px; min-width: 150px; }
-        .cf-field.grow { flex: 1; min-width: 260px; }
         .cf-field label { color: var(--text-muted); font-family: var(--f-hud); font-size: 0.62rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding-left: 10px; }
         .cf-field .search-input { max-width: 100%; }
         .cf-h { font-family: var(--f-display); font-size: 0.85rem; font-weight: 700; margin: 24px 0 12px 0; }
@@ -920,19 +917,16 @@
         .nav-btn, .modal-close, .mode-link, .tray-chip, .sweep-cell { overflow: hidden; }
         ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.8s; }
 
-
         /* =====================================================================
            МОБИЛЬНАЯ АДАПТАЦИЯ (iOS / Android / планшеты) + PWA + АККАУНТЫ
            ===================================================================== */
         [hidden] { display: none !important; }
-        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
 
         /* Поля ввода должны быть редактируемыми на iOS, несмотря на user-select:none выше */
         input, textarea, select, [contenteditable] { -webkit-user-select: text; user-select: text; }
         input:-webkit-autofill { -webkit-text-fill-color: var(--text-main); box-shadow: 0 0 0 100px var(--surface) inset; caret-color: var(--text-main); }
 
         /* Вырез (notch), Dynamic Island, жестовая полоса */
-        .app-wrapper { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
         html.standalone body { overscroll-behavior-y: none; }
 
         /* Нижняя панель навигации (только телефоны) */
@@ -967,24 +961,24 @@
         /* Компактные экраны: телефоны + планшеты в портрете (тач).
            Верхняя и нижняя панели прижаты к краям экрана, их фон заходит под статус-бар,
            вырез и жестовую полосу — поэтому полос сверху и снизу нет. */
-        :root { --tabbar-h: 66px; --bar-bg: var(--bg-base); }
-        
+
         @media (max-width: 768px), (min-width: 769px) and (max-width: 1100px) and (pointer: coarse) and (orientation: portrait) {
             :root { --glass-blur: blur(16px) saturate(130%); }
             body::after { display: none; }            /* плёночное зерно тяжёлое для мобильных GPU */
 
             /* Верхняя панель: на всю ширину, вплотную к верху экрана */
             nav.glass-panel {
-                width: 100%; margin: 0; flex-wrap: nowrap; gap: 8px;
+                position: relative; width: 100%; margin: 0; flex-wrap: nowrap; gap: 8px;
                 padding: calc(8px + env(safe-area-inset-top, 0px)) 10px 8px 16px;
-                border-width: 0 0 1px 0; border-color: var(--line); border-radius: 0 !important; box-shadow: none;
-                background: var(--bar-bg); backdrop-filter: none; -webkit-backdrop-filter: none;
-                position: sticky; top: 0; z-index: 250;
+                border-width: 0 0 1px 0; border-radius: 0 !important; box-shadow: none;
+                background: var(--bar-bg);
+                backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%);
             }
             /* Плашка под статус-баром: при прокрутке текст не залезает под часы и батарею */
             .app-wrapper::before {
-                content: ""; position: fixed; top: -160px; left: 0; right: 0; height: calc(160px + env(safe-area-inset-top, 0px));
+                content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px);
                 z-index: 200; pointer-events: none; background: var(--bar-bg);
+                backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%);
             }
             .nav-tabs { display: none; }
             .nav-logo-small { order: 0; flex: 1 1 auto; min-width: 0; font-size: 0.9rem; }
@@ -998,12 +992,12 @@
                 position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
                 width: auto; transform: none; border-radius: 0;
                 padding: 6px calc(8px + env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) calc(8px + env(safe-area-inset-left, 0px));
-                background: var(--bar-bg); border: 0; border-top: 1px solid var(--line);
-                backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none;
+                background: var(--bar-bg); border: 0; border-top: 1px solid var(--glass-border);
+                backdrop-filter: blur(26px) saturate(150%); -webkit-backdrop-filter: blur(26px) saturate(150%);
+                box-shadow: 0 -14px 40px -22px rgba(0, 0, 0, 0.6);
                 transition: transform 0.35s var(--ease-out), opacity 0.25s ease;
             }
             .tab-btn { max-width: 150px; }
-            .tabbar::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 200px; background: var(--bar-bg); pointer-events: none; }
             html.kbd-open .tabbar { transform: translateY(110%); opacity: 0; pointer-events: none; }
 
             /* Контент не прячется под панелями */
@@ -1135,7 +1129,7 @@
         .stat-name, .stat-value { min-width: 0; }
         @media (max-width: 1100px) {
             .item-title, .cat-item-name, .cat-item-meta, .roster-heading h2, .roster-classtext, .roster-skill-chip,
-            .pro-item, .con-item, .stat-name, .dropdown-option-text, .bd-title, .toast, .panel-title, .kb-title,
+            .stat-name, .dropdown-option-text, .bd-title, .toast, .panel-title, .kb-title,
             .home-desc, .meta-legend, .mc-rank-item, .final-summary-block, .roster-compare-hint { overflow-wrap: anywhere; }
         }
     </style>
@@ -1165,7 +1159,6 @@
             <div class="nav-tabs" id="nav-tabs">
                 <span class="nav-indicator" id="nav-indicator"></span>
                 <button class="nav-btn active" id="nav-home" data-i18n="nav.home" onclick="switchMainPage('page-home', this)">Главная</button>
-                <button class="nav-btn" id="nav-compare" data-i18n="nav.compare" onclick="switchMainPage('page-compare', this)">Анализатор</button>
                 <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); showToast(L('ТРЕБУЕТСЯ PRO ДОСТУП','PRO ACCESS REQUIRED'), true); }"><span data-i18n="nav.builder">Конструктор</span> <span id="builder-lock">🔒</span></button>
                 <button class="nav-btn" id="nav-catalog" data-i18n="nav.catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
                 <button class="nav-btn" id="nav-tiers" data-i18n="nav.tiers" onclick="switchMainPage('page-tiers', this)">Тир-лист</button>
@@ -1221,12 +1214,11 @@
                         <dt>META:</dt><dd>5–10 KM</dd>
                     </dl>
                     <div class="mode-list">
-                        <button class="mode-link" onclick="switchMainPage('page-compare', document.getElementById('nav-compare'))"><i>MODE 1:</i><span data-i18n="nav.compare">Анализатор</span></button>
-                        <button class="mode-link" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))"><i>MODE 2:</i><span data-i18n="nav.catalog">Арсенал</span></button>
-                        <button class="mode-link" onclick="switchMainPage('page-tiers', document.getElementById('nav-tiers'))"><i>MODE 3:</i><span data-i18n="nav.tiers">Тир-лист</span></button>
+                        <button class="mode-link" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))"><i>MODE 1:</i><span data-i18n="nav.catalog">Арсенал</span></button>
+                        <button class="mode-link" onclick="switchMainPage('page-tiers', document.getElementById('nav-tiers'))"><i>MODE 2:</i><span data-i18n="nav.tiers">Тир-лист</span></button>
                     </div>
                     <dl aria-hidden="true">
-                        <dt>MODULES:</dt><dd>ANALYZER / BUILDER</dd>
+                        <dt>MODULES:</dt><dd>ARSENAL / BUILDER</dd>
                         <dt>SIM:</dt><dd>AA BREACH / DUEL</dd>
                         <dt>LANG:</dt><dd>RU / EN</dd>
                     </dl>
@@ -1238,7 +1230,7 @@
             </section>
         </main>
 
-        <!-- ===================== АНАЛИЗАТОР ===================== -->
+        <!-- ===================== СРАВНЕНИЕ (открывается из Арсенала) ===================== -->
         <main id="page-compare" class="page">
             <div class="controls-container">
                 <button class="cat-btn-main btn-export" onclick="exportCompareReport()" data-i18n="cmp.download">СКАЧАТЬ ОТЧЕТ</button>
@@ -1560,11 +1552,8 @@
         <div class="modal-content glass-panel">
             <button class="modal-close" onclick="closeModal('ibe-modal')">×</button>
             <h2 class="kb-title" data-i18n="kb.title">БАЗА ЗНАНИЙ MWLAB</h2>
-            
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" data-i18n-html="kb.intro">
-                <b>Анализатор:</b> Сравнивает вооружение в мете 5-10 км.<br>
-                <b>Конструктор:</b> Симулирует реальную сборку корабля.
-            </p>
+
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" data-i18n-html="kb.intro"></p>
 
             <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
                 <button class="cat-btn-main active" id="btn-modal-cannons" style="border:none; flex-grow:1; font-size:0.72rem; padding:10px 6px;" onclick="switchModalTab('cannons')" data-i18n="kb.tab.cannons">ПУШКИ</button>
@@ -1577,78 +1566,40 @@
             </div>
 
             <div id="info-cannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5;">
-                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.cannons">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Врожденный разброс (Дробовики):</b> Картечь стреляет облаком дроби. Базовая точность искусственно занижена.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Автонаведение:</b> Барабанные пушки сводятся в центр врага. Из-за укрытия снаряды полетят в скалу.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Мета закрытых карт (5-10 км):</b> Избыточная дальность не дает бонусов. Оружие ближнего боя оценивается выше.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Критический урон:</b> Высчитывается идеальный максимальный урон с учетом крита.</li>
-                </ul>
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.cannons"></ul>
             </div>
 
             <div id="info-missiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.missiles">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Защита от помех:</b> Ракеты без реакции на ловушки получают максимальный бонус.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Прорыв ПВО:</b> Оценивается HP ракеты, стартовая скорость, разгон и количество в залпе. <i>(Зенитные ракеты получают +20 баллов за каждую последующую в залпе).</i></li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Кластерная БЧ / АОЕ:</b> Обходит ПВО. У отводимых ракет шанс пробития ловушек равен 20%. Зенитные ракеты с АОЕ получают огромный бонус за счет поражения всего звена авиации.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерное наведение:</b> Позволяет выцеливать открытые части корабля из-за укрытий и не требует времени на захват, но из-за прямого полета такие ракеты — легкая мишень для ПВО.</li>
-                </ul>
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.missiles"></ul>
             </div>
 
             <div id="info-aamissiles" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.aamissiles">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Та же формула, что у ракет:</b> Зенитные ракеты считаются по модели обычных ракет, но с упором на стрельбу по авиации.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Многозарядность:</b> Каждая дополнительная ракета в пуске даёт заметный бонус к рейтингу.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Сплэш/АОЕ:</b> Даёт огромный бонус — одна ракета может задеть сразу всё звено авиации.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Прочность и скорость:</b> HP ракеты, стартовая/макс. скорость и разгон напрямую влияют на шанс долететь до цели.</li>
-                </ul>
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.aamissiles"></ul>
             </div>
 
             <div id="info-torpedoes" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.torpedoes">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Обход ловушек:</b> Без помехозащиты эффективный урон в минуту снижается по циклу отвода (29 сек) и зависит от скорости торпеды.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Скорость и разгон:</b> Чем быстрее торпеда и короче время разгона — тем выше итоговый рейтинг.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Обойма и залп:</b> Бонус за количество торпед в обойме и в одном пуске.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Спец. возможности:</b> Радиус детонации и сплэш-урон повышают шанс поражения даже при неточном попадании.</li>
-                </ul>
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.torpedoes"></ul>
             </div>
 
             <div id="info-launchers" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.launchers">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Тип определяет формулу:</b> Пушечные (снарядные), Ракетные, Лазерные и Смешанные гранатометы оцениваются по-разному.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Пушечные / Смешанные:</b> Штраф за отдачу и разброс на дистанции — как у обычных пушек.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Ракетные:</b> Учитывается HP снаряда и цикл обхода ловушек — как у ракет.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Лазерные:</b> Мгновенное наведение без времени захвата, но сниженный эффективный урон.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Спец. модификаторы:</b> Поражение торпед/подлодок, залповый режим (burst) и атака авиации дают дополнительные очки.</li>
-                </ul>
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.launchers"></ul>
             </div>
 
             <div id="info-autocannons" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.autocannons">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Базовый DPM и альфа-страйк:</b> Основной вклад в итоговую оценку.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">ПВО / ПЛО:</b> Крупный бонус за возможность бить авиацию и подлодки.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Дальность и скорость снаряда:</b> Чем выше показатели — тем лучше рейтинг.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Крит и сплэш:</b> Дают дополнительные очки к общей оценке.</li>
-                </ul>
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.autocannons"></ul>
             </div>
 
             <div id="info-aa" style="color: var(--text-main); font-size: 0.85rem; line-height: 1.5; display: none;">
-                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.aa">
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Реальная угроза, а не вакуум:</b> ПВО оценивается против усреднённого профиля боевых ракет из базы — считается «окно перехвата» и реальный шанс сбить типичную ракету.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность = 100%:</b> В базе нет данных о точности ПВО, поэтому она не занижается искусственно — разницу между юнитами дают только реальные цифры (DPM, урон, скорострельность, скорость и разгон перехватчика).</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Скорость перехвата:</b> У Ракетного/Гибридного ПВО скорость и разгон собственной ракеты сравниваются со скоростью цели — медленный интерцептор резко теряет эффективность.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">АОЕ и плотность огня:</b> Сплэш, радиус детонации и размер обоймы дают бонус против роя ракет.</li>
-                </ul>
+                <ul style="margin-left: 20px; color: var(--text-muted);" data-i18n-html="kb.aa"></ul>
             </div>
         </div>
     </div>
 
     <div id="toast-container"></div>
 
-
     <!-- Нижняя панель навигации (телефоны) -->
     <div class="tabbar" id="tabbar" role="navigation" aria-label="Main">
         <button type="button" class="tab-btn" data-go="nav-home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span></span></button>
-        <button type="button" class="tab-btn" data-go="nav-compare"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V4M16 20v-7M21 20H3"/></svg><span></span></button>
         <button type="button" class="tab-btn" data-go="nav-builder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg><span></span><i class="tab-lock" hidden>🔒</i></button>
         <button type="button" class="tab-btn" data-go="nav-catalog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span></span></button>
         <button type="button" class="tab-btn" data-go="nav-tiers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg><span></span></button>
@@ -2014,8 +1965,8 @@
             const pl = $a('pw-label'); if (pl && $a('pw-meter')) pl.textContent = AT('pw.' + $a('pw-meter').dataset.s);
         }
 
-        let siteVisits = localStorage.getItem('mw_site_visits') || 0; 
-        siteVisits++; 
+        let siteVisits = localStorage.getItem('mw_site_visits') || 0;
+        siteVisits++;
         localStorage.setItem('mw_site_visits', siteVisits);
 
         function updateAuthStateUI() {
@@ -2024,7 +1975,7 @@
             const lockIcon = document.getElementById('builder-lock');
             const navAdminBtn = document.getElementById('nav-admin');
             const sortOpts = document.querySelectorAll('#sort-catalog option:not([value="none"])');
-            
+
             if (isAuth) {
                 adminDash.style.display = 'block';
                 adminAuth.style.display = 'none';
@@ -2039,7 +1990,7 @@
                 navAdminBtn.classList.remove('auth-active');
                 sortOpts.forEach(opt => opt.disabled = true);
             }
-            
+
             renderAuthTexts();
             refreshProGatedViews();
             if(document.getElementById('page-catalog').classList.contains('active')) {
@@ -2065,7 +2016,7 @@
             if (!container) return;
             const spark = document.createElement('div');
             spark.className = 'spark';
-            const size = Math.random() * 4 + 2; 
+            const size = Math.random() * 4 + 2;
             spark.style.width = size + 'px';
             spark.style.height = size + 'px';
             spark.style.left = Math.random() * 100 + '%';
@@ -2103,7 +2054,7 @@
         let currentAAType = "";
         let currentAutoType = "";
         let searchQuery = "";
-        
+
         const CATEGORY_MAX_STATS = {
             "Пушки": {
                 damage_burst: 170000, dpm: 660000, damage: 50000, accuracy: 100,
@@ -2113,13 +2064,13 @@
             },
             "Ракеты": {
                 damage_burst: 60000, dpm: 320000, damage: 60000, accuracy: 100,
-                reload: 25, lock_time: 4.5, projectiles: 4, 
+                reload: 25, lock_time: 4.5, projectiles: 4,
                 splash_damage: 10000, splash_radius: 700, fragmentation_damage: 25000, detonation_radius: 100,
                 hp: 400, start_speed: 400, max_speed: 650, accel_time: 12, range: 16, min_range: 4, fire_penalty: 60
             },
             "Ракеты А/А": {
                 damage_burst: 30000, dpm: 230000, damage: 30000, accuracy: 100,
-                reload: 8, lock_time: 1.5, projectiles: 3, 
+                reload: 8, lock_time: 1.5, projectiles: 3,
                 splash_damage: 5000, splash_radius: 500, detonation_radius: 100,
                 hp: 400, start_speed: 400, max_speed: 600, accel_time: 3, range: 16, min_range: 4, fire_penalty: 50
             },
@@ -2142,7 +2093,7 @@
                 max_speed: 1000, range: 10, fire_penalty: 30
             },
             "ПВО": {
-                damage_burst: 20000, dpm: 200000, damage: 5000, accuracy: 100, 
+                damage_burst: 20000, dpm: 200000, damage: 5000, accuracy: 100,
                 reload: 6, range: 6, max_speed: 1500,
                 splash_damage: 500, splash_radius: 333, detonation_radius: 33,
                 killChanceVsMissile: 1
@@ -2203,7 +2154,6 @@
             "Испания": "Spain", "Канада": "Canada", "Австралия": "Australia", "Пакистан": "Pakistan",
             "Северная Корея": "North Korea", "Тайвань": "Taiwan"
         };
-        const RARITY_EN = { "Легендарный": "Legendary", "Эпический": "Epic", "Редкий": "Rare", "Обычный": "Common" };
         const NAME_EN = {
             "АК-130 (КАРТЕЧЬ)": "AK-130 (BUCKSHOT)",
             "НОВОГОДНИЙ СВАРМЕР": "NEW YEAR SWARMER",
@@ -2216,13 +2166,11 @@
         };
         function trCategory(cat) { return LANG === 'en' ? (CATEGORY_EN[cat] || cat) : cat; }
         function trCountry(c) { return LANG === 'en' ? (COUNTRY_EN[c] || c) : (c || ''); }
-        function trRarity(r) { return LANG === 'en' ? (RARITY_EN[r] || r) : r; }
         function itemName(item) { if (!item) return ''; return LANG === 'en' ? (NAME_EN[item.name] || item.name) : item.name; }
 
         // Словарь статичных подписей интерфейса (для элементов с data-i18n / data-i18n-title / data-i18n-placeholder)
         const I18N = {
             'nav.home': { ru: 'Главная', en: 'Home' },
-            'nav.compare': { ru: 'Анализатор', en: 'Analyzer' },
             'nav.builder': { ru: 'Конструктор', en: 'Builder' },
             'nav.catalog': { ru: 'Арсенал', en: 'Arsenal' },
             'nav.tiers': { ru: 'Тир-лист', en: 'Tier List' },
@@ -2294,8 +2242,8 @@
 
             'kb.title': { ru: 'БАЗА ЗНАНИЙ MWLAB', en: 'MWLAB KNOWLEDGE BASE' },
             'kb.intro': {
-                ru: '<b>Анализатор:</b> Сравнивает вооружение в мете 5-10 км.<br><b>Конструктор:</b> Симулирует реальную сборку корабля.',
-                en: '<b>Analyzer:</b> Compares weapons in the 5–10 km meta.<br><b>Builder:</b> Simulates a real ship build.'
+                ru: '<b>Арсенал:</b> Выберите два объекта — и вооружение сравнится в мете 5-10 км.<br><b>Конструктор:</b> Симулирует реальную сборку корабля.',
+                en: '<b>Arsenal:</b> Pick two items and they are compared in the 5–10 km meta.<br><b>Builder:</b> Simulates a real ship build.'
             },
             'kb.tab.cannons': { ru: 'ПУШКИ', en: 'GUNS' },
             'kb.tab.missiles': { ru: 'РАКЕТЫ', en: 'MISSILES' },
@@ -2596,7 +2544,7 @@
             "ws3": { name: "WS-3 (400 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 233276, damage_burst: 30840, damage: 4940, reload: 6.30, lock_time: 1.0, detonation_radius: 26, splash_damage: 200, splash_radius: 133, projectiles: 6, range: 10.40, max_speed: 388, start_speed: 77, accel_time: 2.29, hp: 65, fire_penalty: 35, anti_jamming: 1, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/WS3.png" },
             "pinaka": { name: "PINAKA MK3", category: "Гранатометы", country: "Индия", rarity: "Эпический", recoil: 11, dpm: 268513, damage_burst: 41172, damage: 2210, reload: 7.00, crit_chance: 20, detonation_radius: 166, splash_damage: 1000, splash_radius: 200, projectiles: 1, ammo_clip: 16, range: 13.00, max_speed: 456, start_speed: 456, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "manual", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/PinakaMK3.png" },
             "mar290": { name: "MAR-290 (290 MM)", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 15, dpm: 253231, damage_burst: 33300, damage: 8124, reload: 7.35, detonation_radius: 26, splash_damage: 200, splash_radius: 166, projectiles: 4, range: 11.27, max_speed: 515, start_speed: 515, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/MAR290.png" },
-            
+
             // ----- АВТОПУШКИ -----
             "skyranger_buckshot": { name: "OERLIKON SKYRANGER BUCKSHOT", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 1, dpm: 156773, damage_burst: 24375, damage: 97, reload: 4.90, detonation_radius: 15, projectiles: 10, ammo_clip: 25, fire_delay: 0.12, range: 3.25, max_speed: 728, fire_penalty: 9, accuracy: 33, is_buckshot: 1, img: "img/OerlikonSkyrangerBuckshot.png" },
             "rapidfire_40": { name: "RAPIDFIRE (40 MM)", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 40210, damage_burst: 3753, damage: 227, reload: 2.80, crit_chance: 20, detonation_radius: 33, projectiles: 1, ammo_clip: 15, fire_delay: 0.15, range: 3.03, max_speed: 680, fire_penalty: 9, accuracy: 100, img: "img/RapidFire.png" },
@@ -2620,7 +2568,7 @@
             "mk47_sea_striker": { name: "MK 47 SEA STRIKER", category: "Автопушки", country: "США", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 248243, damage_burst: 31320, damage: 2730, reload: 5.25, detonation_radius: 53, splash_damage: 750, splash_radius: 266, projectiles: 1, ammo_clip: 9, fire_delay: 0.15, range: 6.07, max_speed: 340, fire_penalty: 30, accuracy: 100, img: "img/MK47SeaStriker.png" },
             "paket_nkm": { name: "PAKET-NKM", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 211200, damage_burst: 26400, damage: 7799, reload: 7.00, detonation_radius: 33, splash_damage: 1000, splash_radius: 233, projectiles: 1, ammo_clip: 3, fire_delay: 0.20, range: 5.20, start_speed: 19, max_speed: 77, accel_time: 2.00, fire_penalty: 10, accuracy: 100, img: "img/PaketNKM.png" },
             "urws_30mm": { name: "URWS (30 MM)", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 1, dpm: 28862, damage_burst: 4642, damage: 130, reload: 3.85, crit_chance: 15, detonation_radius: 33, splash_damage: 15, splash_radius: 66, projectiles: 1, ammo_clip: 30, fire_delay: 0.12, range: 3.47, max_speed: 777, fire_penalty: 9, accuracy: 100, img: "img/URWS.png" },
-            
+
             // ----- ПВО -----
             // Скриншот 1
             "rim7": { name: "RIM-7 SEA SPARROW", category: "ПВО", aa_type: "Ракетное", country: "США", rarity: "Эпический", dpm: 28557, damage_burst: 1599, damage: 1599, reload: 4.20, splash_damage: 50, splash_radius: 100, range: 3.90, max_speed: 272, start_speed: 116, accel_time: 2.67, ammo_clip: 1, fire_penalty: 20, fire_delay: 0.05, img: "img/RIM7.png" },
@@ -2728,12 +2676,12 @@
         };
 
         function getSafeDistance(item) {
-            const MW_COEF = 0.00278; 
+            const MW_COEF = 0.00278;
             let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
             let v0 = (item.start_speed || 0) * MW_COEF;
             let vmax = (item.max_speed || 0) * MW_COEF;
-            let ta = item.accel_time || 0.1; 
-            
+            let ta = item.accel_time || 0.1;
+
             if (T <= ta) {
                 let a = (vmax - v0) / ta;
                 return (v0 * T) + (a * Math.pow(T, 2) / 2);
@@ -2831,22 +2779,22 @@
                 let score = 100;
                 let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
                 let pCount = item.projectiles || 1;
-                let totalShots = pCount * (item.ammo_clip || 1); 
-                
+                let totalShots = pCount * (item.ammo_clip || 1);
+
                 let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
-                let speedFactor = 800 / item.max_speed; 
+                let speedFactor = 800 / item.max_speed;
                 let evasionPenalty = (META_CONFIG.gunMetaDistance * speedFactor * 1.5);
-                
-                item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty); 
+
+                item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty);
                 item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
-                
+
                 // Раньше сюда добавлялся ещё и "сырой" DPM (без поправки на точность) с большим весом,
                 // из-за чего неточное оружие (картечь и т.п.) всё равно получало огромный бонус в обход
                 // штрафа за точность. Теперь сырой DPM даёт лишь небольшой "базовый" бонус за класс орудия,
                 // а основной вклад — только у показателя, уже скорректированного на реальную точность.
-                score += _T("DPM (паспортный)", ((item.dpm / 400000) * 30)); 
-                score += _T("Эффективный DPM", ((item.effectiveDpm / 400000) * 220)); 
-                
+                score += _T("DPM (паспортный)", ((item.dpm / 400000) * 30));
+                score += _T("Эффективный DPM", ((item.effectiveDpm / 400000) * 220));
+
                 let alphaMultiplier = 1;
                 if (hasClip) {
                     if (item.ammo_clip >= 10) alphaMultiplier = 0.2;
@@ -2857,21 +2805,21 @@
                     else if (totalShots === 3) alphaMultiplier = 0.85;
                     else if (totalShots > 3) alphaMultiplier = Math.max(0.1, 1 - (totalShots * 0.04));
                 }
-                
+
                 item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
                 score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 180));
 
-                score += _T("Скорость снаряда", ((item.max_speed / 1200) * 130)); 
-                
+                score += _T("Скорость снаряда", ((item.max_speed / 1200) * 130));
+
                 let effectiveRange = getEffectiveRange(item.range, 11);
-                score += _T("Дальность", ((effectiveRange / 11) * 20)); 
+                score += _T("Дальность", ((effectiveRange / 11) * 20));
                 if (item.range < 11.0) {
                     score -= _N("Штраф: дальность ниже 11 км", (((11.0 - item.range) * 8)));
                 }
-                
+
                 if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 10) * 5));
                 if (item.reload < 3.0) score += _T("Быстрая перезарядка", (20));
-                
+
                 // Большая обойма уже штрафуется через alphaMultiplier (режет эффективный альфа-страйк
                 // до 0.2x). Раньше сверху добавлялся ещё и отдельный фиксированный штраф за саму обойму —
                 // одна и та же особенность оружия наказывалась дважды. Теперь для оружия с обоймой
@@ -2879,7 +2827,7 @@
                 if (!hasClip) {
                     score += _T("Залповая схема (без обоймы)", ((40 - ((pCount - 1) * 5))));
                 }
-                
+
                 if (item.air_target === 1) score += _T("Атака авиации", (40));
                 if (item.splash_damage > 0) { score += _T("Сплэш и взрыв", (5)); score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 5)); }
                 if (item.splash_radius > 0) { score += _T("Сплэш и взрыв", ((item.splash_radius / 50) * 3.75)); }
@@ -2896,8 +2844,8 @@
                     item.effectiveBurst = item.damage_burst;
                 } else {
                     let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
-                    let clusterBonus = hasCluster ? 0.1 : 0; 
-                    
+                    let clusterBonus = hasCluster ? 0.1 : 0;
+
                     item.effectiveBurst = item.damage_burst;
 
                     let hitRatio = getMissileHitRatio(item.reload);
@@ -2905,56 +2853,56 @@
                     item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
                 }
 
-                score += _T("Базовый бонус класса", (150)); 
-                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250)); 
-                score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 60000) * 100)); 
-                
+                score += _T("Базовый бонус класса", (150));
+                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250));
+                score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 60000) * 100));
+
                 if (item.anti_jamming === 1) {
-                    score += _T("Помехозащита (РЭБ)", (200)); 
+                    score += _T("Помехозащита (РЭБ)", (200));
                 }
                 // Раньше здесь ещё дополнительно вычитался отдельный "штраф за уязвимость к ловушкам"
                 // на основе getSafeDistance(), хотя та же самая уязвимость уже заложена в hitRatio при
                 // расчёте effectiveDpm выше — одна и та же слабость наказывалась дважды. Теперь
                 // уклонение от ловушек влияет на рейтинг только через уже сниженный эффективный DPM.
-                
+
                 let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
-                if (hasCluster) { 
+                if (hasCluster) {
                     if (item.anti_jamming === 1) score += _T("Кластерная БЧ", (20)); else score += _T("Кластерная БЧ", (10));
                 }
-                
+
                 let isAA = (item.air_target === 1 || item.dedicated_aa === 1);
-                
+
                 if (isAA) {
-                    score += _T("Зенитная специализация", (45)); 
-                    
+                    score += _T("Зенитная специализация", (45));
+
                     if (item.projectiles > 1) {
-                        score += _T("Зенитная специализация", ((item.projectiles - 1) * 20)); 
+                        score += _T("Зенитная специализация", ((item.projectiles - 1) * 20));
                     }
-                    
+
                     if (item.splash_damage > 0 && item.splash_radius > 0) {
-                        score += _T("Зенитный сплэш", (60)); 
-                        score += _T("Зенитный сплэш", ((item.splash_radius / 50) * 15)); 
-                        score += _T("Зенитный сплэш", ((item.splash_damage / 1000) * 10)); 
+                        score += _T("Зенитный сплэш", (60));
+                        score += _T("Зенитный сплэш", ((item.splash_radius / 50) * 15));
+                        score += _T("Зенитный сплэш", ((item.splash_damage / 1000) * 10));
                     } else if (item.detonation_radius > 0) {
-                        score += _T("Зенитный сплэш", (20)); 
+                        score += _T("Зенитный сплэш", (20));
                     }
                 } else {
                     score += _T("Боеголовки в залпе", ((item.projectiles * 45)));
-                    if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 5000) * 30)); 
-                    if (item.splash_radius) score += _T("Сплэш и взрыв", ((item.splash_radius / 300) * 20)); 
+                    if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 5000) * 30));
+                    if (item.splash_radius) score += _T("Сплэш и взрыв", ((item.splash_radius / 300) * 20));
                     if (item.detonation_radius) score += _T("Сплэш и взрыв", ((item.detonation_radius / 20) * 15));
                 }
 
                 let effectiveHp = item.hp;
                 if (item.lock_time === 0) {
-                    effectiveHp *= 0.6; 
+                    effectiveHp *= 0.6;
                 }
-                score += _T("Живучесть (HP)", ((effectiveHp / 400) * 160));   
+                score += _T("Живучесть (HP)", ((effectiveHp / 400) * 160));
 
-                score += _T("Стартовая скорость", ((item.start_speed / 400) * 120)); 
-                score -= _N("Штраф: время разгона", ((item.accel_time * 25)));  
-                score += _T("Максимальная скорость", ((item.max_speed / 600) * 100)); 
-                
+                score += _T("Стартовая скорость", ((item.start_speed / 400) * 120));
+                score -= _N("Штраф: время разгона", ((item.accel_time * 25)));
+                score += _T("Максимальная скорость", ((item.max_speed / 600) * 100));
+
                 let effectiveRange = getEffectiveRange(item.range, 10);
                 score += _T("Дальность", ((effectiveRange / 10) * 20));
                 if (item.range < 11.5) {
@@ -2963,17 +2911,17 @@
 
                 if (item.reload <= 8.0) score += _T("Быстрая перезарядка", ((8.0 - item.reload) * 15));
                 if (item.fragmentation_damage) score += _T("Осколочный урон", ((item.fragmentation_damage / 25000) * 40));
-                
+
                 if (item.air_target === 1 && !item.dedicated_aa) score += _T("Атака авиации", (50));
                 if (item.sub_launch === 1) score += _T("Подводный пуск", (50));
-                
-                score += _T("Время захвата цели", ((50 - (item.lock_time * 10)))); 
-                
+
+                score += _T("Время захвата цели", ((50 - (item.lock_time * 10))));
+
                 if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.8)));
                 // Коэффициент был непропорционально большим относительно остальных штрафов в этой
                 // категории (accel_time×25, fire_penalty×0.8) и у ракет с мёртвой зоной 2-3 км
                 // перекрывал весь бонус за кластерную БЧ/РЭБ. Снижен до масштаба остальных штрафов.
-                if (item.min_range > 0) score -= _N("Штраф: мёртвая зона", ((item.min_range * 15))); 
+                if (item.min_range > 0) score -= _N("Штраф: мёртвая зона", ((item.min_range * 15)));
                 return score;
             },
             "Торпеды": function(item) {
@@ -2984,7 +2932,7 @@
                     item.effectiveDpm = item.dpm;
                     item.effectiveBurst = item.damage_burst;
                 } else {
-                    let trapCycle = META_CONFIG.flareCycleTorpedo; 
+                    let trapCycle = META_CONFIG.flareCycleTorpedo;
                     let hitRatio = 0;
 
                     let speedCoeff = Math.min(1.2, item.max_speed / 120);
@@ -2998,32 +2946,32 @@
                     }
 
                     item.effectiveDpm = item.dpm * Math.min(1, hitRatio);
-                    item.effectiveBurst = item.damage_burst; 
+                    item.effectiveBurst = item.damage_burst;
                 }
 
-                score += _T("Базовый бонус класса", (100)); 
-                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250)); 
-                score += _T("Эффективный альфа-страйк", ((item.damage_burst / 70000) * 150)); 
-                score += _T("Скорость", ((item.max_speed / 160) * 120)); 
-                
+                score += _T("Базовый бонус класса", (100));
+                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250));
+                score += _T("Эффективный альфа-страйк", ((item.damage_burst / 70000) * 150));
+                score += _T("Скорость", ((item.max_speed / 160) * 120));
+
                 if (item.accel_time <= 5) score += _T("Быстрый разгон", (40));
-                else score -= _N("Штраф: время разгона", ((item.accel_time * 5)));  
+                else score -= _N("Штраф: время разгона", ((item.accel_time * 5)));
 
-                if (item.anti_jamming === 1) score += _T("Помехозащита (РЭБ)", (150)); 
+                if (item.anti_jamming === 1) score += _T("Помехозащита (РЭБ)", (150));
                 if (item.ammo_clip && item.ammo_clip > 1) score += _T("Обойма", ((item.ammo_clip * 10)));
-                
+
                 if (item.projectiles) {
-                    score += _T("Торпеды в залпе", ((item.projectiles * 25))); 
+                    score += _T("Торпеды в залпе", ((item.projectiles * 25)));
                 }
-                
+
                 let effectiveRange = getEffectiveRange(item.range, 12);
                 score += _T("Дальность", ((effectiveRange / 12) * 30));
 
-                if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 6000) * 20)); 
+                if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 6000) * 20));
                 if (item.detonation_radius) score += _T("Сплэш и взрыв", ((item.detonation_radius / 40) * 20));
-                
+
                 score += _T("Время захвата цели", ((50 - (item.lock_time * 10))));
-                
+
                 if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
                 return score;
             },
@@ -3031,39 +2979,39 @@
                 let score = 100;
 
                 // 1. Штраф за отдачу
-                let recoil = item.recoil !== undefined ? item.recoil : 15; 
-                let recoilPenalty = (recoil - 11) * 5; 
+                let recoil = item.recoil !== undefined ? item.recoil : 15;
+                let recoilPenalty = (recoil - 11) * 5;
                 score -= _N("Штраф: отдача", (Math.max(0, recoilPenalty)));
 
                 if (item.gl_type === "gun" || item.gl_type === "mixed") {
                     let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
-                    let speedFactor = 800 / item.max_speed; 
+                    let speedFactor = 800 / item.max_speed;
                     let evasionPenalty = (META_CONFIG.gunMetaDistance * speedFactor * 1.5);
-                    
+
                     let projCount = item.projectiles || 1;
                     let spreadPenalty = (item.range / 10) * recoil * (1 + (projCount * 0.1));
-                    
-                    item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty - spreadPenalty); 
-                    let hitRatio = Math.min(1, (item.accuracyScore / 100) + 0.15); 
-                    
+
+                    item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty - spreadPenalty);
+                    let hitRatio = Math.min(1, (item.accuracyScore / 100) + 0.15);
+
                     item.effectiveDpm = item.dpm * hitRatio;
                     item.effectiveBurst = item.damage_burst * hitRatio;
 
-                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220)); 
-                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200)); 
+                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220));
+                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200));
                     score += _T("Скорость", ((item.max_speed / 600) * 80));
-                    
-                    score += _T("Тип гранатомёта", ((item.gl_type === "mixed") ? 60 : 120)); 
-                    
+
+                    score += _T("Тип гранатомёта", ((item.gl_type === "mixed") ? 60 : 120));
+
                     if (item.lock_time > 0) {
-                        score -= _N("Штраф: время захвата", ((item.lock_time * 50))); 
+                        score -= _N("Штраф: время захвата", ((item.lock_time * 50)));
                     }
-                    
+
                 } else if (item.gl_type === "missile") {
-                    item.accuracyScore = 100; 
+                    item.accuracyScore = 100;
                     let effectiveHp = item.hp || 100;
                     score += _T("Живучесть (HP)", ((effectiveHp / 200) * 120));
-                    
+
                     let isFlarable = (item.anti_jamming === 0);
 
                     // Раньше effectiveDpm/effectiveBurst считались через фиксированный множитель
@@ -3076,11 +3024,11 @@
                     if (isFlarable) {
                         let flareCycle = META_CONFIG.flareCycleMissile;
                         if (item.reload <= (flareCycle / 2)) {
-                            hitRatio = 1.2 - (item.reload / flareCycle); 
+                            hitRatio = 1.2 - (item.reload / flareCycle);
                         } else if (item.reload < flareCycle) {
-                            hitRatio = 0.70; 
+                            hitRatio = 0.70;
                         } else {
-                            hitRatio = 0.40; 
+                            hitRatio = 0.40;
                         }
                         // Верхняя граница: при перезарядке короче ~2.2с hitRatio иначе уходил выше 1.0
                         // (>100% проходимости через ловушки). Ограничено единицей, как у обычных ракет.
@@ -3091,59 +3039,59 @@
                         item.effectiveDpm = item.dpm * 0.85;
                         item.effectiveBurst = item.damage_burst * 0.85;
                     }
-                    
-                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220)); 
-                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200)); 
-                    
+
+                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220));
+                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200));
+
                     if (item.start_speed) score += _T("Стартовая скорость", ((item.start_speed / 300) * 50));
                     if (item.max_speed) score += _T("Скорость", ((item.max_speed / 600) * 60));
-                    
+
                     if (item.lock_time > 0) {
-                        score -= _N("Штраф: время захвата", ((item.lock_time * 50))); 
-                    }
-                    
-                    if (!isFlarable) {
-                        score += _T("Помехозащита (РЭБ)", (100)); 
+                        score -= _N("Штраф: время захвата", ((item.lock_time * 50)));
                     }
 
-                    if (item.projectiles > 3) score += _T("Залповая плотность", (30)); 
+                    if (!isFlarable) {
+                        score += _T("Помехозащита (РЭБ)", (100));
+                    }
+
+                    if (item.projectiles > 3) score += _T("Залповая плотность", (30));
                 } else if (item.gl_type === "laser") {
                     item.accuracyScore = 100;
                     let effectiveHp = (item.hp || 100) * 0.6;
                     score += _T("Живучесть (HP)", ((effectiveHp / 200) * 100));
-                    
-                    item.effectiveDpm = item.dpm * 0.6; 
+
+                    item.effectiveDpm = item.dpm * 0.6;
                     item.effectiveBurst = item.damage_burst * 0.6;
-                    
-                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220)); 
-                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200)); 
-                    
+
+                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220));
+                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200));
+
                     if (item.lock_time > 0) {
                         score -= _N("Штраф: время захвата", ((item.lock_time * 50)));
                     }
-                    score += _T("Лазерное наведение", (80)); 
+                    score += _T("Лазерное наведение", (80));
                 }
 
                 if (item.crit_chance > 0) {
-                    score += _T("Шанс крита", ((item.crit_chance / 30) * 25)); 
+                    score += _T("Шанс крита", ((item.crit_chance / 30) * 25));
                 }
 
                 if (item.can_hit_torpedoes === 1) {
                     let splashFactor = (item.splash_radius || 0) / 50;
-                    score += _T("Перехват торпед", (30 + (splashFactor * 10))); 
-                    if (item.projectiles) score += _T("Перехват торпед", (Math.min(40, item.projectiles * 5))); 
+                    score += _T("Перехват торпед", (30 + (splashFactor * 10)));
+                    if (item.projectiles) score += _T("Перехват торпед", (Math.min(40, item.projectiles * 5)));
                 }
-                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (40)); 
+                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (40));
                 if (item.only_torpedoes === 1) score += _T("Перехват торпед", (200));
 
-                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 35)); 
-                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 50) * 10)); 
+                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 35));
+                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 50) * 10));
                 if (item.detonation_radius > 0) score += _T("Сплэш и взрыв", ((item.detonation_radius / 30) * 10));
 
                 if (item.fire_mode === "burst") {
-                    score += _T("Режим залпа", (40)); 
+                    score += _T("Режим залпа", (40));
                 } else if (item.fire_mode === "manual") {
-                    score -= _N("Штраф: ручной режим", (40)); 
+                    score -= _N("Штраф: ручной режим", (40));
                 }
 
                 if (item.air_target === 1) score += _T("Атака авиации", (60));
@@ -3155,7 +3103,7 @@
             },
            "Автопушки": function(item) {
                 let score = 100;
-                
+
                 // Точность оружия (accuracy): у обычных стволов почти всегда 100%, но у "картечных"
                 // (Skyranger Buckshot и т.п.) она искусственно занижена (разброс дроби/картечи) —
                 // раньше это поле нигде не участвовало в расчёте, и такие стволы получали рейтинг
@@ -3202,7 +3150,7 @@
                 item.effectiveBurst = effBurst;
 
                 if (accuracyFactor < 1) score -= _N("Штраф: низкая точность (разброс)", ((1 - accuracyFactor) * 120));
-                
+
                 if (item.air_target === 1) {
                     // Раньше — плоские +150 за сам факт "может бить по воздуху". Теперь считаем, сколько
                     // ракет из типового залпа эта автопушка реально сбивает (фокус-огонь, пауза на
@@ -3212,18 +3160,18 @@
                     score += _T("Атака авиации", (AUTO_AA_BASE_BONUS));
                     score += _T("Реальный шанс сбить ракету", (E.kill * AUTO_AA_KILL_BONUS));
                 }
-                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (250)); 
-                
+                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (250));
+
                 let effectiveRange = getEffectiveRange(item.range, 10);
                 score += _T("Дальность", ((effectiveRange / 10) * 60));
                 score += _T("Скорость снаряда", ((item.max_speed / 1000) * 50));
-                
+
                 if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 30) * 30));
                 if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 100) * 20));
                 if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 10));
-                
+
                 if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
-                
+
                 return Math.round(score);
             },
            "ПВО": function(item) {
@@ -3409,7 +3357,6 @@
             };
         }
 
-
         let compareQueue = [];
         function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
@@ -3422,6 +3369,8 @@
             if (info) info.style.display = 'block';
             if (btn) btn.classList.add('active');
         }
+
+        function clearQueued() { document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued')); }
 
         function showToast(msg, isErr = false) {
             const c = document.getElementById('toast-container');
@@ -3436,20 +3385,24 @@
             if(val !== undefined) searchQuery = val.toLowerCase();
             handleFilter();
         }
-        
+
+        function equipCardHTML(n) {
+            return `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-${n}" style="display:none;"></div><div class="holo-scanline" id="holo-scan-${n}" style="display:none;"></div><div class="equip-img-container" id="img-equip-${n}"></div><div class="holo-base" id="holo-${n}" style="display:none;"></div></div><h3 class="item-title" id="name-equip-${n}">${L('СЛОТ '+n,'SLOT '+n)}</h3><div class="stats-container" id="stats-equip-${n}"></div>`;
+        }
+
         function renderCategoryBar() {
             const bar = document.getElementById('category-bar'); bar.innerHTML = '';
             ALL_CATEGORIES.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = `cat-btn-main ${currentCategory === cat ? 'active' : ''}`;
                 btn.innerText = cat;
-                
-                btn.onclick = () => { 
-                    currentCategory = cat; currentGLType = ""; currentAAType = ""; currentAutoType = ""; compareQueue = []; 
-                    document.getElementById('card-equip-1').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-1" style="display:none;"></div><div class="holo-scanline" id="holo-scan-1" style="display:none;"></div><div class="equip-img-container" id="img-equip-1"></div><div class="holo-base" id="holo-1" style="display:none;"></div></div><h3 class="item-title" id="name-equip-1">${L('СЛОТ 1','SLOT 1')}</h3><div class="stats-container" id="stats-equip-1"></div>`;
-                    document.getElementById('card-equip-2').innerHTML = `<div class="weapon-showcase"><div class="holo-rays" id="holo-rays-2" style="display:none;"></div><div class="holo-scanline" id="holo-scan-2" style="display:none;"></div><div class="equip-img-container" id="img-equip-2"></div><div class="holo-base" id="holo-2" style="display:none;"></div></div><h3 class="item-title" id="name-equip-2">${L('СЛОТ 2','SLOT 2')}</h3><div class="stats-container" id="stats-equip-2"></div>`;
+
+                btn.onclick = () => {
+                    currentCategory = cat; currentGLType = ""; currentAAType = ""; currentAutoType = ""; compareQueue = [];
+                    document.getElementById('card-equip-1').innerHTML = equipCardHTML(1);
+                    document.getElementById('card-equip-2').innerHTML = equipCardHTML(2);
                     document.getElementById('verdict-screen').innerHTML = `<p style="font-family:'Inter'; font-size:1.1rem; text-align:center;">${L('ОЖИДАНИЕ ВВОДА ЦЕЛЕЙ...','WAITING FOR TARGET INPUT...')}</p>`;
-                    renderCategoryBar(); renderGLSubTabs(); renderAASubTabs(); renderAutoSubTabs(); renderDynamicFilters(); handleFilter(); 
+                    renderCategoryBar(); renderGLSubTabs(); renderAASubTabs(); renderAutoSubTabs(); renderDynamicFilters(); handleFilter();
                     switchMainPage('page-catalog', document.getElementById('nav-catalog'));
                 };
                 bar.appendChild(btn);
@@ -3544,7 +3497,7 @@
                     <label><input type="checkbox" class="mech-checkbox" id="cb-sub" onchange="handleFilter()"><span class="cat-btn-sub">ПОДЛОДКИ</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-cluster" onchange="handleFilter()"><span class="cat-btn-sub">КЛАСТЕРНЫЕ</span></label>
                 `;
-            } else if (currentCategory === "Ракеты А/А") { 
+            } else if (currentCategory === "Ракеты А/А") {
                 container.innerHTML = `
                     <label><input type="checkbox" class="mech-checkbox" id="cb-splash" onchange="handleFilter()"><span class="cat-btn-sub">СПЛЭШ-УРОН</span></label>
                     <label><input type="checkbox" class="mech-checkbox" id="cb-sub" onchange="handleFilter()"><span class="cat-btn-sub">ПОДВОДНЫЙ ПУСК</span></label>
@@ -3576,30 +3529,30 @@
         function handleFilter() {
             let selectedCountry = document.getElementById('filter-country-catalog').value;
             let sortType = document.getElementById('sort-catalog').value;
-            
+
             if (!isAuth && sortType !== 'none') {
                 showToast(L("СОРТИРОВКА ДОСТУПНА ТОЛЬКО В PRO","SORTING IS PRO ONLY"), true);
                 document.getElementById('sort-catalog').value = 'none';
                 sortType = 'none';
             }
-            
+
             let items = Object.keys(DB).map(key => ({ id: key, ...DB[key] })).filter(item => item.category === currentCategory);
-            
+
             items = items.filter(item => {
                 if (searchQuery && !item.name.toLowerCase().includes(searchQuery)) return false;
                 if (selectedCountry && item.country !== selectedCountry) return false;
                 let rarityFilter = document.getElementById('filter-rarity-catalog').value;
                 if (rarityFilter && item.rarity !== rarityFilter) return false;
-                
+
                 if (currentCategory === "Ракеты") {
                     const cbJam = document.getElementById('cb-jamming'); if (cbJam && cbJam.checked && item.anti_jamming === 0) return false;
-                    const cbFlared = document.getElementById('cb-flared'); 
+                    const cbFlared = document.getElementById('cb-flared');
                     if (cbFlared && cbFlared.checked) {
                         if (item.anti_jamming !== 0 || item.air_target === 1) return false;
                     }
                     const cbSub = document.getElementById('cb-sub'); if (cbSub && cbSub.checked && item.sub_launch !== 1) return false;
                     const cbCluster = document.getElementById('cb-cluster'); if (cbCluster && cbCluster.checked && item.cluster !== 1 && (!item.fragmentation_damage || item.fragmentation_damage <= 0)) return false;
-                } else if (currentCategory === "Ракеты А/А") { 
+                } else if (currentCategory === "Ракеты А/А") {
                     const cbSplash = document.getElementById('cb-splash'); if (cbSplash && cbSplash.checked && (!item.splash_damage || item.splash_damage <= 0)) return false;
                     const cbSub = document.getElementById('cb-sub'); if (cbSub && cbSub.checked && item.sub_launch !== 1) return false;
                 } else if (currentCategory === "Пушки") {
@@ -3653,20 +3606,20 @@
             if(currentPage) currentPage.classList.remove('active');
             const newPage = document.getElementById(pageId);
             newPage.classList.add('active');
-            
+
             if(pageId === 'page-compare' || pageId === 'page-catalog') {
                 document.getElementById('category-bar-wrapper').style.display = 'block';
             } else {
                 document.getElementById('category-bar-wrapper').style.display = 'none';
             }
-            
-            if(pageId === 'page-catalog') { 
-                compareQueue = []; currentPreviewId = null; handleFilter(); 
+
+            if(pageId === 'page-catalog') {
+                compareQueue = []; currentPreviewId = null; handleFilter();
             }
 
             const mwlBg = document.getElementById('global-mwl-wrapper');
             if (mwlBg) {
-                if (pageId === 'page-home') { mwlBg.className = 'right'; } 
+                if (pageId === 'page-home') { mwlBg.className = 'right'; }
                 else { mwlBg.className = 'center'; }
             }
         }
@@ -3676,7 +3629,7 @@
         function runCompareFlow(id1, id2) {
             showDuoView();
             updateEquipView(1, id1); updateEquipView(2, id2);
-            switchMainPage('page-compare', document.getElementById('nav-compare'));
+            switchMainPage('page-compare', document.getElementById('nav-catalog'));
 
             const card1 = document.getElementById('card-equip-1');
             const card2 = document.getElementById('card-equip-2');
@@ -3770,7 +3723,7 @@
 
             if (compareQueue.includes(itemId)) {
                 compareQueue = compareQueue.filter(id => id !== itemId);
-                document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+                clearQueued();
                 compareQueue.forEach(id => { const el = document.querySelector(`.catalog-item[data-id="${id}"]`); if (el) el.classList.add('queued'); });
                 showToast(`${L("СЛОТ ОСВОБОЖДЕН","SLOT CLEARED")}: ${itemName(item)}`);
                 updateCompareTray();
@@ -3793,7 +3746,7 @@
                 const id1 = compareQueue[0]; const id2 = compareQueue[1];
                 runCompareFlow(id1, id2);
                 compareQueue = [];
-                document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+                clearQueued();
             }
             updateCompareTray();
         }
@@ -3868,7 +3821,7 @@
                     if (isHigherBetter) {
                         pct = Math.min(100, (rawVal / max) * 100);
                     } else {
-                        pct = Math.max(0, 100 - Math.min(100, (rawVal / max) * 100)); 
+                        pct = Math.max(0, 100 - Math.min(100, (rawVal / max) * 100));
                     }
                 }
 
@@ -3889,7 +3842,7 @@
             document.getElementById(`name-equip-${side}`).innerText = item.name;
             const imgEl = document.getElementById(`img-equip-${side}`);
             imgEl.style.backgroundImage = `url('${item.img}')`;
-            
+
             document.getElementById(`holo-${side}`).style.display = 'block';
             document.getElementById(`holo-rays-${side}`).style.display = 'block';
             document.getElementById(`holo-scan-${side}`).style.display = 'block';
@@ -3974,29 +3927,29 @@
             for (let key in STATS_LOGIC) {
                 if (e1[key] === undefined && e2[key] === undefined) continue;
                 if (e1.category === 'Пушки' && key === 'start_speed') continue;
-                
+
                 const el1 = document.getElementById(`val-1-${key}`); const el2 = document.getElementById(`val-2-${key}`);
                 const bar1 = document.getElementById(`bar-1-${key}`); const bar2 = document.getElementById(`bar-2-${key}`);
                 if(!el1 || !el2) continue;
-                
+
                 el1.className = "stat-value"; el2.className = "stat-value";
                 if(bar1) bar1.className = "stat-bar-fill"; if(bar2) bar2.className = "stat-bar-fill";
 
                 const v1 = e1[key] !== undefined ? parseFloat(e1[key]) : 0; const v2 = e2[key] !== undefined ? parseFloat(e2[key]) : 0;
                 if (v1 === v2 || STATS_LOGIC[key].isString) { el1.classList.add('neutral'); el2.classList.add('neutral'); continue; }
-                
+
                 let isHigherBetter = STATS_LOGIC[key].higherIsBetter;
                 if (key === 'projectiles') {
                     isHigherBetter = (e1.category === 'Ракеты' || e1.category === 'Ракеты А/А' || e1.category === 'Торпеды' || e1.category === 'Гранатометы' || e1.category === 'Автопушки' || e1.category === 'ПВО');
                 }
 
                 const isV1Better = isHigherBetter ? v1 > v2 : v1 < v2;
-                
-                if (isV1Better) { 
-                    el1.classList.add('val-win'); el2.classList.add('val-lose'); 
+
+                if (isV1Better) {
+                    el1.classList.add('val-win'); el2.classList.add('val-lose');
                     if(bar1) bar1.classList.add('bar-win'); if(bar2) bar2.classList.add('bar-lose');
-                } else { 
-                    el2.classList.add('val-win'); el1.classList.add('val-lose'); 
+                } else {
+                    el2.classList.add('val-win'); el1.classList.add('val-lose');
                     if(bar2) bar2.classList.add('bar-win'); if(bar1) bar1.classList.add('bar-lose');
                 }
             }
@@ -4009,17 +3962,17 @@
                 summaryText = `<span style="color:var(--text-main); font-size: 1.1rem;">СИСТЕМЫ ПРАКТИЧЕСКИ ИДЕНТИЧНЫ ПО ЭФФЕКТИВНОСТИ (разница ${pDiff}%).<br><br>Выбор зависит исключительно от ваших личных предпочтений и стиля игры.</span>`;
                 card1.classList.add('card-tie'); card2.classList.add('card-tie');
             } else {
-                const winner = e1.rating > e2.rating ? e1 : e2; 
+                const winner = e1.rating > e2.rating ? e1 : e2;
                 const loser = e1.rating > e2.rating ? e2 : e1;
-                
-                if (e1.rating > e2.rating) { 
-                    card1.classList.add('card-winner'); card2.classList.add('card-loser'); 
-                } else { 
-                    card1.classList.add('card-loser'); card2.classList.add('card-winner'); 
+
+                if (e1.rating > e2.rating) {
+                    card1.classList.add('card-winner'); card2.classList.add('card-loser');
+                } else {
+                    card1.classList.add('card-loser'); card2.classList.add('card-winner');
                 }
-                
+
                 let percentDiff = (((winner.rating - loser.rating) / loser.rating) * 100).toFixed(1);
-                
+
                 let reason = null;
                 if (e1.category === "Ракеты" || e1.category === "Ракеты А/А") {
                     if (winner.anti_jamming === 1 && loser.anti_jamming === 0) reason = "абсолютной защите от РЭБ (не сбрасывается ловушками)";
@@ -4089,14 +4042,14 @@
             let metaLegend = `
                 <div class="meta-legend" style="margin-top: 25px;">
                     <b style="color:var(--text-main);">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
-                    <span style="color:var(--text-main);">0-5%</span>: ПАРИТЕТ | 
-                    <span style="color:var(--primary);">5-15%</span>: НЕБОЛЬШОЕ ПРЕИМУЩЕСТВО | 
+                    <span style="color:var(--text-main);">0-5%</span>: ПАРИТЕТ |
+                    <span style="color:var(--primary);">5-15%</span>: НЕБОЛЬШОЕ ПРЕИМУЩЕСТВО |
                     <span style="color:var(--secondary);">>15%</span>: АБСОЛЮТНАЯ ДОМИНАЦИЯ
                 </div>
             `;
 
-            let visualsHTML = isAuth 
-                ? `<div class="radar-container" style="position: relative; height: 250px; margin-top:20px;"><canvas id="radarChart"></canvas></div>` 
+            let visualsHTML = isAuth
+                ? `<div class="radar-container" style="position: relative; height: 250px; margin-top:20px;"><canvas id="radarChart"></canvas></div>`
                 : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Inter'; font-weight:bold; border: 1px dashed rgba(232,72,63,0.3); margin-top:15px; border-radius:12px; background:rgba(232,72,63,0.06);">🔒 ДИАГРАММА АНАЛИЗА ДОСТУПНА В PRO ВЕРСИИ</div>`;
 
             let finalVerdictHTML = `<div class="final-summary-block glass-panel" style="padding:30px; width:100%;">
@@ -4104,9 +4057,9 @@
                 ${metaLegend}
                 ${visualsHTML}
             </div>`;
-            
+
             document.getElementById('verdict-screen').innerHTML = finalVerdictHTML;
-            
+
             if(isAuth) {
                 setTimeout(() => { drawRadarChart(e1, e2); }, 100);
             }
@@ -4114,7 +4067,7 @@
 
         /* --- ЛОГИКА КОНСТРУКТОРА СБОРОК --- */
         let slotCounter = 0;
-        
+
         function closeAllBuildDropdowns() {
             document.querySelectorAll('.custom-select-dropdown').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.build-slot-container').forEach(el => el.style.zIndex = '1');
@@ -4124,7 +4077,7 @@
         function toggleBuildDropdown(slotId) {
             const dd = document.getElementById('dropdown-' + slotId);
             const isActive = dd.classList.contains('active');
-            closeAllBuildDropdowns(); 
+            closeAllBuildDropdowns();
             if (!isActive) {
                 dd.classList.add('active');
                 document.getElementById(slotId).style.zIndex = '100';
@@ -4133,11 +4086,11 @@
 
         function renderBuildOptions(slotId) {
             const list = document.getElementById('list-' + slotId);
-            
+
             const searchEl = document.getElementById('search-' + slotId);
             const catEl = document.getElementById('cat-' + slotId);
             const countryEl = document.getElementById('country-' + slotId);
-            
+
             const searchVal = searchEl ? searchEl.value.toLowerCase() : '';
             const filterCat = catEl ? catEl.value : '';
             const filterCountry = countryEl ? countryEl.value : '';
@@ -4145,16 +4098,16 @@
             let html = '';
             ALL_CATEGORIES.forEach(cat => {
                 if (filterCat && filterCat !== cat) return;
-                
+
                 let itemsInCategory = Object.keys(DB).filter(k => DB[k].category === cat);
                 itemsInCategory.sort((a, b) => DB[a].name.localeCompare(DB[b].name));
-                
+
                 let catHtml = '';
                 itemsInCategory.forEach(key => {
                     let item = DB[key];
                     if (filterCountry && item.country !== filterCountry) return;
                     if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
-                    
+
                     catHtml += `
                     <div class="dropdown-option" onclick="selectSlotOption('${slotId}', '${key}', event)">
                         <div class="dropdown-option-img" style="background-image: url('${item.img}')"></div>
@@ -4164,16 +4117,16 @@
                         </div>
                     </div>`;
                 });
-                
+
                 if (catHtml !== '') {
                     html += `<div class="dropdown-category-title">${cat}</div>` + catHtml;
                 }
             });
-            
+
             if (html === '') {
                 html = `<div style="text-align:center; padding: 20px; color:var(--text-muted); font-family:'Inter'; font-weight:bold;">Оружие не найдено</div>`;
             }
-            
+
             list.innerHTML = html;
         }
 
@@ -4181,13 +4134,13 @@
             if (event) event.stopPropagation();
             const wrapper = document.getElementById('wrapper-' + slotId);
             wrapper.dataset.value = itemKey;
-            
+
             const imgEl = document.getElementById('img-' + slotId);
             const textEl = document.getElementById('text-' + slotId);
-            
+
             imgEl.style.backgroundImage = `url('${DB[itemKey].img}')`;
             textEl.innerText = DB[itemKey].name;
-            
+
             closeAllBuildDropdowns();
         }
 
@@ -4196,13 +4149,13 @@
             const slotId = 'buildslot-' + slotCounter++;
             const colorClass = shipNum === 1 ? '' : 'ship2';
             const colorStyle = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
-            
+
             let defaultItemKey = Object.keys(DB)[0];
 
             const slotHtml = `
                 <div class="build-slot-container glass-panel ${colorClass}" id="${slotId}">
                     <div style="color: ${colorStyle}; font-family: 'Inter';">${L("СЛОТ:","SLOT:")}</div>
-                    
+
                     <div class="custom-select-wrapper" id="wrapper-${slotId}" data-value="${defaultItemKey}">
                         <div class="custom-select-trigger" onclick="toggleBuildDropdown('${slotId}')">
                             <div class="trigger-left">
@@ -4259,7 +4212,7 @@
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', slotHtml);
-            
+
             renderBuildOptions(slotId);
         }
 
@@ -4269,9 +4222,9 @@
             slots.forEach(slot => {
                 const itemKey = slot.querySelector('.custom-select-wrapper').dataset.value;
                 const qty = parseInt(slot.querySelector('.slot-qty').value);
-                
-                if (!itemKey || !DB[itemKey]) return; 
-                
+
+                if (!itemKey || !DB[itemKey]) return;
+
                 const item = DB[itemKey];
 
                 s.totalBurst += item.damage_burst * qty;
@@ -4281,7 +4234,7 @@
                 s.itemsCount += qty;
 
                 if (item.range > s.maxRange) s.maxRange = item.range;
-                if (item.air_target === 1 || item.dedicated_aa === 1 || item.category === "Ракеты А/А" || item.category === "ПВО") s.hasAir = true; 
+                if (item.air_target === 1 || item.dedicated_aa === 1 || item.category === "Ракеты А/А" || item.category === "ПВО") s.hasAir = true;
                 if (item.sub_launch === 1 || item.can_hit_subs === 1) s.hasSub = true;
                 if (item.anti_jamming === 1) s.hasAntiJamming = true;
             });
@@ -4311,7 +4264,7 @@
             const color = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
             let tacticsText = `<div style="flex:1; min-width:250px;"><b style="color:${color}; font-size:1.1rem; font-family:'Inter'; font-weight:900;">ОЦЕНКА КОР. ${shipNum}:</b><br><br>`;
             if (stats.itemsCount === 0) return tacticsText + `<span style="color:var(--text-muted)">Слоты пусты</span></div>`;
-            
+
             if (stats.hasAntiJamming) tacticsText += `<span style="color:${color}">[+]</span> Защита от ловушек (часть урона неотводима).<br>`;
             if (stats.totalBurst > 100000) tacticsText += `<span style="color:var(--text-main)">[!]</span> Разрушительный Альфа-страйк! Идеально от укрытий.<br>`;
             if (stats.totalEffDpm > 500000) tacticsText += `<span style="color:#ffaa00">[!]</span> Колоссальный DPM. Распилит любого в открытом бою.<br>`;
@@ -4336,12 +4289,12 @@
             let canvas = document.getElementById('buildRadarChart');
             let ctx = canvas.getContext('2d');
             if(window.buildRadarInstance) window.buildRadarInstance.destroy();
-            
+
             Chart.defaults.color = cssVar('--text-muted');
             Chart.defaults.font.family = 'Inter';
 
             const datasets = [];
-            
+
             if(s1.itemsCount > 0) {
                 datasets.push({
                     label: "КОРАБЛЬ 1",
@@ -4387,20 +4340,20 @@
         function exportToImage(elementId, filename) {
             const el = document.getElementById(elementId);
             if (!el || el.style.display === 'none') return showToast(L("ОШИБКА: НЕТ ДАННЫХ","ERROR: NO DATA"), true);
-            
+
             showToast(L("ФОРМИРОВАНИЕ ОТЧЕТА...","GENERATING REPORT..."));
-            
+
             document.body.style.overflow = 'hidden';
             const originalScrollY = window.scrollY;
             window.scrollTo(0, 0);
-            
+
             const glassPanels = el.querySelectorAll('.glass-panel');
-            glassPanels.forEach(p => { 
-                p.style.backdropFilter = 'none'; 
-                p.style.webkitBackdropFilter = 'none'; 
+            glassPanels.forEach(p => {
+                p.style.backdropFilter = 'none';
+                p.style.webkitBackdropFilter = 'none';
                 p.style.background = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
             });
-            
+
             setTimeout(() => {
                 html2canvas(el, {
                     backgroundColor: cssVar('--bg-base'),
@@ -4409,24 +4362,24 @@
                     allowTaint: true,
                     scrollY: -window.scrollY
                 }).then(canvas => {
-                    glassPanels.forEach(p => { 
-                        p.style.backdropFilter = ''; 
-                        p.style.webkitBackdropFilter = ''; 
+                    glassPanels.forEach(p => {
+                        p.style.backdropFilter = '';
+                        p.style.webkitBackdropFilter = '';
                         p.style.background = '';
                     });
                     document.body.style.overflow = '';
                     window.scrollTo(0, originalScrollY);
-                    
+
                     let link = document.createElement('a');
                     link.download = `${filename}_${new Date().getTime()}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                     showToast(L("ОТЧЕТ СОХРАНЕН","REPORT SAVED"));
                 }).catch(err => {
-                    glassPanels.forEach(p => { 
-                        p.style.backdropFilter = ''; 
-                        p.style.webkitBackdropFilter = ''; 
-                        p.style.background = ''; 
+                    glassPanels.forEach(p => {
+                        p.style.backdropFilter = '';
+                        p.style.webkitBackdropFilter = '';
+                        p.style.background = '';
                     });
                     document.body.style.overflow = '';
                     window.scrollTo(0, originalScrollY);
@@ -5083,10 +5036,9 @@
                     ${speedWarning}
                 </div>
             `;
-            
+
             showToast(L("СИМУЛЯЦИЯ ЗАВЕРШЕНА","SIMULATION COMPLETE"));
         }
-
 
         // =========================================================
         // ОБЩИЕ ХЕЛПЕРЫ НОВЫХ ФУНКЦИЙ
@@ -5318,14 +5270,14 @@
         function setMultiMode(on) {
             multiMode = !!on;
             compareQueue = [];
-            document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+            clearQueued();
             updateCompareTray();
             showToast(multiMode ? 'РЕЖИМ 3+: ВЫБЕРИТЕ ДО ' + MAX_COMPARE + ' ОБЪЕКТОВ' : 'РЕЖИМ 1 НА 1');
         }
 
         function clearCompareQueue() {
             compareQueue = [];
-            document.querySelectorAll('.catalog-item').forEach(el => el.classList.remove('queued'));
+            clearQueued();
             updateCompareTray();
         }
 
@@ -5356,7 +5308,7 @@
             const wrap = document.getElementById('multi-compare-wrapper');
             wrap.style.display = 'block';
             renderMultiCompare(ids);
-            switchMainPage('page-compare', document.getElementById('nav-compare'));
+            switchMainPage('page-compare', document.getElementById('nav-catalog'));
             window.scrollTo(0, 0);
             if (isAuth) setTimeout(() => { drawRadarMulti('multiRadarChart', ids.map(id => DB[id]), 'multiRadarInstance'); }, 100);
         }
@@ -5811,7 +5763,7 @@
             addBuildSlot(1);
             addBuildSlot(2);
             switchMainPage('page-home', document.getElementById('nav-home'));
-            
+
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.custom-select-wrapper')) {
                     closeAllBuildDropdowns();
@@ -5837,7 +5789,6 @@
         var fxOn = function () { return !root.classList.contains('effects-off'); };
         var ready = false;
 
-
         /* --- Часы HUD --- */
         function tick() {
             var d = new Date();
@@ -5858,7 +5809,7 @@
         fillUnits();
 
         /* --- Подпись текущей страницы + скользящий индикатор вкладок --- */
-        var PAGE_LABEL = { 'page-home': 'HOME', 'page-compare': 'ANALYZER', 'page-builder': 'BUILDER', 'page-catalog': 'ARSENAL', 'page-tiers': 'TIER LIST', 'page-admin': 'PROFILE' };
+        var PAGE_LABEL = { 'page-home': 'HOME', 'page-compare': 'COMPARE', 'page-builder': 'BUILDER', 'page-catalog': 'ARSENAL', 'page-tiers': 'TIER LIST', 'page-admin': 'PROFILE' };
         function moveIndicator() {
             var ind = $('nav-indicator'), tabs = $('nav-tabs');
             if (!ind || !tabs) return;
@@ -6104,7 +6055,7 @@
             var m = /[?&]page=([a-z]+)/.exec(location.search);
             if (!m) return;
             var btn = $('nav-' + m[1]);
-            if (btn && /^(home|compare|builder|catalog|tiers)$/.test(m[1])) btn.click();
+            if (btn && /^(home|builder|catalog|tiers)$/.test(m[1])) btn.click();
         }
 
         /* --- Service worker (работает только по HTTPS или на localhost) --- */
