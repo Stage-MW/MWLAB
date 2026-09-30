@@ -2,9 +2,18 @@
 <html lang="ru" data-theme="dark" class="booting">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#040405">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="MWLAB">
+    <meta name="application-name" content="MWLAB">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="description" content="MWLAB — анализатор, арсенал, конструктор сборок и тир-лист для Modern Warships.">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <title>MWLAB | UNIT TERMINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -926,6 +935,164 @@
         html.booting .hero .home-title, html.booting .hero .home-image-side img { opacity: 0; }
         ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.8s; }
 
+
+        /* =====================================================================
+           МОБИЛЬНАЯ АДАПТАЦИЯ (iOS / Android / планшеты) + PWA + АККАУНТЫ
+           ===================================================================== */
+        [hidden] { display: none !important; }
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
+
+        /* Поля ввода должны быть редактируемыми на iOS, несмотря на user-select:none выше */
+        input, textarea, select, [contenteditable] { -webkit-user-select: text; user-select: text; }
+        input:-webkit-autofill { -webkit-text-fill-color: var(--text-main); box-shadow: 0 0 0 100px var(--surface) inset; caret-color: var(--text-main); }
+
+        /* Вырез (notch), Dynamic Island, жестовая полоса */
+        .app-wrapper { padding-top: env(safe-area-inset-top, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+        html.standalone body { overscroll-behavior-y: none; }
+
+        /* Нижняя панель навигации (только телефоны) */
+        .tabbar { display: none; }
+        .tab-btn {
+            position: relative; flex: 1 1 0; min-width: 0; min-height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            padding: 8px 2px 7px; border: 0; background: none; color: var(--text-muted); cursor: pointer; border-radius: 999px;
+            font-family: var(--f-display); font-weight: 500; font-size: 0.54rem; letter-spacing: 0.01em;
+            transition: background 0.3s ease, color 0.3s ease, transform 0.25s var(--ease-spring);
+        }
+        .tab-btn svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .tab-btn span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tab-btn.active { background: var(--primary); color: var(--on-primary); }
+        .tab-btn:active { transform: scale(0.92); }
+        .tab-btn .tab-lock { position: absolute; top: 6px; right: calc(50% - 20px); font-size: 0.6rem; line-height: 1; }
+        .tab-btn:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
+
+        /* Планшеты и узкие ноутбуки: шапка не должна переполняться */
+        @media (min-width: 769px) and (max-width: 1100px) {
+            nav { width: calc(100% - 24px); padding: 8px 10px 8px 16px; gap: 8px; }
+            .nav-logo-small { font-size: 0.92rem; }
+            .nav-btn { padding: 10px 10px; font-size: 0.6rem; }
+            .info-btn { width: 38px; height: 38px; }
+            .nav-tools { gap: 4px; }
+            .page { padding-left: 16px; padding-right: 16px; }
+            .modal-content { padding: 34px 28px; }
+        }
+        @media (min-width: 769px) and (max-width: 860px) {
+            nav { border-radius: 34px !important; }
+        }
+
+        /* Телефоны */
+        @media (max-width: 768px) {
+            :root { --glass-blur: blur(16px) saturate(130%); }
+            body::after { display: none; }            /* плёночное зерно тяжёлое для мобильных GPU */
+
+            nav { flex-wrap: nowrap; border-radius: 999px !important; padding: 7px 8px 7px 16px; gap: 8px;
+                  top: calc(8px + env(safe-area-inset-top, 0px)); margin-top: 8px; width: calc(100% - 20px); }
+            .nav-tabs { display: none; }
+            .nav-logo-small { order: 0; flex: 1 1 auto; min-width: 0; font-size: 0.9rem; }
+            .nav-logo-small sup { display: none; }
+            .nav-tools { order: 0; gap: 4px; flex-shrink: 0; }
+            .info-btn { width: 38px; height: 38px; font-size: 0.85rem; }
+
+            .tabbar {
+                display: flex; gap: 2px; padding: 5px; border-radius: 999px;
+                position: fixed; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 90;
+                width: min(560px, calc(100% - 20px)); transform: translateX(-50%);
+                background: var(--nav-bg); border: 1px solid var(--glass-border);
+                backdrop-filter: blur(26px) saturate(150%); -webkit-backdrop-filter: blur(26px) saturate(150%);
+                box-shadow: var(--hud-glow), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+                transition: transform 0.35s var(--ease-out), opacity 0.25s ease;
+            }
+            html.kbd-open .tabbar { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
+
+            .page { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+            .hero { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+            #toast-container { bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+            .compare-tray { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
+
+            /* Окна становятся «шторками» снизу, как в нативных приложениях */
+            .modal-overlay { align-items: flex-end; }
+            .modal-content { width: 100%; max-width: none; max-height: 90vh; max-height: 90dvh; border-radius: 32px 32px 0 0;
+                             padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px)); overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+                             transform: translateY(100%); filter: none; }
+            .modal-content::after { left: 50%; right: auto; width: 44px; transform: translateX(-50%); top: 8px; height: 4px; box-shadow: none; background: var(--line); }
+
+            .auth-card { margin-top: 14px; }
+        }
+
+        @media (max-width: 380px) {
+            .nav-logo-small { font-size: 0.82rem; gap: 7px; }
+            .info-btn { width: 34px; height: 34px; }
+            .tab-btn { font-size: 0.5rem; }
+            .page { padding-left: 10px; padding-right: 10px; }
+        }
+
+        /* Телефон в горизонтальном положении: экономим высоту */
+        @media (max-height: 480px) and (orientation: landscape) {
+            nav { position: relative; top: 0; }
+            .tab-btn { min-height: 40px; flex-direction: row; gap: 6px; }
+            .tab-btn span { display: none; }
+            .tab-btn .tab-lock { right: calc(50% - 16px); top: 4px; }
+            .hero { min-height: auto; }
+            .modal-content { max-height: 94vh; max-height: 94dvh; }
+            .page { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+        }
+
+        /* Сенсорные экраны */
+        @media (pointer: coarse) {
+            input, select, textarea { font-size: 16px !important; }   /* иначе iOS приближает страницу при фокусе */
+            .cat-btn-main, .cat-btn-sub, .gl-subtab-btn, .tier-jump-btn, .roster-class-tab, .why-btn { min-height: 44px; }
+        }
+        @media (hover: none) {
+            .cat-btn-main:hover, .cat-btn-sub:hover, .gl-subtab-btn:hover, .tier-jump-btn:hover, .info-btn:hover, .why-btn:hover { transform: none; box-shadow: none; }
+        }
+
+        /* --- Регистрация / вход --- */
+        .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface-alt); border: 1px solid var(--line); margin-bottom: 22px; }
+        .auth-tab { min-height: 44px; border: 0; border-radius: 999px; background: none; color: var(--text-muted); cursor: pointer; font-family: var(--f-display); font-weight: 600; font-size: 0.66rem; padding: 12px 8px; transition: background 0.3s ease, color 0.3s ease; }
+        .auth-tab[aria-selected="true"] { background: var(--primary); color: var(--on-primary); }
+        .auth-tab:focus-visible, .auth-eye:focus-visible, .link-btn:focus-visible { outline: 2px solid var(--secondary); outline-offset: 2px; }
+        .auth-form { display: none; text-align: left; }
+        .auth-form.active { display: block; }
+        .auth-field { position: relative; margin-bottom: 14px; }
+        .auth-field label { display: block; font-family: var(--f-hud); font-size: 0.68rem; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 6px 18px; }
+        .auth-card .auth-field .search-input { max-width: 100%; text-align: left; margin-bottom: 0; padding-right: 22px; }
+        .auth-card .auth-field.has-eye .search-input { padding-right: 92px; }
+        .auth-eye { position: absolute; right: 6px; bottom: 6px; height: 38px; padding: 0 14px; border-radius: 999px; border: 0; background: var(--surface-alt); color: var(--text-muted); font-family: var(--f-hud); font-size: 0.66rem; cursor: pointer; }
+        .auth-hint { font-size: 0.74rem; color: var(--text-muted); margin: 6px 0 0 18px; line-height: 1.4; }
+        .auth-err { min-height: 1.3em; margin: 2px 6px 14px; font-size: 0.82rem; color: var(--secondary); line-height: 1.4; text-align: center; }
+        .pw-meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 18px 0; }
+        .pw-meter i { height: 4px; border-radius: 99px; background: var(--line); transition: background 0.3s ease; }
+        .pw-meter[data-s="1"] i:nth-child(-n+1), .pw-meter[data-s="2"] i:nth-child(-n+2) { background: var(--secondary); }
+        .pw-meter[data-s="3"] i:nth-child(-n+3), .pw-meter[data-s="4"] i:nth-child(-n+4) { background: var(--text-main); }
+        .pw-label { font-size: 0.74rem; color: var(--text-muted); margin: 6px 0 0 18px; min-height: 1.1em; }
+        .auth-form .cat-btn-main[disabled] { opacity: 0.6; pointer-events: none; }
+        .auth-note { margin-top: 18px; font-size: 0.74rem; line-height: 1.5; color: var(--text-muted); text-align: center; }
+        .auth-user-name { font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; margin-bottom: 6px; overflow-wrap: anywhere; }
+        .auth-user-meta { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 26px; overflow-wrap: anywhere; }
+        .link-btn { background: none; border: 0; color: var(--text-muted); font-family: var(--f-body); font-size: 0.78rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 12px; margin-top: 8px; min-height: 44px; }
+        .link-btn:hover { color: var(--secondary); }
+
+        /* --- Установка на рабочий экран --- */
+        .install-card { max-width: 440px; width: 100%; margin: 18px auto 0 auto; padding: 26px 24px; text-align: center; border-radius: 36px; }
+        .install-card h3 { font-family: var(--f-display); font-weight: 800; font-size: 0.95rem; margin-bottom: 8px; }
+        .install-card p { color: var(--text-muted); font-size: 0.84rem; line-height: 1.55; margin-bottom: 18px; }
+        .install-card .cat-btn-main { width: 100%; }
+        .install-banner {
+            position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 95;
+            width: min(480px, calc(100% - 20px)); display: flex; align-items: center; gap: 12px; padding: 10px 8px 10px 20px; border-radius: 30px;
+            background: var(--nav-bg); border: 1px solid var(--glass-border);
+            backdrop-filter: blur(26px) saturate(150%); -webkit-backdrop-filter: blur(26px) saturate(150%);
+            box-shadow: var(--hud-glow); transform: translate(-50%, 180%); transition: transform 0.6s var(--ease-spring);
+        }
+        .install-banner.show { transform: translate(-50%, 0); }
+        .install-banner p { flex: 1 1 auto; font-size: 0.8rem; line-height: 1.35; color: var(--text-main); }
+        .install-banner .cat-btn-main { width: auto; padding: 11px 18px; font-size: 0.66rem; flex-shrink: 0; }
+        .install-banner .ib-close { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; border: 0; background: var(--surface-alt); color: var(--text-muted); font-size: 1.3rem; line-height: 1; cursor: pointer; }
+        @media (max-width: 768px) { .install-banner { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+        .install-lead { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; margin-bottom: 16px; }
+        .install-steps { padding-left: 22px; display: grid; gap: 12px; font-size: 0.92rem; line-height: 1.55; }
+        .install-steps li::marker { font-family: var(--f-hud); font-weight: 600; color: var(--text-muted); }
+        .install-steps svg { width: 1.15em; height: 1.15em; vertical-align: -0.2em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .install-note { margin-top: 16px; padding: 12px 16px; border-radius: 18px; background: var(--surface-alt); border: 1px solid var(--line); color: var(--text-muted); font-size: 0.8rem; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -1271,22 +1438,73 @@
         <!-- ===================== ПРОФИЛЬ ===================== -->
         <main id="page-admin" class="page">
             <div class="glass-panel auth-card">
-                <h2 id="auth-title" data-i18n="admin.title">АВТОРИЗАЦИЯ</h2>
-                <p class="auth-sub" id="auth-subtitle" data-i18n="admin.subtitle">Войдите для доступа к диаграммам, индексу меты и конструктору сборок.</p>
+                <h2 id="auth-title">ВХОД</h2>
+                <p class="auth-sub" id="auth-subtitle"></p>
 
                 <div id="admin-auth">
-                    <input type="text" id="admin-login" class="search-input glass-panel" autocomplete="username" placeholder="ЛОГИН" data-i18n-placeholder="admin.login">
-                    <input type="password" id="admin-pass" class="search-input glass-panel" autocomplete="current-password" placeholder="ПАРОЛЬ" data-i18n-placeholder="admin.password" style="margin-bottom: 24px;">
-                    <button class="cat-btn-main active" onclick="checkAuthLogin()" data-i18n="admin.enter">ВОЙТИ</button>
+                    <div class="auth-tabs" role="tablist">
+                        <button type="button" class="auth-tab" id="tab-login" role="tab" aria-selected="true" aria-controls="form-login" onclick="setAuthMode('login')" data-at="tab.login">ВХОД</button>
+                        <button type="button" class="auth-tab" id="tab-register" role="tab" aria-selected="false" aria-controls="form-register" onclick="setAuthMode('register')" data-at="tab.register">РЕГИСТРАЦИЯ</button>
+                    </div>
+
+                    <form class="auth-form active" id="form-login" role="tabpanel" aria-labelledby="tab-login" onsubmit="return checkAuthLogin(event)" novalidate>
+                        <div class="auth-field">
+                            <label for="auth-l-user" data-at="f.login"></label>
+                            <input type="text" id="auth-l-user" class="search-input glass-panel" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
+                        </div>
+                        <div class="auth-field has-eye">
+                            <label for="auth-l-pass" data-at="f.password"></label>
+                            <input type="password" id="auth-l-pass" class="search-input glass-panel" name="password" autocomplete="current-password" enterkeyhint="go">
+                            <button type="button" class="auth-eye" data-eye="auth-l-pass" onclick="toggleAuthEye(this)" data-at="show"></button>
+                        </div>
+                        <div class="auth-err" id="auth-l-err" role="alert" aria-live="polite"></div>
+                        <button type="submit" class="cat-btn-main active" id="auth-l-btn" data-at="btn.login">Войти</button>
+                        <p class="auth-note"><span data-at="note.noacc"></span> <button type="button" class="link-btn" style="margin:0;padding:0;min-height:0;" onclick="setAuthMode('register')" data-at="note.create"></button></p>
+                    </form>
+
+                    <form class="auth-form" id="form-register" role="tabpanel" aria-labelledby="tab-register" onsubmit="return submitRegister(event)" novalidate>
+                        <div class="auth-field">
+                            <label for="auth-r-user" data-at="f.username"></label>
+                            <input type="text" id="auth-r-user" class="search-input glass-panel" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" enterkeyhint="next">
+                            <div class="auth-hint" data-at="hint.user"></div>
+                        </div>
+                        <div class="auth-field">
+                            <label for="auth-r-email" data-at="f.email"></label>
+                            <input type="email" id="auth-r-email" class="search-input glass-panel" name="email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
+                        </div>
+                        <div class="auth-field has-eye">
+                            <label for="auth-r-pass" data-at="f.password"></label>
+                            <input type="password" id="auth-r-pass" class="search-input glass-panel" name="new-password" autocomplete="new-password" oninput="authPwMeter(this.value)" enterkeyhint="next">
+                            <button type="button" class="auth-eye" data-eye="auth-r-pass" onclick="toggleAuthEye(this)" data-at="show"></button>
+                            <div class="pw-meter" id="pw-meter" data-s="0" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                            <div class="pw-label" id="pw-label" aria-live="polite"></div>
+                        </div>
+                        <div class="auth-field has-eye">
+                            <label for="auth-r-pass2" data-at="f.password2"></label>
+                            <input type="password" id="auth-r-pass2" class="search-input glass-panel" name="new-password-confirm" autocomplete="new-password" enterkeyhint="go">
+                            <button type="button" class="auth-eye" data-eye="auth-r-pass2" onclick="toggleAuthEye(this)" data-at="show"></button>
+                        </div>
+                        <div class="auth-err" id="auth-r-err" role="alert" aria-live="polite"></div>
+                        <button type="submit" class="cat-btn-main active" id="auth-r-btn" data-at="btn.register">Создать аккаунт</button>
+                        <p class="auth-note" data-at="note.local"></p>
+                    </form>
                 </div>
 
                 <div id="admin-dashboard" style="display: none;">
                     <div class="crown">👑</div>
-                    <h3 style="font-family:var(--f-display); font-weight:800; font-size:1rem; margin-bottom: 26px;" data-i18n="admin.proactive">PRO ДОСТУП АКТИВЕН</h3>
+                    <h3 style="font-family:var(--f-display); font-weight:800; font-size:1rem; margin-bottom: 18px;" data-i18n="admin.proactive">PRO ДОСТУП АКТИВЕН</h3>
+                    <div class="auth-user-name" id="auth-user-name"></div>
+                    <div class="auth-user-meta" id="auth-user-meta"></div>
                     <p class="pro-label" data-i18n="admin.visits">ПОСЕЩЕНИЯ САЙТА</p>
                     <div class="visit-num" id="visit-counter">0</div>
                     <button class="cat-btn-main btn-red" style="width:100%;" onclick="logout()" data-i18n="admin.logout">ВЫЙТИ ИЗ АККАУНТА</button>
+                    <button type="button" class="link-btn" id="auth-delete" onclick="deleteAccount()" data-at="btn.delete"></button>
                 </div>
+            </div>
+            <div class="glass-panel install-card" id="install-card" hidden>
+                <h3 data-pt="inst.cardtitle"></h3>
+                <p data-pt="inst.cardtext"></p>
+                <button type="button" class="cat-btn-main active" onclick="mwInstall()" data-pt="inst.btn"></button>
             </div>
         </main>
     </div>
@@ -1389,6 +1607,33 @@
     <div id="toast-container"></div>
 
 
+    <!-- Нижняя панель навигации (телефоны) -->
+    <div class="tabbar" id="tabbar" role="navigation" aria-label="Main">
+        <button type="button" class="tab-btn" data-go="nav-home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span></span></button>
+        <button type="button" class="tab-btn" data-go="nav-compare"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V4M16 20v-7M21 20H3"/></svg><span></span></button>
+        <button type="button" class="tab-btn" data-go="nav-builder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg><span></span><i class="tab-lock" hidden>🔒</i></button>
+        <button type="button" class="tab-btn" data-go="nav-catalog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span></span></button>
+        <button type="button" class="tab-btn" data-go="nav-tiers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg><span></span></button>
+    </div>
+
+    <!-- Предложение установить приложение -->
+    <div class="install-banner" id="install-banner" role="region" aria-label="Install" hidden>
+        <p data-pt="inst.banner"></p>
+        <button type="button" class="cat-btn-main active" onclick="mwInstall()" data-pt="inst.btn"></button>
+        <button type="button" class="ib-close" onclick="mwDismissInstall()" aria-label="Закрыть">×</button>
+    </div>
+
+    <!-- Как добавить на рабочий экран -->
+    <div id="install-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="install-title">
+        <div class="modal-content glass-panel">
+            <button class="modal-close" onclick="closeModal('install-modal')" aria-label="Закрыть">×</button>
+            <h2 class="kb-title" id="install-title" data-pt="inst.title"></h2>
+            <p class="install-lead" data-pt="inst.lead"></p>
+            <ol class="install-steps" id="install-steps"></ol>
+            <div class="install-note" id="install-note" hidden></div>
+        </div>
+    </div>
+
     <script>
         // --- AUTH LOGIC ---
         // =========================================================
@@ -1483,9 +1728,254 @@
             if (typeof renderAutoSubTabs === 'function') renderAutoSubTabs();
             if (typeof renderDynamicFilters === 'function') renderDynamicFilters();
             if (typeof updateCompareTray === 'function') updateCompareTray();
+            if (typeof renderAuthTexts === 'function') renderAuthTexts();
+            if (typeof renderInstallTexts === 'function') renderInstallTexts();
         }
 
-        let isAuth = localStorage.getItem('mw_auth') === 'true';
+        let authUser = null; // { username, email, created, legacy }
+        let isAuth = false;
+
+        // =========================================================
+        // АККАУНТЫ: регистрация и вход
+        // Данные хранятся на устройстве пользователя (localStorage); пароль — только в виде
+        // PBKDF2-хэша с солью. Для общей базы на всех устройствах нужен сервер: см. authLoadUsers/authSaveUsers.
+        // =========================================================
+        const AUTH_USERS_KEY = 'mw_users';
+        const AUTH_SESSION_KEY = 'mw_session';
+        const AUTH_LOCK_KEY = 'mw_lock';
+        const PBKDF2_ITER = 150000;
+        // Старый тестовый вход pro / pro. УДАЛИТЕ эту строку и блок "LEGACY" ниже перед публикацией.
+        const LEGACY_PRO = { login: 'pro', pass: 'pro' };
+        let authMode = 'login';
+
+        const AUTH_T = {
+            'tab.login': ['ВХОД', 'LOG IN'],
+            'tab.register': ['РЕГИСТРАЦИЯ', 'SIGN UP'],
+            'f.login': ['Имя пользователя или e-mail', 'Username or e-mail'],
+            'f.username': ['Имя пользователя', 'Username'],
+            'f.email': ['E-mail (необязательно)', 'E-mail (optional)'],
+            'f.password': ['Пароль', 'Password'],
+            'f.password2': ['Повторите пароль', 'Repeat password'],
+            'btn.login': ['Войти', 'Log in'],
+            'btn.register': ['Создать аккаунт', 'Create account'],
+            'btn.delete': ['Удалить аккаунт', 'Delete account'],
+            'hint.user': ['3–20 символов: буквы, цифры, _ . -', '3–20 characters: letters, digits, _ . -'],
+            'note.noacc': ['Нет аккаунта?', 'No account yet?'],
+            'note.create': ['Создать', 'Create one'],
+            'note.local': ['Аккаунт сохраняется на этом устройстве. Пароль хранится только в зашифрованном виде.', 'Your account is stored on this device. The password is kept only in hashed form.'],
+            'show': ['Показать', 'Show'],
+            'hide': ['Скрыть', 'Hide'],
+            'pw.0': ['', ''],
+            'pw.1': ['Слабый пароль', 'Weak password'],
+            'pw.2': ['Можно надёжнее', 'Could be stronger'],
+            'pw.3': ['Хороший пароль', 'Good password'],
+            'pw.4': ['Надёжный пароль', 'Strong password']
+        };
+        function AT(k) { const e = AUTH_T[k]; return e ? (LANG === 'en' ? e[1] : e[0]) : k; }
+        const $a = id => document.getElementById(id);
+
+        function authLoadUsers() { try { return JSON.parse(localStorage.getItem(AUTH_USERS_KEY) || '{}') || {}; } catch (e) { return {}; } }
+        function authSaveUsers(u) { try { localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(u)); return true; } catch (e) { return false; } }
+        function authGetSession() { try { return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY) || 'null'); } catch (e) { return null; } }
+
+        (function bootAuth() {
+            const s = authGetSession();
+            if (s && s.legacy) authUser = { username: LEGACY_PRO.login, legacy: true, created: s.t || Date.now() };
+            else if (s && s.u) {
+                const u = authLoadUsers()[String(s.u).toLowerCase()];
+                if (u) authUser = { username: u.username, email: u.email || '', created: u.created };
+            } else if (localStorage.getItem('mw_auth') === 'true') {
+                authUser = { username: LEGACY_PRO.login, legacy: true, created: Date.now() }; // сессия из прошлой версии сайта
+            }
+            isAuth = !!authUser;
+        })();
+
+        const b64 = buf => btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+        const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+        function authNewSalt() { return b64(crypto.getRandomValues(new Uint8Array(16))); }
+        async function authHash(password, saltB64, iter) {
+            if (!(window.crypto && crypto.subtle)) throw new Error('nocrypto');
+            const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+            const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: unb64(saltB64), iterations: iter }, key, 256);
+            return b64(bits);
+        }
+        function safeEq(a, b) { if (a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; }
+
+        // Защита от перебора: 5 неверных попыток — пауза 30 секунд
+        function authLockLeft() { try { const t = JSON.parse(localStorage.getItem(AUTH_LOCK_KEY) || 'null'); if (t && t.until > Date.now()) return Math.ceil((t.until - Date.now()) / 1000); } catch (e) {} return 0; }
+        function authFail() { let t = {}; try { t = JSON.parse(localStorage.getItem(AUTH_LOCK_KEY) || '{}') || {}; } catch (e) {} t.n = (t.n || 0) + 1; if (t.n >= 5) { t.until = Date.now() + 30000; t.n = 0; } try { localStorage.setItem(AUTH_LOCK_KEY, JSON.stringify(t)); } catch (e) {} }
+        function authClearFails() { try { localStorage.removeItem(AUTH_LOCK_KEY); } catch (e) {} }
+
+        function authStart(u, legacy) {
+            authUser = legacy ? { username: LEGACY_PRO.login, legacy: true, created: Date.now() } : { username: u.username, email: u.email || '', created: u.created };
+            isAuth = true;
+            try {
+                localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(legacy ? { legacy: true, t: Date.now() } : { u: u.username.toLowerCase() }));
+                localStorage.setItem('mw_auth', 'true');
+            } catch (e) {}
+        }
+        function authSetErr(id, msg) { const e = $a(id); if (e) e.textContent = msg || ''; }
+        function authBusy(id, on) { const b = $a(id); if (b) b.disabled = !!on; }
+
+        function setAuthMode(mode) {
+            authMode = mode === 'register' ? 'register' : 'login';
+            $a('form-login').classList.toggle('active', authMode === 'login');
+            $a('form-register').classList.toggle('active', authMode === 'register');
+            $a('tab-login').setAttribute('aria-selected', authMode === 'login');
+            $a('tab-register').setAttribute('aria-selected', authMode === 'register');
+            authSetErr('auth-l-err', ''); authSetErr('auth-r-err', '');
+            renderAuthTexts();
+        }
+
+        function toggleAuthEye(btn) {
+            const inp = $a(btn.dataset.eye); if (!inp) return;
+            const show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            btn.textContent = AT(show ? 'hide' : 'show');
+            btn.dataset.shown = show ? '1' : '';
+        }
+
+        function authStrength(p) {
+            if (!p) return 0;
+            let s = 0;
+            if (p.length >= 8) s++;
+            if (p.length >= 12) s++;
+            if (/[a-zа-яё]/.test(p) && /[A-ZА-ЯЁ]/.test(p)) s++;
+            if (/\d/.test(p) && /[^\p{L}\p{N}]/u.test(p)) s++;
+            else if (/\d/.test(p) && /\p{L}/u.test(p) && p.length >= 10) s++;
+            if (p.length < 8) s = Math.min(s, 1);
+            return Math.max(1, Math.min(4, s));
+        }
+        function authPwMeter(v) {
+            const s = authStrength(v);
+            $a('pw-meter').dataset.s = s;
+            $a('pw-label').textContent = AT('pw.' + s);
+        }
+
+        async function checkAuthLogin(ev) {
+            if (ev) ev.preventDefault();
+            const name = $a('auth-l-user').value.trim();
+            const pass = $a('auth-l-pass').value;
+            authSetErr('auth-l-err', '');
+            const wait = authLockLeft();
+            if (wait) { authSetErr('auth-l-err', L('Слишком много попыток. Подождите ' + wait + ' с.', 'Too many attempts. Wait ' + wait + ' s.')); return false; }
+            if (!name || !pass) { authSetErr('auth-l-err', L('Введите имя и пароль.', 'Enter your username and password.')); return false; }
+
+            // LEGACY: старый тестовый вход. Удалите этот if перед публикацией.
+            if (name === LEGACY_PRO.login && pass === LEGACY_PRO.pass) { authClearFails(); authStart(null, true); authAfterLogin(); return false; }
+
+            authBusy('auth-l-btn', true);
+            try {
+                const users = authLoadUsers();
+                let u = users[name.toLowerCase()];
+                if (!u && name.indexOf('@') > 0) u = Object.values(users).find(x => x.email && x.email.toLowerCase() === name.toLowerCase());
+                const salt = u ? u.salt : authNewSalt();
+                const h = await authHash(pass, salt, u ? (u.iter || PBKDF2_ITER) : PBKDF2_ITER);
+                if (u && safeEq(h, u.hash)) { authClearFails(); authStart(u, false); authAfterLogin(); }
+                else { authFail(); authSetErr('auth-l-err', L('Неверное имя или пароль.', 'Wrong username or password.')); }
+            } catch (e) {
+                authSetErr('auth-l-err', e && e.message === 'nocrypto'
+                    ? L('Вход работает только по защищённому соединению (HTTPS).', 'Login requires a secure connection (HTTPS).')
+                    : L('Не удалось войти. Попробуйте ещё раз.', 'Could not log in. Please try again.'));
+            }
+            authBusy('auth-l-btn', false);
+            return false;
+        }
+
+        async function submitRegister(ev) {
+            if (ev) ev.preventDefault();
+            const name = $a('auth-r-user').value.trim();
+            const email = $a('auth-r-email').value.trim();
+            const p1 = $a('auth-r-pass').value;
+            const p2 = $a('auth-r-pass2').value;
+            const err = m => { authSetErr('auth-r-err', m); return false; };
+            authSetErr('auth-r-err', '');
+
+            if (!/^[\p{L}\p{N}_.-]{3,20}$/u.test(name)) return err(L('Имя: 3–20 символов — буквы, цифры, _ . -', 'Username: 3–20 characters — letters, digits, _ . -'));
+            if (name.toLowerCase() === LEGACY_PRO.login) return err(L('Это имя занято.', 'This username is taken.'));
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err(L('Проверьте e-mail: он должен выглядеть как name@mail.com', 'Check the e-mail: it should look like name@mail.com'));
+            if (p1.length < 8) return err(L('Пароль слишком короткий: нужно минимум 8 символов.', 'Password is too short: use at least 8 characters.'));
+            if (p1.toLowerCase() === name.toLowerCase()) return err(L('Пароль не должен совпадать с именем.', 'Password must not match the username.'));
+            if (p1 !== p2) return err(L('Пароли не совпадают.', 'Passwords do not match.'));
+
+            const users = authLoadUsers();
+            if (users[name.toLowerCase()]) return err(L('Это имя уже занято. Выберите другое или войдите.', 'This username is taken. Choose another or log in.'));
+            if (email && Object.values(users).some(x => x.email && x.email.toLowerCase() === email.toLowerCase())) return err(L('Аккаунт с таким e-mail уже есть. Попробуйте войти.', 'An account with this e-mail already exists. Try logging in.'));
+
+            authBusy('auth-r-btn', true);
+            try {
+                const salt = authNewSalt();
+                const hash = await authHash(p1, salt, PBKDF2_ITER);
+                const rec = { username: name, email: email, salt: salt, hash: hash, iter: PBKDF2_ITER, created: Date.now() };
+                users[name.toLowerCase()] = rec;
+                if (!authSaveUsers(users)) { authBusy('auth-r-btn', false); return err(L('Не удалось сохранить аккаунт: в браузере отключено хранилище (приватный режим?).', 'Could not save the account: browser storage is unavailable (private mode?).')); }
+                authStart(rec, false);
+                ['auth-r-user', 'auth-r-email', 'auth-r-pass', 'auth-r-pass2'].forEach(id => { $a(id).value = ''; });
+                authPwMeter('');
+                authAfterLogin(L('АККАУНТ СОЗДАН', 'ACCOUNT CREATED'));
+            } catch (e) {
+                authSetErr('auth-r-err', e && e.message === 'nocrypto'
+                    ? L('Регистрация работает только по защищённому соединению (HTTPS).', 'Sign-up requires a secure connection (HTTPS).')
+                    : L('Не удалось создать аккаунт. Попробуйте ещё раз.', 'Could not create the account. Please try again.'));
+            }
+            authBusy('auth-r-btn', false);
+            return false;
+        }
+
+        function authAfterLogin(msg) {
+            ['auth-l-user', 'auth-l-pass'].forEach(id => { const e = $a(id); if (e) e.value = ''; });
+            updateAuthStateUI();
+            showToast(msg || L('ДОСТУП РАЗРЕШЕН', 'ACCESS GRANTED'));
+        }
+
+        function logout() {
+            isAuth = false; authUser = null;
+            try { localStorage.removeItem(AUTH_SESSION_KEY); localStorage.setItem('mw_auth', 'false'); } catch (e) {}
+            setAuthMode('login');
+            updateAuthStateUI();
+            showToast(L('ВЫХОД ВЫПОЛНЕН', 'LOGGED OUT'));
+            if (document.getElementById('page-builder').classList.contains('active')) {
+                switchMainPage('page-home', document.getElementById('nav-home'));
+            }
+        }
+
+        function deleteAccount() {
+            if (!authUser || authUser.legacy) return;
+            if (!confirm(L('Удалить аккаунт «' + authUser.username + '» с этого устройства? Это нельзя отменить.', 'Delete account "' + authUser.username + '" from this device? This cannot be undone.'))) return;
+            const users = authLoadUsers();
+            delete users[authUser.username.toLowerCase()];
+            authSaveUsers(users);
+            logout();
+            showToast(L('АККАУНТ УДАЛЁН', 'ACCOUNT DELETED'));
+        }
+
+        function renderAuthTexts() {
+            document.querySelectorAll('[data-at]').forEach(e => {
+                if (e.classList.contains('auth-eye')) return;
+                e.textContent = AT(e.dataset.at);
+            });
+            document.querySelectorAll('.auth-eye').forEach(b => { b.textContent = AT(b.dataset.shown ? 'hide' : 'show'); });
+            const t = $a('auth-title'), s = $a('auth-subtitle');
+            if (!t || !s) return;
+            if (isAuth && authUser) {
+                t.textContent = L('АККАУНТ', 'ACCOUNT');
+                s.textContent = L('Управление доступом', 'Access management');
+                $a('auth-user-name').textContent = authUser.username;
+                const d = authUser.created ? new Date(authUser.created).toLocaleDateString(LANG === 'en' ? 'en' : 'ru') : '';
+                $a('auth-user-meta').textContent = authUser.legacy
+                    ? L('Тестовый аккаунт', 'Test account')
+                    : [authUser.email, L('С нами с ' + d, 'Member since ' + d)].filter(Boolean).join(' · ');
+                $a('auth-delete').hidden = !!authUser.legacy;
+            } else if (authMode === 'register') {
+                t.textContent = L('РЕГИСТРАЦИЯ', 'SIGN UP');
+                s.textContent = L('Создайте аккаунт, чтобы открыть диаграммы, индекс меты и конструктор сборок.', 'Create an account to unlock charts, the meta index, and the build constructor.');
+            } else {
+                t.textContent = L('ВХОД', 'LOG IN');
+                s.textContent = L('Войдите, чтобы открыть диаграммы, индекс меты и конструктор сборок.', 'Log in to unlock charts, the meta index, and the build constructor.');
+            }
+            const pl = $a('pw-label'); if (pl && $a('pw-meter')) pl.textContent = AT('pw.' + $a('pw-meter').dataset.s);
+        }
+
         let siteVisits = localStorage.getItem('mw_site_visits') || 0; 
         siteVisits++; 
         localStorage.setItem('mw_site_visits', siteVisits);
@@ -1500,8 +1990,6 @@
             if (isAuth) {
                 adminDash.style.display = 'block';
                 adminAuth.style.display = 'none';
-                document.getElementById('auth-title').innerText = L("АККАУНТ","ACCOUNT");
-                document.getElementById('auth-subtitle').innerText = L("Управление доступом","Access management");
                 document.getElementById('visit-counter').innerText = siteVisits;
                 if (lockIcon) lockIcon.style.display = 'none';
                 navAdminBtn.classList.add('auth-active');
@@ -1509,13 +1997,12 @@
             } else {
                 adminDash.style.display = 'none';
                 adminAuth.style.display = 'block';
-                document.getElementById('auth-title').innerText = L("АВТОРИЗАЦИЯ","LOGIN");
-                document.getElementById('auth-subtitle').innerText = L("Войдите для доступа к диаграммам, индексу меты и конструктору сборок.","Log in for access to charts, the meta index, and the build constructor.");
                 if (lockIcon) lockIcon.style.display = 'inline';
                 navAdminBtn.classList.remove('auth-active');
                 sortOpts.forEach(opt => opt.disabled = true);
             }
             
+            renderAuthTexts();
             refreshProGatedViews();
             if(document.getElementById('page-catalog').classList.contains('active')) {
                 handleFilter();
@@ -1528,32 +2015,6 @@
                     for (let key in DB) { if(DB[key].name === n1) id1 = key; if(DB[key].name === n2) id2 = key; }
                     if(id1 && id2) runAnalysis(id1, id2);
                 }
-            }
-        }
-
-        function checkAuthLogin() {
-            const l = document.getElementById('admin-login').value;
-            const p = document.getElementById('admin-pass').value;
-            if (l === 'pro' && p === 'pro') {
-                isAuth = true;
-                localStorage.setItem('mw_auth', 'true');
-                document.getElementById('admin-login').value = '';
-                document.getElementById('admin-pass').value = '';
-                updateAuthStateUI();
-                showToast(L("ДОСТУП РАЗРЕШЕН","ACCESS GRANTED"));
-            } else { 
-                showToast(L('ОШИБКА АВТОРИЗАЦИИ','LOGIN ERROR'), true); 
-            }
-        }
-
-        function logout() {
-            isAuth = false;
-            localStorage.setItem('mw_auth', 'false');
-            updateAuthStateUI();
-            showToast(L("ВЫХОД ВЫПОЛНЕН","LOGGED OUT"));
-            
-            if (document.getElementById('page-builder').classList.contains('active')) {
-                switchMainPage('page-home', document.getElementById('nav-home'));
             }
         }
 
@@ -5486,6 +5947,160 @@
         }
 
         syncPageState();
+    })();
+    </script>
+    <script>
+    /* =========================================================
+       MWLAB — мобильное приложение: установка на рабочий экран,
+       офлайн-режим, нижняя навигация, быстрые ссылки
+       ========================================================= */
+    (function () {
+        'use strict';
+        var root = document.documentElement;
+        var $ = function (id) { return document.getElementById(id); };
+        var ua = navigator.userAgent || '';
+        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var isAndroid = /Android/i.test(ua);
+        var isTouch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+        var deferred = null;
+        var DISMISS_KEY = 'mw_install_dismissed';
+
+        function lang() { return (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'ru'; }
+        function standalone() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
+        if (standalone()) root.classList.add('standalone');
+
+        var SHARE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+        var T = {
+            'inst.title': ['Добавить на рабочий экран', 'Add to Home Screen'],
+            'inst.lead': ['MWLAB откроется как обычное приложение — без адресной строки, быстро и даже без интернета.', 'MWLAB opens like a regular app — no address bar, fast, and even offline.'],
+            'inst.cardtitle': ['Установите приложение', 'Install the app'],
+            'inst.cardtext': ['Иконка MWLAB на рабочем экране: запуск в один тап, полноэкранный режим и работа без сети.', 'An MWLAB icon on your home screen: one-tap launch, full-screen mode, and offline use.'],
+            'inst.btn': ['Установить', 'Install'],
+            'inst.banner': ['Установите MWLAB на рабочий экран', 'Add MWLAB to your home screen']
+        };
+        var STEPS = {
+            ios: {
+                ru: ['Откройте сайт в Safari.', 'Нажмите кнопку «Поделиться» ' + SHARE + ' — на iPhone она внизу экрана, на iPad вверху.', 'Прокрутите список и выберите «На экран “Домой”».', 'Нажмите «Добавить» — иконка MWLAB появится на рабочем экране.'],
+                en: ['Open the site in Safari.', 'Tap the Share button ' + SHARE + ' — at the bottom on iPhone, at the top on iPad.', 'Scroll the list and choose “Add to Home Screen”.', 'Tap “Add” — the MWLAB icon will appear on your home screen.']
+            },
+            android: {
+                ru: ['Откройте меню браузера — три точки ⋮ в углу экрана.', 'Выберите «Установить приложение» или «Добавить на главный экран».', 'Подтвердите — иконка MWLAB появится на рабочем экране.'],
+                en: ['Open the browser menu — the three dots ⋮ in the corner.', 'Choose “Install app” or “Add to Home screen”.', 'Confirm — the MWLAB icon will appear on your home screen.']
+            },
+            desktop: {
+                ru: ['Найдите значок установки справа в адресной строке браузера.', 'Нажмите «Установить».'],
+                en: ['Look for the install icon on the right of the address bar.', 'Click “Install”.']
+            }
+        };
+
+        function renderTexts() {
+            var l = lang() === 'en' ? 1 : 0;
+            document.querySelectorAll('[data-pt]').forEach(function (e) { var t = T[e.getAttribute('data-pt')]; if (t) e.textContent = t[l]; });
+        }
+        window.renderInstallTexts = renderTexts;
+
+        function refreshUI() {
+            var card = $('install-card');
+            if (card) card.hidden = standalone();
+        }
+
+        window.mwInstall = function () {
+            if (deferred) {
+                deferred.prompt();
+                deferred.userChoice.then(function () { deferred = null; refreshUI(); hideBanner(); });
+                return;
+            }
+            var platform = isIOS ? 'ios' : (isAndroid ? 'android' : 'desktop');
+            var l = lang();
+            var ol = $('install-steps'); ol.innerHTML = '';
+            STEPS[platform][l].forEach(function (s) { var li = document.createElement('li'); li.innerHTML = s; ol.appendChild(li); });
+            var note = $('install-note'); note.hidden = true;
+            if (isIOS && /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) {
+                note.textContent = l === 'en' ? 'In Chrome or another browser this works on iOS 16.4 and newer. On older versions, use Safari.' : 'В Chrome и других браузерах это работает на iOS 16.4 и новее. На более старых версиях используйте Safari.';
+                note.hidden = false;
+            } else if (/FBAN|FBAV|Instagram|Line\//.test(ua)) {
+                note.textContent = l === 'en' ? 'You are in an in-app browser. Open this page in Safari or Chrome first.' : 'Вы в браузере внутри другого приложения. Сначала откройте эту страницу в Safari или Chrome.';
+                note.hidden = false;
+            }
+            if (typeof openModal === 'function') openModal('install-modal');
+        };
+
+        function showBanner() {
+            var b = $('install-banner');
+            if (!b || standalone()) return;
+            var until = 0; try { until = parseInt(localStorage.getItem(DISMISS_KEY) || '0', 10); } catch (e) {}
+            if (until > Date.now()) return;
+            b.hidden = false;
+            requestAnimationFrame(function () { requestAnimationFrame(function () { b.classList.add('show'); }); });
+        }
+        function hideBanner() {
+            var b = $('install-banner'); if (!b) return;
+            b.classList.remove('show');
+            setTimeout(function () { b.hidden = true; }, 650);
+        }
+        window.mwDismissInstall = function () {
+            try { localStorage.setItem(DISMISS_KEY, String(Date.now() + 14 * 24 * 3600 * 1000)); } catch (e) {}
+            hideBanner();
+        };
+        function scheduleBanner() {
+            if (standalone() || !isTouch) return;
+            if (!(deferred || isIOS || isAndroid)) return;
+            setTimeout(showBanner, 12000);
+        }
+
+        window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; refreshUI(); });
+        window.addEventListener('appinstalled', function () {
+            deferred = null; root.classList.add('standalone'); refreshUI(); hideBanner();
+            if (typeof showToast === 'function') showToast(lang() === 'en' ? 'APP INSTALLED' : 'ПРИЛОЖЕНИЕ УСТАНОВЛЕНО');
+        });
+
+        /* --- Нижняя панель: зеркалит кнопки верхней навигации --- */
+        var tabs = document.querySelectorAll('#tabbar .tab-btn');
+        function syncTabs() {
+            tabs.forEach(function (tb) {
+                var src = $(tb.getAttribute('data-go')); if (!src) return;
+                var span = src.querySelector('[data-i18n]');
+                var label = (span ? span.textContent : src.textContent).replace('🔒', '').trim();
+                var lab = tb.querySelector('span'); if (lab && lab.textContent !== label) lab.textContent = label;
+                tb.classList.toggle('active', src.classList.contains('active'));
+                var lock = tb.querySelector('.tab-lock');
+                if (lock) { var lk = $('builder-lock'); lock.hidden = !(lk && lk.style.display !== 'none'); }
+            });
+        }
+        tabs.forEach(function (tb) {
+            tb.addEventListener('click', function () {
+                var src = $(tb.getAttribute('data-go')); if (src) src.click();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+        var navTabs = $('nav-tabs');
+        if (navTabs && window.MutationObserver) {
+            new MutationObserver(syncTabs).observe(navTabs, { attributes: true, childList: true, characterData: true, subtree: true });
+        }
+        syncTabs();
+
+        /* --- Клавиатура: прячем нижнюю панель, пока пользователь вводит текст --- */
+        document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) root.classList.add('kbd-open'); });
+        document.addEventListener('focusout', function () { setTimeout(function () { var a = document.activeElement; if (!a || !/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) root.classList.remove('kbd-open'); }, 60); });
+
+        /* --- Быстрые ссылки (?page=catalog) — для ярлыков на иконке приложения --- */
+        function openFromUrl() {
+            var m = /[?&]page=([a-z]+)/.exec(location.search);
+            if (!m) return;
+            var btn = $('nav-' + m[1]);
+            if (btn && /^(home|compare|builder|catalog|tiers)$/.test(m[1])) btn.click();
+        }
+
+        /* --- Service worker (работает только по HTTPS или на localhost) --- */
+        if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+            window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+        }
+
+        window.addEventListener('load', function () {
+            setTimeout(function () { renderTexts(); refreshUI(); syncTabs(); openFromUrl(); }, 120);
+            scheduleBanner();
+        });
+        renderTexts(); refreshUI();
     })();
     </script>
 </body>
