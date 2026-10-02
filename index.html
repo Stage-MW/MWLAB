@@ -1160,7 +1160,7 @@
             <div class="nav-tabs" id="nav-tabs">
                 <span class="nav-indicator" id="nav-indicator"></span>
                 <button class="nav-btn active" id="nav-home" data-i18n="nav.home" onclick="switchMainPage('page-home', this)">Главная</button>
-                <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); setAuthMode('register'); showToast(L('ТРЕБУЕТСЯ PRO ДОСТУП','PRO ACCESS REQUIRED'), true); }"><span data-i18n="nav.builder">Конструктор</span> <span id="builder-lock">🔒</span></button>
+                <button class="nav-btn" id="nav-builder" onclick="if(isAuth) switchMainPage('page-builder', this); else { switchMainPage('page-admin', document.getElementById('nav-admin')); setAuthMode('register'); showToast(L('ДОСТУПНО ПОСЛЕ РЕГИСТРАЦИИ','AVAILABLE AFTER SIGN-UP'), true); }"><span data-i18n="nav.builder">Конструктор</span> <span id="builder-lock">🔒</span></button>
                 <button class="nav-btn" id="nav-catalog" data-i18n="nav.catalog" onclick="switchMainPage('page-catalog', this)">Арсенал</button>
                 <button class="nav-btn" id="nav-tiers" data-i18n="nav.tiers" onclick="switchMainPage('page-tiers', this)">Тир-лист</button>
             </div>
@@ -1746,9 +1746,9 @@
         const SUPABASE_ANON_KEY = '';  // anon / publishable key
         const SB_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
         const sb = (SB_CONFIGURED && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-        let userTier = 'free'; // free | pro | vip: в режиме Supabase приходит из profiles.tier
-        const TIER_RANK = { free: 0, pro: 1, vip: 2 };
-        function isVip() { return isAuth && userTier === 'vip'; } // рейтинг меты видит только VIP
+        let userTier = 'free'; // free | pro: в режиме Supabase приходит из profiles.tier
+        const TIER_RANK = { free: 0, pro: 1 };
+        function isPro() { return isAuth && userTier === 'pro'; } // рейтинг меты видит только PRO
         let authRecovery = SB_CONFIGURED && /[#&]type=recovery/.test(location.hash); // пришли по ссылке «сброс пароля»
         let authSelf = false; // true, пока вход/регистрацию ведём сами (чтобы слушатель сессии не дублировал UI)
 
@@ -1824,13 +1824,13 @@
                 return;
             }
             const s = authGetSession();
-            if (s && s.legacy) { authUser = { username: LEGACY_PRO.login, legacy: true, created: s.t || Date.now() }; userTier = 'vip'; }
+            if (s && s.legacy) { authUser = { username: LEGACY_PRO.login, legacy: true, created: s.t || Date.now() }; userTier = 'pro'; }
             else if (s && s.u) {
                 const u = authLoadUsers()[String(s.u).toLowerCase()];
                 if (u) authUser = { username: u.username, email: u.email || '', created: u.created };
             } else if (localStorage.getItem('mw_auth') === 'true') {
                 authUser = { username: LEGACY_PRO.login, legacy: true, created: Date.now() }; // сессия из прошлой версии сайта
-                userTier = 'vip';
+                userTier = 'pro';
             }
             isAuth = !!authUser;
         })();
@@ -1854,7 +1854,7 @@
         function authStart(u, legacy) {
             authUser = legacy ? { username: LEGACY_PRO.login, legacy: true, created: Date.now() } : { username: u.username, email: u.email || '', created: u.created };
             isAuth = true;
-            userTier = legacy ? 'vip' : 'free';
+            userTier = legacy ? 'pro' : 'free';
             try {
                 localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(legacy ? { legacy: true, t: Date.now() } : { u: u.username.toLowerCase() }));
                 localStorage.setItem('mw_auth', 'true');
@@ -2146,7 +2146,7 @@
                 s.textContent = L('Управление доступом', 'Access management');
                 $a('auth-user-name').textContent = authUser.username;
                 const tt = $a('auth-tier-title');
-                if (tt) tt.textContent = userTier === 'vip' ? L('VIP ДОСТУП АКТИВЕН', 'VIP ACCESS ACTIVE') : userTier === 'pro' ? L('PRO ДОСТУП АКТИВЕН', 'PRO ACCESS ACTIVE') : L('АККАУНТ АКТИВЕН', 'ACCOUNT ACTIVE');
+                if (tt) tt.textContent = userTier === 'pro' ? L('PRO ДОСТУП АКТИВЕН', 'PRO ACCESS ACTIVE') : L('АККАУНТ АКТИВЕН', 'ACCOUNT ACTIVE');
                 const d = authUser.created ? new Date(authUser.created).toLocaleDateString(LANG === 'en' ? 'en' : 'ru') : '';
                 $a('auth-user-meta').textContent = authUser.legacy
                     ? L('Тестовый аккаунт', 'Test account')
@@ -2191,15 +2191,15 @@
         siteVisits++;
         localStorage.setItem('mw_site_visits', siteVisits);
 
-        // Рейтинг меты, сортировка по нему и разбор показываются только VIP
+        // Рейтинг меты, сортировка по нему и разбор показываются только PRO
         function applyRatingVisibility() {
-            const vip = isVip();
-            const box = document.querySelector('#roster-detail .roster-level'); if (box) box.style.display = vip ? '' : 'none';
+            const pro = isPro();
+            const box = document.querySelector('#roster-detail .roster-level'); if (box) box.style.display = pro ? '' : 'none';
             const why = document.getElementById('roster-why-btn');
-            if (why) { why.style.display = vip ? '' : 'none'; why.textContent = L('Почему такой рейтинг?', 'Why this rating?'); }
+            if (why) { why.style.display = pro ? '' : 'none'; why.textContent = L('Почему такой рейтинг?', 'Why this rating?'); }
             const ro = document.querySelector('#sort-catalog option[value="rating"]');
-            if (ro) { ro.hidden = !vip; ro.disabled = !vip; }
-            const sel = document.getElementById('sort-catalog'); if (sel && sel.value === 'rating' && !vip) sel.value = 'none';
+            if (ro) { ro.hidden = !pro; ro.disabled = !pro; }
+            const sel = document.getElementById('sort-catalog'); if (sel && sel.value === 'rating' && !pro) sel.value = 'none';
         }
 
         function updateAuthStateUI() {
@@ -2550,17 +2550,17 @@
             },
             'kb.aa': {
                 ru: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">Реальная угроза, а не вакуум:</b> ПВО оценивается против усреднённого профиля боевых ракет из базы — считается «окно перехвата» и реальный шанс сбить типичную ракету.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Модельная точность:</b> В базе нет данных о точности ПВО, поэтому для пулемётного и лазерного ПВО она оценивается: чем дольше летит снаряд до цели и чем меньше радиус подрыва, тем ниже шанс. У ракетного и гибридного ПВО скорость и разгон уже учтены отдельно.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Точность = 100%:</b> В базе нет данных о точности ПВО, поэтому она не занижается искусственно — разницу между юнитами дают только реальные цифры (DPM, урон, скорострельность, скорость и разгон перехватчика).</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Скорость перехвата:</b> У Ракетного/Гибридного ПВО скорость и разгон собственной ракеты сравниваются со скоростью цели — медленный интерцептор резко теряет эффективность.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">АОЕ и плотность огня:</b> Сплэш, радиус детонации и размер обоймы дают бонус против роя ракет.</li>`,
                 en: `<li style="margin-bottom: 8px;"><b style="color: var(--primary);">A real threat, not a vacuum:</b> AA is scored against the averaged profile of combat missiles from the database — an "intercept window" and a real chance to down a typical missile are calculated.</li>
-                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Modeled accuracy:</b> The database has no accuracy data for AA, so for gun and laser AA it is estimated: the longer the shell flies to the target and the smaller the proximity radius, the lower the chance. For missile and hybrid AA, speed and acceleration are already counted separately.</li>
+                    <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">Accuracy = 100%:</b> The database has no accuracy data for AA, so it is never artificially lowered — differences between units come only from real numbers (DPM, damage, rate of fire, interceptor speed and acceleration).</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--primary);">Intercept speed:</b> For Missile/Hybrid AA, its own missile's speed and acceleration are compared against the target's speed — a slow interceptor loses effectiveness sharply.</li>
                     <li style="margin-bottom: 8px;"><b style="color: var(--text-main);">AOE and fire density:</b> Splash, detonation radius and clip size give a bonus against a missile swarm.</li>`
             }
         };
 
-        // Метки, которые PRO-разбор рейтинга ("Почему такой рейтинг?") подставляет в _T()/_N() —
+        // Метки, которые разбор рейтинга ("Почему такой рейтинг?") подставляет в _T()/_N() —
         // переводятся централизованно на выводе, без правки полусотни мест начисления очков.
         const LABEL_EN = {
             "DPM (паспортный)": "DPM (rated)", "Альфа-страйк": "Alpha strike", "Атака авиации": "Anti-air",
@@ -2889,17 +2889,6 @@
         const AA_RATING_LAUNCH_DIST = 10;   // км
         const AA_RATING_SALVOS = [2, 3, 4]; // ракет в залпе
         const AA_RATING_MOUNTS = [1, 2, 4]; // модулей ПВО
-
-        // Модельная точность ПВО (в базе поля accuracy у ПВО нет, поэтому это ОЦЕНКА, а не данные игры).
-        // Шанс, что снаряд/луч окажется внутри радиуса подрыва, пока цель смещается в сторону:
-        //   miss = targetLateral * время_полёта,  P = 1 / (1 + (miss / R)^2),  R = detonation_radius (или splash_radius).
-        // targetLateral подобран так, чтобы типичный ствол давал ~60-70%; меняется одной цифрой.
-        const AA_ACCURACY_MODEL = {
-            targetLateral: 0.008,   // км/с: боковая скорость цели (допущение)
-            defaultRadius: 16,      // радиус подрыва, если в базе не задан (медиана по ПВО)
-            speedToKm: 0.00278,     // тот же коэффициент, что и в движке перехвата (ед. скорости -> км/с)
-            min: 0.1
-        };
 
         const AA_REACTION_TIME = {
             "Лазерное": 0.3,
@@ -3774,9 +3763,9 @@
             let selectedCountry = document.getElementById('filter-country-catalog').value;
             let sortType = document.getElementById('sort-catalog').value;
 
-            if (sortType === 'rating' && !isVip()) { document.getElementById('sort-catalog').value = 'none'; sortType = 'none'; }
+            if (sortType === 'rating' && !isPro()) { document.getElementById('sort-catalog').value = 'none'; sortType = 'none'; }
             if (!isAuth && sortType !== 'none') {
-                showToast(L("СОРТИРОВКА ДОСТУПНА ТОЛЬКО В PRO","SORTING IS PRO ONLY"), true);
+                showToast(L("СОРТИРОВКА ДОСТУПНА ПОСЛЕ РЕГИСТРАЦИИ","SORTING AVAILABLE AFTER SIGN-UP"), true);
                 document.getElementById('sort-catalog').value = 'none';
                 sortType = 'none';
             }
@@ -3945,7 +3934,7 @@
 
             document.getElementById('roster-name').innerText = itemName(item);
             document.getElementById('roster-classtext').innerText = `${trCategory(item.category)} · ${L('Класс','Class')} ${item.rarity === 'Легендарный' ? 'S' : item.rarity === 'Эпический' ? 'A' : 'B'}`;
-            document.getElementById('roster-rating-num').innerText = isVip() ? item.rating : '';
+            document.getElementById('roster-rating-num').innerText = isPro() ? item.rating : '';
             applyRatingVisibility();
             document.getElementById('roster-stats').innerHTML = generateStatsHtml(item, 'roster');
 
@@ -4015,7 +4004,7 @@
                         <div class="catalog-item-img" style="background-image: url('${s.img}')"></div>
                         <div>
                             <div class="cat-item-name">${itemName(s)}</div>
-                            <div class="cat-item-meta">${trCountry(s.country)}${isVip() ? ' · ' + s.rating : ''}</div>
+                            <div class="cat-item-meta">${trCountry(s.country)}${isPro() ? ' · ' + s.rating : ''}</div>
                         </div>
                     </div>`;
             });
@@ -4201,8 +4190,8 @@
 
             let summaryText = "";
 
-            if (!isVip()) {
-                summaryText = `<span style="color:var(--text-main); font-size: 1.05rem; font-family:'Inter';">Итоговый вердикт меты доступен только в VIP. Ниже сравнение по характеристикам: лучшее значение в каждой строке подсвечено.</span>`;
+            if (!isPro()) {
+                summaryText = `<span style="color:var(--text-main); font-size: 1.05rem; font-family:'Inter';">Итоговый вердикт меты доступен только в PRO. Ниже сравнение по характеристикам: лучшее значение в каждой строке подсвечено.</span>`;
             } else if (Math.abs(e1.rating - e2.rating) < 15) {
                 let diff = Math.abs(e1.rating - e2.rating);
                 let pDiff = ((diff / Math.min(e1.rating, e2.rating)) * 100).toFixed(1);
@@ -4286,7 +4275,7 @@
                 </span>`;
             }
 
-            let metaLegend = !isVip() ? '' : `
+            let metaLegend = !isPro() ? '' : `
                 <div class="meta-legend" style="margin-top: 25px;">
                     <b style="color:var(--text-main);">[ ИНДЕКС ДОМИНАЦИИ ]</b><br>
                     <span style="color:var(--text-main);">0-5%</span>: ПАРИТЕТ |
@@ -4297,7 +4286,7 @@
 
             let visualsHTML = isAuth
                 ? `<div class="radar-container" style="position: relative; height: 250px; margin-top:20px;"><canvas id="radarChart"></canvas></div>`
-                : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Inter'; font-weight:bold; border: 1px dashed rgba(232,72,63,0.3); margin-top:15px; border-radius:12px; background:rgba(232,72,63,0.06);">🔒 ДИАГРАММА АНАЛИЗА ДОСТУПНА В PRO ВЕРСИИ</div>`;
+                : `<div style="padding:30px; text-align:center; color:var(--secondary); font-family:'Inter'; font-weight:bold; border: 1px dashed rgba(232,72,63,0.3); margin-top:15px; border-radius:12px; background:rgba(232,72,63,0.06);">🔒 ДИАГРАММА АНАЛИЗА ДОСТУПНА ПОСЛЕ РЕГИСТРАЦИИ</div>`;
 
             let finalVerdictHTML = `<div class="final-summary-block glass-panel" style="padding:30px; width:100%;">
                 <div style="font-family:'Inter'; text-transform: none;">${summaryText}</div>
@@ -4820,25 +4809,16 @@
         // юнитами дают только реальные характеристики (DPM, урон, скорострельность, скорость/разгон
         // снаряда или собственной ракеты-перехватчика — см. кинематику ниже в runInterceptEngine,
         // она уже и так считается по настоящим max_speed/start_speed/accel_time/range).
-        // Модельная точность ПВО по реальным полям базы: дальность, скорость снаряда, радиус подрыва.
-        // Ракетным и гибридным возвращаем 1: их скорость и разгон уже учтены в движке перехвата
-        // (timingProb, speedFactor) — иначе одно и то же штрафовалось бы дважды.
-        function getAAModelAccuracy(item) {
-            const M = AA_ACCURACY_MODEL;
-            const isGuided = (item.accel_time || 0) > 0 || item.dpm_gun !== undefined;
-            if (isGuided || !item.max_speed || !item.range) return 1;
-            const t = item.range / (item.max_speed * M.speedToKm);                 // сек до цели
-            const R = (item.detonation_radius || item.splash_radius || M.defaultRadius) / 1000; // км
-            const miss = M.targetLateral * t;
-            return Math.max(M.min, Math.min(1, 1 / (1 + Math.pow(miss / R, 2))));
-        }
-
         function getEffectiveAccuracy(item) {
             if (item.is_buckshot) return item.accuracy != null ? item.accuracy / 100 : 1;
 
             if (item.category === "ПВО") {
-                if (item.accuracy != null) return item.accuracy / 100;
-                return getAAModelAccuracy(item);
+                // В базе нет ни одного поля accuracy у юнитов ПВО — данных о точности просто
+                // не существует. Придумывать "индекс разброса" по названию типа наведения —
+                // значит выдавать догадку за данные. Честный вариант при отсутствии данных —
+                // не штрафовать точность вообще (100%) и оценивать юнит по тому, что в базе
+                // ЕСТЬ на самом деле.
+                return 1;
             }
 
             if (item.category === "Автопушки") {
@@ -5281,7 +5261,7 @@
                     ${L('Время реакции ПВО','AA reaction time')}: <b style="color:var(--text-main);">${reactionTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
                     ${L('Окно на перехват (после реакции)','Intercept window (after reaction)')}: <b style="color:var(--text-main);">${engageTime.toFixed(2)} ${L('сек.','sec.')}</b><br>
                     ${aaHasMissileProfile ? `${L('Фактор скорости перехвата','Intercept speed factor')}: <b style="color:var(--text-main);">${(speedFactor*100).toFixed(0)}%</b> (${L('ожидаемо результативных пусков','expected effective launches')}: ${shotsLanded.toFixed(1)} ${L('из','of')} ${shotsFired})<br>` : ''}
-                    ${L('Точность системы (модель)','System accuracy (modeled)')}: <b style="color:var(--text-main);">${(accuracy*100).toFixed(0)}%</b><br>
+                    ${L('Точность системы','System accuracy')}: <b style="color:var(--text-main);">${(accuracy*100).toFixed(0)}%</b><br>
                     ${L('Математический урон ПВО','Expected AA damage')}: <b style="color:var(--primary);">${Math.round(totalAADamage).toLocaleString(LANG === 'en' ? 'en' : 'ru')} HP</b><br>
                     ${L('Прочность роя ракет','Missile swarm HP')} (${totalMissiles} ${L('шт.','pcs')}): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString(LANG === 'en' ? 'en' : 'ru')} HP</b><br>
                     <div style="margin: 15px 0; border-top: 1px solid var(--line); padding-top: 15px;">
@@ -5323,7 +5303,7 @@
 
         function needPro(msg) {
             if (isAuth) return true;
-            showToast(msg || L('ТРЕБУЕТСЯ PRO ДОСТУП','PRO ACCESS REQUIRED'), true);
+            showToast(msg || L('ДОСТУПНО ПОСЛЕ РЕГИСТРАЦИИ','AVAILABLE AFTER SIGN-UP'), true);
             return false;
         }
 
@@ -5349,7 +5329,7 @@
             if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest', inline: 'center' });
         }
 
-        // Обновить всё, что зависит от PRO-доступа
+        // Обновить всё, что зависит от входа и тарифа
         function refreshProGatedViews() {
             renderTierList();
             applyRatingVisibility();
@@ -5358,9 +5338,9 @@
 
         function openRatingBreakdown(itemId) {
             if (!itemId || !DB[itemId]) return;
-            if (!isVip()) {
+            if (!isPro()) {
                 if (!isAuth) { switchMainPage('page-admin', document.getElementById('nav-admin')); setAuthMode('register'); }
-                showToast(L('РАЗБОР РЕЙТИНГА ДОСТУПЕН ТОЛЬКО В VIP', 'RATING BREAKDOWN IS VIP ONLY'), true);
+                showToast(L('РАЗБОР РЕЙТИНГА ДОСТУПЕН ТОЛЬКО В PRO', 'RATING BREAKDOWN IS PRO ONLY'), true);
                 return;
             }
             const bd = getRatingBreakdown(itemId);
@@ -5610,7 +5590,7 @@
                     <div class="mc-img" style="background-image:url('${it.img}')"></div>
                     <div class="mc-name">${itemName(it)}</div>
                     <div class="mc-sub">${L('Класс','Class')} ${rarityLetter(it.rarity)} · ${trCountry(it.country)}</div>
-                    ${isVip() ? `<div class="mc-rating">${it.rating}</div>` : ''}
+                    ${isPro() ? `<div class="mc-rating">${it.rating}</div>` : ''}
                 </th>`;
             }).join('');
 
@@ -5620,7 +5600,7 @@
             }).join('')}</tr>`).join('');
 
             let ranking;
-            if (isVip()) {
+            if (isPro()) {
                 const byRating = items.slice().sort((a, b) => b.rating - a.rating);
                 ranking = `<div class="mc-rank">${byRating.map((it, i) => `<div class="mc-rank-item ${i === 0 ? 'first' : ''}"><span>${i + 1}</span>${it.name}<b>${it.rating}</b></div>`).join('')}</div>`;
             } else {
@@ -5642,7 +5622,7 @@
                         <tbody>${body}</tbody>
                     </table>
                 </div>
-                ${isVip() ? '<div class="mc-section-title">Рейтинг меты</div>' + ranking : ''}
+                ${isPro() ? '<div class="mc-section-title">Рейтинг меты</div>' + ranking : ''}
                 ${isAuth ? `<div class="radar-container" style="position:relative; height:340px; margin-top:24px; max-width:640px;"><canvas id="multiRadarChart"></canvas></div>` : ''}
             `;
         }
@@ -5701,14 +5681,14 @@
             ['S', 'A', 'B'].forEach(letter => {
                 const inRow = keys.filter(k => rarityLetter(DB[k].rarity) === letter);
                 if (!inRow.length) return;
-                inRow.sort((a, b) => isVip() ? (DB[b].rating - DB[a].rating) : DB[a].name.localeCompare(DB[b].name));
+                inRow.sort((a, b) => isPro() ? (DB[b].rating - DB[a].rating) : DB[a].name.localeCompare(DB[b].name));
                 rowsHtml += `<div class="tier-row">
                     <div class="tier-badge tier-${letter}">${letter}</div>
                     <div class="tier-items">${inRow.map(k => `
                         <button class="tier-tile" onclick="openInArsenal('${k}')" title="${itemName(DB[k])} · ${trCountry(DB[k].country)}">
                             <span class="tier-img" style="background-image:url('${DB[k].img}')"></span>
                             <span class="tier-name">${itemName(DB[k])}</span>
-                            ${isVip() ? `<span class="tier-rating">${DB[k].rating}</span>` : ''}
+                            ${isPro() ? `<span class="tier-rating">${DB[k].rating}</span>` : ''}
                         </button>`).join('')}
                     </div>
                 </div>`;
@@ -5721,7 +5701,7 @@
             if (!root) return;
             const country = document.getElementById('tier-country').value;
             const note = document.getElementById('tier-note');
-            note.innerHTML = isVip()
+            note.innerHTML = isPro()
                 ? 'Внутри каждого класса объекты идут от сильного рейтинга к слабому. Нажмите на карточку, чтобы открыть её в Арсенале.'
                 : 'Внутри каждого класса объекты идут по алфавиту. Нажмите на карточку, чтобы открыть её в Арсенале.';
 
