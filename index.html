@@ -199,15 +199,6 @@
         .led { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); box-shadow: 0 0 10px 2px rgba(255, 43, 43, 0.7); animation: ledPulse 2.4s ease-in-out infinite; flex-shrink: 0; }
         @keyframes ledPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
-        /* --- ПЕРЕХОД МЕЖДУ ВКЛАДКАМИ (шторка) --- */
-        #veil { position: fixed; inset: 0; z-index: 9500; pointer-events: none; opacity: 0; }
-        #veil::before { content: ""; position: absolute; inset: 0; backdrop-filter: blur(26px) brightness(0.8); -webkit-backdrop-filter: blur(26px) brightness(0.8); background: rgba(0, 0, 0, 0.18); }
-        #veil::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--secondary); box-shadow: 0 0 24px 6px rgba(255, 43, 43, 0.75), 0 0 80px 30px rgba(255, 43, 43, 0.25); transform: translateX(-10vw); }
-        #veil.go { animation: veilFade 0.75s ease both; }
-        #veil.go::after { animation: veilSweep 0.75s cubic-bezier(0.7, 0, 0.3, 1) both; }
-        @keyframes veilFade { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes veilSweep { 0% { transform: translateX(-5vw); } 100% { transform: translateX(105vw); } }
-
         .app-wrapper { position: relative; z-index: 10; width: 100%; padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
 
         /* =====================================================================
@@ -275,11 +266,7 @@
            СТРАНИЦЫ + ПЕРЕКЛЮЧЕНИЕ
            ===================================================================== */
         .page { display: none; width: 100%; max-width: 1600px; margin: 0 auto; padding: 34px 20px 70px; position: relative; }
-        .page.active { display: block; animation: pageIn 0.85s var(--ease-out) both; }
-        @keyframes pageIn {
-            0% { opacity: 0; transform: translateY(28px) scale(0.985); filter: blur(16px); }
-            100% { opacity: 1; transform: none; filter: none; }
-        }
+        .page.active { display: block; }
 
         /* =====================================================================
            ГЛАВНАЯ — постер в стиле референса
@@ -640,14 +627,13 @@
         /* =====================================================================
            ВЫКЛЮЧЕНИЕ ЭФФЕКТОВ
            ===================================================================== */
-        html.effects-off #sparks-container, html.effects-off #bg-fx, html.effects-off body::after, html.effects-off #veil, html.effects-off .hero-bars { display: none !important; }
+        html.effects-off #sparks-container, html.effects-off #bg-fx, html.effects-off body::after, html.effects-off .hero-bars { display: none !important; }
         html.effects-off #global-mwl-text, html.effects-off .roster-portrait, html.effects-off .holo-base, html.effects-off .holo-rays, html.effects-off .holo-scanline,
         html.effects-off .spark, html.effects-off .led, html.effects-off .home-title::after, html.effects-off .roster-stage-glow { animation: none !important; }
         html.effects-off .home-title::before { display: none; }
         html.effects-off .glass-panel::before { display: none; }
         html.effects-off * { text-shadow: none !important; }
         html.effects-off #effects-toggle { color: var(--text-muted); }
-        html.effects-off .page.active { animation-duration: 0.25s; }
 
         /* =====================================================================
            АДАПТИВ
@@ -1136,12 +1122,12 @@
     </style>
 </head>
 <body>
+    <div id="boot-overlay" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:var(--bg-base);color:var(--text-main);font-family:var(--f-hud);letter-spacing:.12em;text-align:center;padding:24px;">LOADING DATABASE…</div>
     <!-- ФОНОВЫЕ СЛОИ -->
     <div id="bg-fx" aria-hidden="true">
         <i class="bg-bar"></i><i class="bg-bar"></i><i class="bg-bar"></i><i class="bg-bar"></i>
         <div id="bg-blob"></div>
     </div>
-    <div id="veil" aria-hidden="true"></div>
     <div id="sparks-container"></div>
     <div id="global-mwl-wrapper" class="right">
         <div id="global-mwl-text">MWLAB</div>
@@ -1747,6 +1733,41 @@
         const SB_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
         const sb = (SB_CONFIGURED && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         let userTier = 'free'; // free | pro: в режиме Supabase приходит из profiles.tier
+
+        // =========================================================
+        // СЕРВЕР РАСЧЁТОВ: Supabase Edge Function `calc`
+        // Рейтинги, разбор рейтинга, симулятор ПВО и дуэль считаются на сервере.
+        // Рейтинг и разбор сервер отдаёт только PRO-аккаунтам (тариф проверяется по profiles).
+        // =========================================================
+        async function sbCalc(action, payload) {
+            if (!sb) throw new Error('SUPABASE_NOT_CONFIGURED');
+            const r = await sb.functions.invoke('calc', { body: Object.assign({ action: action }, payload || {}) });
+            if (r.error) {
+                let msg = r.error.message || 'calc error';
+                try { if (r.error.context && r.error.context.json) { const j = await r.error.context.json(); if (j && j.error) msg = j.error; } } catch (e) {}
+                const err = new Error(msg); err.code = msg; throw err;
+            }
+            return r.data;
+        }
+        function calcFail(e) {
+            console.error('calc:', e);
+            if (e && e.code === 'pro_required') showToast(L('ЭТО ДОСТУПНО ТОЛЬКО В PRO', 'PRO ONLY'), true);
+            else showToast(L('ОШИБКА СЕРВЕРА РАСЧЁТОВ. ПОПРОБУЙТЕ ЕЩЁ РАЗ', 'CALC SERVER ERROR. TRY AGAIN'), true);
+        }
+        let catalogLoaded = false;
+        function catalogHasRatings() { const k = Object.keys(DB)[0]; return !!k && DB[k].rating !== undefined; }
+        async function loadCatalog() {
+            const data = await sbCalc('catalog');
+            const next = {};
+            for (const k in data.items) next[k] = Object.assign({}, data.items[k], data.derived[k] || {});
+            DB = next;
+            catalogLoaded = true;
+            const n = String(Object.keys(DB).length).padStart(3, '0');
+            ['hud-units', 'hud-units-2', 'hud-units-3'].forEach(function (id) { const e = document.getElementById(id); if (e) e.textContent = n; });
+        }
+        function stripRatings() { for (const k in DB) { delete DB[k].rating; } }
+        function bootShow(html) { const o = document.getElementById('boot-overlay'); if (o) { o.innerHTML = html; o.style.display = 'flex'; } }
+        function bootHide() { const o = document.getElementById('boot-overlay'); if (o) o.style.display = 'none'; }
         const TIER_RANK = { free: 0, pro: 1 };
         function isPro() { return isAuth && userTier === 'pro'; } // рейтинг меты видит только PRO
         let authRecovery = SB_CONFIGURED && /[#&]type=recovery/.test(location.hash); // пришли по ссылке «сброс пароля»
@@ -2089,7 +2110,13 @@
                     if (d && TIER_RANK[d.tier] !== undefined && !(d.tier_until && Date.parse(d.tier_until) < Date.now())) t = d.tier;
                 } catch (e) {}
             }
-            if (t !== userTier) { userTier = t; updateAuthStateUI(); }
+            if (t !== userTier) {
+                userTier = t;
+                try {
+                    if (catalogLoaded) { if (t === 'pro') await loadCatalog(); else stripRatings(); }
+                } catch (e) { console.error(e); }
+                updateAuthStateUI();
+            }
         }
 
         function authAfterLogin(msg) {
@@ -2100,7 +2127,7 @@
         }
 
         function logout() {
-            isAuth = false; authUser = null; userTier = 'free';
+            isAuth = false; authUser = null; userTier = 'free'; stripRatings();
             if (sb) sb.auth.signOut().catch(function () {});
             try { localStorage.removeItem(AUTH_SESSION_KEY); localStorage.setItem('mw_auth', 'false'); } catch (e) {}
             setAuthMode('login');
@@ -2586,1009 +2613,9 @@
         };
         function trLabel(ru) { return LANG === 'en' ? (LABEL_EN[ru] || ru) : ru; }
 
-         const DB = {
-// ----- ПУШКИ -----
-            "a192": { name: "A-192 ARMAT (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 308225, damage_burst: 15925, damage: 3185, accuracy: 100, reload: 2.80, crit_chance: 50, projectiles: 4, range: 17.33, max_speed: 777, fire_penalty: 35, img: "img/A192.png" },
-            "a200navigator": { name: "A-200 NAVIGATOR (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 326132, damage_burst: 46800, damage: 46800, accuracy: 100, reload: 8.61, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/A200.png" },
-            "a220m": { name: "A-220M (57MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 316765, damage_burst: 36956, damage: 2275, accuracy: 100, reload: 4.90, crit_chance: 10, detonation_radius: 40, splash_damage: 75, splash_radius: 66, projectiles: 1, ammo_clip: 15, range: 8.67, max_speed: 894, fire_penalty: 35, air_target: 1, img: "img/A220M.png" },
-            "a222": { name: "A-222 BEREG (130MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 316173, damage_burst: 30300, damage: 9100, accuracy: 100, reload: 5.25, splash_damage: 1000, splash_radius: 100, projectiles: 3, range: 13.00, max_speed: 894, fire_penalty: 40, img: "img/A222Bereg.png" },
-            "ak130": { name: "AK-130 (130 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 294000, damage_burst: 21021, damage: 2730, accuracy: 100, reload: 3.15, crit_chance: 20, projectiles: 7, range: 12.13, max_speed: 680, fire_penalty: 35, img: "img/AK130.png" },
-            "ak130k": { name: "АК-130 (КАРТЕЧЬ)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 651645, damage_burst: 34320, damage: 2600, accuracy: 20, reload: 2.80, crit_chance: 20, dispersion: 35, projectiles: 12, range: 5.20, max_speed: 485, fire_penalty: 35, img: "img/AK130Buckshot.png" },
-            "archer": { name: "ARCHER (155 MM)", category: "Пушки", country: "Швеция", rarity: "Эпический", dpm: 348562, damage_burst: 46475, damage: 21125, accuracy: 100, reload: 7.70, crit_chance: 20, projectiles: 2, range: 15.60, max_speed: 1117, fire_penalty: 40, img: "img/Archer.png" },
-            "boforsl50": { name: "BOFORS L/50 (120 MM)", category: "Пушки", country: "Швеция", rarity: "Эпический", dpm: 353888, damage_burst: 25480, damage: 6370, accuracy: 100, reload: 3.78, projectiles: 4, range: 11.70, max_speed: 874, fire_penalty: 35, img: "img/BoforsL50.png" },
-            "boforsm42": { name: "BOFORS M/42 (152MM)", category: "Пушки", country: "Швеция", rarity: "Эпический", dpm: 317249, damage_burst: 27495, damage: 11700, accuracy: 100, reload: 4.90, crit_chance: 35, projectiles: 2, range: 12.57, max_speed: 777, fire_penalty: 40, img: "img/BoforsM42.png" },
-            "centauro155": { name: "CENTAURO 155 (155 MM)", category: "Пушки", country: "Италия", rarity: "Эпический", dpm: 327690, damage_burst: 36319, damage: 31199, accuracy: 100, reload: 6.65, crit_chance: 20, detonation_radius: 33, splash_damage: 2000, splash_radius: 200, projectiles: 1, range: 9.97, max_speed: 874, fire_penalty: 40, img: "img/Centauro155.png" },
-            "cupid": { name: "CUPID RAILGUN", category: "Пушки", country: "США", rarity: "Эпический", dpm: 334273, damage_burst: 27299, damage: 27299, accuracy: 100, reload: 4.20, projectiles: 1, range: 17.33, max_speed: 971, fire_penalty: 35, img: "img/CupidRailgun.png" },
-            "danam2": { name: "DANA-M2 (152 MM)", category: "Пушки", country: "Европейский Союз", rarity: "Эпический", dpm: 335670, damage_burst: 31609, damage: 14299, accuracy: 100, reload: 5.25, crit_chance: 20, detonation_radius: 6, splash_damage: 75, splash_radius: 133, projectiles: 2, range: 10.83, max_speed: 874, fire_penalty: 40, img: "img/DanaM2.png" },
-            "djt4547": { name: "DJT 4547", category: "Пушки", country: "США", rarity: "Эпический", dpm: 301912, damage_burst: 55099, damage: 54599, accuracy: 100, reload: 10.15, splash_damage: 500, splash_radius: 100, projectiles: 1, range: 13.87, max_speed: 933, fire_penalty: 35, img: "img/DJT4547.png" },
-            "edurailgun": { name: "EDU RAILGUN (155 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 346756, damage_burst: 33462, damage: 10140, accuracy: 100, reload: 4.90, crit_chance: 20, projectiles: 3, range: 17.33, max_speed: 894, fire_penalty: 35, img: "img/EDURailgun.png" },
-            "tufan": { name: "TUFAN EMRG (120 MM)", category: "Пушки", country: "Турция", rarity: "Эпический", dpm: 354072, damage_burst: 29152, damage: 8450, accuracy: 100, reload: 4.20, crit_chance: 30, projectiles: 3, range: 17.33, max_speed: 971, fire_penalty: 35, img: "img/EMRG.png" },
-            "erstensho": { name: "ERS TENSHO (127 MM)", category: "Пушки", country: "Япония", rarity: "Эпический", dpm: 348000, damage_burst: 34800, damage: 33800, accuracy: 100, reload: 5.60, detonation_radius: 6, splash_damage: 1000, splash_radius: 200, projectiles: 1, range: 17.33, max_speed: 874, fire_penalty: 35, img: "img/ERSTensho.png" },
-            "hpj29": { name: "H/PJ-29 (76MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308483, damage_burst: 134550, damage: 2340, accuracy: 100, reload: 9.80, crit_chance: 30, projectiles: 1, ammo_clip: 50, range: 9.75, max_speed: 874, fire_penalty: 35, air_target: 1, img: "img/HPJ29.png" },
-            "hpj38": { name: "HPJ-38 (130 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 333496, damage_burst: 16119, damage: 4029, accuracy: 100, reload: 2.45, projectiles: 4, range: 10.40, max_speed: 738, fire_penalty: 35, img: "img/HPJ38.png" },
-            "hpj45b": { name: "H/PJ-45B", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 295720, damage_burst: 22179, damage: 3315, accuracy: 100, reload: 3.50, crit_chance: 20, detonation_radius: 26, splash_damage: 50, splash_radius: 66, projectiles: 6, range: 9.53, max_speed: 777, fire_penalty: 35, air_target: 1, img: "img/HPJ45B.png" },
-            "jrvg1": { name: "JRVG-1 (76 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 308162, damage_burst: 107600, damage: 2665, accuracy: 100, reload: 9.10, detonation_radius: 46, splash_damage: 25, splash_radius: 46, projectiles: 1, ammo_clip: 40, range: 8.23, max_speed: 923, fire_penalty: 45, air_target: 1, img: "img/JRVG1.png" },
-            "k76l62": { name: "K-76L/62 (76MM)", category: "Пушки", country: "Южная Корея", rarity: "Эпический", dpm: 353112, damage_burst: 163800, damage: 2340, accuracy: 100, reload: 10.50, projectiles: 1, ammo_clip: 70, range: 10.40, max_speed: 971, fire_penalty: 35, air_target: 1, img: "img/K76L62.png" },
-            "koalitsiya": { name: "KOALITSIYA-F (152 MM)", category: "Пушки", country: "Россия", rarity: "Эпический", dpm: 315162, damage_burst: 19435, damage: 8450, accuracy: 100, reload: 3.50, crit_chance: 30, projectiles: 2, range: 11.27, max_speed: 777, fire_penalty: 40, img: "img/Koalitsiya.png" },
-            "l52a1": { name: "L/52A1 (155 MM)", category: "Пушки", country: "Германия", rarity: "Эпический", dpm: 336421, damage_burst: 47099, damage: 14949, accuracy: 100, reload: 7.70, splash_damage: 750, splash_radius: 133, projectiles: 3, range: 13.87, max_speed: 874, fire_penalty: 40, img: "img/L52A1.png" },
-            "mark42": { name: "MARK 42 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 292167, damage_burst: 75720, damage: 3055, accuracy: 100, reload: 5.80, detonation_radius: 33, splash_damage: 100, splash_radius: 66, projectiles: 8, ammo_clip: 3, range: 10.83, max_speed: 923, fire_penalty: 35, air_target: 1, img: "img/Mark42.png" },
-            "mark45": { name: "MARK 45 MOD 4 (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330352, damage_burst: 18720, damage: 4680, accuracy: 100, reload: 2.80, projectiles: 4, range: 12.13, max_speed: 680, fire_penalty: 35, img: "img/Mark45Mod4.png" },
-            "mark45mod4b": { name: "MARK-45 MOD 4B (127 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 255857, damage_burst: 14328, damage: 1560, accuracy: 100, reload: 2.10, crit_chance: 20, detonation_radius: 20, splash_damage: 75, splash_radius: 166, projectiles: 8, range: 10.40, max_speed: 826, fire_penalty: 35, air_target: 1, img: "img/Mark45Mod4B.png" },
-            "mark71": { name: "MARK-71 (203 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 345812, damage_burst: 35100, damage: 35100, accuracy: 100, reload: 6.09, projectiles: 1, range: 13.87, max_speed: 826, fire_penalty: 40, img: "img/Mark71.png" },
-            "mark5512": { name: "MARK 55/12 (305 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 289591, damage_burst: 47300, damage: 46800, accuracy: 100, reload: 9.80, splash_damage: 500, splash_radius: 166, projectiles: 1, range: 14.73, max_speed: 777, fire_penalty: 40, img: "img/Mark5512.png" },
-            "mk8mod1": { name: "MK8 MOD 1 (155 MM)", category: "Пушки", country: "Великобритания", rarity: "Эпический", dpm: 319084, damage_burst: 46799, damage: 15599, accuracy: 100, reload: 8.40, projectiles: 3, range: 12.13, max_speed: 826, fire_penalty: 40, img: "img/MK8Mod1.png" },
-            "mke76": { name: "MKE 76 (76 MM)", category: "Пушки", country: "Турция", rarity: "Эпический", dpm: 336589, damage_burst: 102800, damage: 2470, accuracy: 100, reload: 9.45, detonation_radius: 20, splash_damage: 100, splash_radius: 66, projectiles: 1, ammo_clip: 40, range: 8.67, max_speed: 971, fire_penalty: 45, air_target: 1, img: "img/MKE76.png" },
-            "monarc": { name: "MONARC (155 MM)", category: "Пушки", country: "Германия", rarity: "Эпический", dpm: 340840, damage_burst: 33800, damage: 33800, accuracy: 100, reload: 5.95, projectiles: 1, range: 12.13, max_speed: 777, fire_penalty: 40, img: "img/Monarc.png" },
-            "emrgkonig": { name: "EMRG KONIG (180 MM)", category: "Пушки", country: "Германия", rarity: "Легендарный", dpm: 358461, damage_burst: 34950, damage: 34450, accuracy: 100, reload: 5.25, detonation_radius: 33, splash_damage: 500, splash_radius: 200, projectiles: 1, range: 17.33, max_speed: 971, fire_penalty: 35, img: "img/MRPGKonigEMRG.png" },
-            "oerlikon": { name: "OERLIKON GDF-4 (35 MM)", category: "Пушки", country: "Европейский Союз", rarity: "Легендарный", dpm: 316274, damage_burst: 27674, damage: 1819, accuracy: 100, reload: 3.85, detonation_radius: 26, splash_damage: 25, splash_radius: 66, projectiles: 1, ammo_clip: 15, range: 8.67, max_speed: 777, fire_penalty: 35, air_target: 1, img: "img/OerlikonGDF4.png" },
-            "otoleonardo": { name: "OTO LEONARDO (127 MM)", category: "Пушки", country: "Италия", rarity: "Эпический", dpm: 303204, damage_burst: 19304, damage: 3509, accuracy: 100, reload: 2.94, crit_chance: 20, projectiles: 5, range: 13.87, max_speed: 680, fire_penalty: 35, img: "img/OTOLeonardo.png" },
-            "plz05": { name: "PLZ-05 (155 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 316666, damage_burst: 33250, damage: 29249, accuracy: 100, reload: 6.30, splash_damage: 4000, splash_radius: 200, projectiles: 1, range: 13.87, max_speed: 826, fire_penalty: 40, img: "img/PLZ05.png" },
-            "project447": { name: "PROJECT 447-155", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 355342, damage_burst: 45247, damage: 12740, accuracy: 100, reload: 7.14, crit_chance: 25, splash_damage: 750, splash_radius: 166, projectiles: 3, range: 13.87, max_speed: 1020, fire_penalty: 40, img: "img/Project447.png" },
-            "mark51": { name: "MARK 51 AGS (155 MM)", category: "Пушки", country: "США", rarity: "Легендарный", dpm: 297067, damage_burst: 24310, damage: 11050, accuracy: 100, reload: 4.06, crit_chance: 20, projectiles: 2, range: 17.33, max_speed: 894, fire_penalty: 35, img: "img/Railgun.png" },
-            "rg30": { name: "RG-30 BUCKSHOT", category: "Пушки", country: "США", rarity: "Легендарный", dpm: 608400, damage_burst: 44616, damage: 2535, accuracy: 30, reload: 3.50, crit_chance: 20, detonation_radius: 13, dispersion: 30, projectiles: 16, range: 6.07, max_speed: 631, fire_penalty: 35, img: "img/RG30Buckshot.png" },
-            "sahi209": { name: "SAHI-209 BLOCK-II", category: "Пушки", country: "Турция", rarity: "Эпический", dpm: 298424, damage_burst: 28599, damage: 14299, accuracy: 100, reload: 4.55, detonation_radius: 26, splash_damage: 25, splash_radius: 66, projectiles: 2, range: 17.33, max_speed: 894, fire_penalty: 35, img: "img/Sahi209.png" },
-            "sh16": { name: "SH-16 (155 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 301241, damage_burst: 36400, damage: 18200, accuracy: 100, reload: 7.00, projectiles: 2, range: 11.27, max_speed: 933, fire_penalty: 40, img: "img/SH16.png" },
-            "denshogun_alt": { name: "DEN SHO GUN (203 MM)", category: "Пушки", country: "Япония", rarity: "Легендарный", dpm: 299104, damage_burst: 50100, damage: 24050, accuracy: 100, reload: 9.10, detonation_radius: 13, splash_damage: 1000, splash_radius: 200, projectiles: 2, range: 17.33, max_speed: 855, fire_penalty: 35, img: "img/Shogun.png" },
-            "spgheva": { name: "SPGH EVA (155 MM)", category: "Пушки", country: "Европейский Союз", rarity: "Эпический", dpm: 343363, damage_burst: 46068, damage: 40950, accuracy: 100, reload: 8.05, crit_chance: 25, detonation_radius: 20, projectiles: 1, range: 13.00, max_speed: 923, fire_penalty: 40, img: "img/SPGH155EVA.png" },
-            "xm1203": { name: "XM1203 NLOS-C (155 MM)", category: "Пушки", country: "США", rarity: "Эпический", dpm: 330925, damage_burst: 19304, damage: 14299, accuracy: 100, reload: 3.50, crit_chance: 70, projectiles: 1, range: 15.60, max_speed: 971, fire_penalty: 40, img: "img/XM1203.png" },
-            "xm2001": { name: "XM2001 CRUSADER", category: "Пушки", country: "США", rarity: "Эпический", dpm: 348036, damage_burst: 38400, damage: 19200, accuracy: 100, reload: 6.44, splash_damage: 1000, splash_radius: 133, projectiles: 2, range: 13.00, max_speed: 1069, fire_penalty: 25, img: "img/XM2001Crusader.png" },
-            "hpj33b": { name: "H/PJ-33B (100 MM)", category: "Пушки", country: "Китай", rarity: "Эпический", dpm: 326181, damage_burst: 35880, damage: 5980, accuracy: 100, reload: 5.60, projectiles: 6, range: 10.40, max_speed: 777, fire_penalty: 35, img: "img/hpj33b.png" },
-            "primetron": { name: "PRIMETRON", category: "Пушки", country: "США", rarity: "Эпический", dpm: 321219, damage_burst: 43900, damage: 42900, accuracy: 100, reload: 7.35, splash_damage: 1000, splash_radius: 266, projectiles: 1, range: 17.33, max_speed: 1166, fire_penalty: 35, img: "img/primetron.png" },
-
-            // ----- РАКЕТЫ -----
-            "zircon": { name: "3M22 ZIRCON", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 41600, dpm: 289714, reload: 8.40, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 300, start_speed: 388, max_speed: 583, accel_time: 1.43, range: 15.60, fire_penalty: 40, img: "img/Zircon.png" },
-            "yj15": { name: "YJ-15", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 37500, dpm: 257675, reload: 8.40, lock_time: 1.25, projectiles: 2, anti_jamming: 0, hp: 250, start_speed: 155, max_speed: 544, accel_time: 2.00, range: 13.87, fire_penalty: 45, splash_damage: 2500, splash_radius: 133, img: "img/YJ15.png" },
-            "yj17": { name: "YJ-17", category: "Ракеты", country: "Китай", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 204533, reload: 10.50, lock_time: 1.00, projectiles: 1, anti_jamming: 1, hp: 375, start_speed: 97, max_speed: 583, accel_time: 1.79, range: 13.00, fire_penalty: 45, img: "img/YJ17.png" },
-            "granit": { name: "P-700 GRANIT", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 58499, dpm: 311994, reload: 10.50, lock_time: 4.00, projectiles: 1, anti_jamming: 0, hp: 225, start_speed: 29, max_speed: 311, accel_time: 4.83, range: 14.73, fire_penalty: 36, img: "img/P700Granit.png" },
-            "kh35": { name: "KH-35", category: "Ракеты", country: "Россия", rarity: "Редкий", cluster: 0, min_range: 0, damage_burst: 31199, dpm: 249592, reload: 6.65, lock_time: 2.00, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 15, max_speed: 340, accel_time: 2.23, range: 12.57, fire_penalty: 32, img: "img/X35.png" },
-            "yj18": { name: "YJ-18", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 23400, dpm: 242357, reload: 5.60, lock_time: 2.00, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 38, max_speed: 349, accel_time: 3.56, range: 12.13, fire_penalty: 36, img: "img/YJ18.png" },
-            "champ": { name: "CHAMP", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 23400, dpm: 215428, reload: 6.30, lock_time: 2.00, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 106, max_speed: 408, accel_time: 4.43, range: 12.57, fire_penalty: 36, img: "img/EMPMissile.png" },
-            "gtx690": { name: "GTX 690", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 58649, dpm: 254880, reload: 13.30, lock_time: 2.20, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 87, max_speed: 427, accel_time: 11.67, range: 12.13, splash_damage: 150, splash_radius: 666, fire_penalty: 36, img: "img/GTX690.png" },
-            "swarmer": { name: "НОВОГОДНИЙ СВАРМЕР", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 25350, dpm: 247162, reload: 5.60, lock_time: 1.50, projectiles: 3, anti_jamming: 0, hp: 63, start_speed: 97, max_speed: 388, accel_time: 4.29, range: 12.13, fire_penalty: 32, img: "img/NYSwarmer.png" },
-            "kh90": { name: "KH-90", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 1, min_range: 3.0, damage_burst: 45000, dpm: 270000, reload: 10.00, lock_time: 1.50, projectiles: 1, anti_jamming: 1, hp: 250, start_speed: 200, max_speed: 450, accel_time: 2.00, range: 14.00, fire_penalty: 40, img: "img/Kh90 (1).png" },
-            "df100": { name: "DF-100", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31199, dpm: 260734, reload: 7.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 300, start_speed: 194, max_speed: 524, accel_time: 1.70, range: 13.00, fire_penalty: 40, img: "img/DF100.png" },
-            "df12": { name: "DF-12", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 37500, dpm: 146250, reload: 15.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 400, start_speed: 58, max_speed: 524, accel_time: 2.18, range: 10.00, splash_damage: 4500, splash_radius: 266, fire_penalty: 40, img: "img/DF12.png" },
-            "m001": { name: "PAN SPATIAL M-001", category: "Ракеты", country: "Pan Spatial", rarity: "Эпический", cluster: 1, min_range: 1.60, damage_burst: 31300, dpm: 180399, reload: 10.15, lock_time: 1.50, projectiles: 1, anti_jamming: 1, hp: 325, start_speed: 77, max_speed: 583, accel_time: 2.00, range: 11.27, detonation_radius: 13, fragmentation_damage: 23500, fire_penalty: 40, img: "img/PSM001 (1).png" },
-            "df11": { name: "DF-11", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33800, dpm: 213571, reload: 9.10, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 15, max_speed: 505, accel_time: 4.20, range: 10.40, fire_penalty: 36, img: "img/DF11.png" },
-            "yj18b": { name: "YJ-18B", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 28599, dpm: 214769, reload: 7.35, lock_time: 1.80, projectiles: 2, anti_jamming: 0, hp: 90, start_speed: 97, max_speed: 388, accel_time: 5.00, range: 9.53, fire_penalty: 32, sub_launch: 1, img: "img/YJ18B.png" },
-            "teseo": { name: "TESEO MK2/E", category: "Ракеты", country: "Италия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 26000, dpm: 242666, reload: 6.30, lock_time: 1.20, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 38, max_speed: 427, accel_time: 6.67, range: 10.40, fire_penalty: 36, img: "img/MK2E.png" },
-            "rbs15": { name: "RBS-15", category: "Ракеты", country: "Швеция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 35100, dpm: 242009, reload: 7.70, lock_time: 1.20, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 15, max_speed: 340, accel_time: 1.86, range: 10.40, fire_penalty: 32, img: "img/RBS15.png" },
-            "x51": { name: "X-51 WAVERIDER", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 31199, dpm: 121554, reload: 15.40, lock_time: 0, projectiles: 1, anti_jamming: 1, hp: 75, start_speed: 330, max_speed: 505, accel_time: 2.25, range: 14.73, fire_penalty: 42, img: "img/X51.png" },
-            "moskit": { name: "3M-80M MOSKIT", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31198, dpm: 286640, reload: 5.95, lock_time: 1.20, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 58, max_speed: 408, accel_time: 2.57, range: 10.40, fire_penalty: 40, img: "img/MoskitM.png" },
-            "df17": { name: "DF-17", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27299, dpm: 253490, reload: 6.30, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 155, max_speed: 622, accel_time: 2.18, range: 14.73, fire_penalty: 40, img: "img/DF17.png" },
-            "yj12a": { name: "YJ-12A", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33800, dpm: 279029, reload: 6.65, lock_time: 1.80, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 77, max_speed: 505, accel_time: 2.75, range: 11.27, fire_penalty: 40, img: "img/YJ12A.png" },
-            "type17": { name: "TYPE 17 SSM", category: "Ракеты", country: "Япония", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 35100, dpm: 279367, reload: 7.00, lock_time: 1.50, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 58, max_speed: 515, accel_time: 3.36, range: 12.13, fire_penalty: 40, img: "img/Type17SSM.png" },
-            "hycore": { name: "HYCORE", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 32499, dpm: 271598, reload: 7.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 225, start_speed: 194, max_speed: 583, accel_time: 2.86, range: 12.13, fire_penalty: 40, img: "img/Hycore.png" },
-            "karambit": { name: "KARAMBIT", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29899, dpm: 249870, reload: 7.00, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 97, max_speed: 563, accel_time: 3.43, range: 11.27, fire_penalty: 40, img: "img/Karambit.png" },
-            "nsm": { name: "NSM BLOCK 1A", category: "Ракеты", country: "Норвегия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 35100, dpm: 318348, reload: 5.95, lock_time: 1.50, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 38, max_speed: 408, accel_time: 3.17, range: 12.13, fire_penalty: 32, img: "img/NSMBlock1A.png" },
-            "scalp": { name: "SCALP NAVAL", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31699, dpm: 262648, reload: 7.00, lock_time: 2.00, projectiles: 1, anti_jamming: 0, hp: 280, start_speed: 194, max_speed: 515, accel_time: 1.83, range: 11.27, splash_damage: 500, splash_radius: 100, fire_penalty: 40, img: "img/StormShadow.png" },
-            "jhgv": { name: "TYPE 40 JHGV", category: "Ракеты", country: "Япония", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29899, dpm: 277633, reload: 6.30, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 38, max_speed: 622, accel_time: 3.75, range: 11.27, fire_penalty: 40, img: "img/Type40JHGV.png" },
-            "turbometla": { name: "ТУРБОМЕТЛА", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31199, dpm: 260288, reload: 7.00, lock_time: 1.60, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 77, max_speed: 563, accel_time: 2.78, range: 10.40, fire_penalty: 40, img: "img/BroomstickRocket.png" },
-            "darkeagle": { name: "LRHW DARK EAGLE", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 40000, dpm: 269714, reload: 8.75, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 300, start_speed: 194, max_speed: 563, accel_time: 3.17, range: 13.00, splash_damage: 1000, splash_radius: 133, fire_penalty: 40, img: "img/LRHWDarkEagle.png" },
-            "ntacms": { name: "MGM-140 NTACMS", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 1, min_range: 1.80, damage_burst: 46475, dpm: 284259, reload: 9.45, lock_time: 2.20, projectiles: 1, anti_jamming: 0, hp: 235, start_speed: 77, max_speed: 505, accel_time: 3.14, range: 13.00, detonation_radius: 33, fragmentation_damage: 22750, fire_penalty: 40, img: "img/MGM140NTACMS.png" },
-            "maritime": { name: "MARITIME STRIKE", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 31999, dpm: 292274, reload: 5.95, lock_time: 2.00, projectiles: 2, anti_jamming: 0, hp: 125, start_speed: 155, max_speed: 515, accel_time: 2.06, range: 11.27, splash_damage: 400, splash_radius: 333, fire_penalty: 40, img: "img/MaritimeStrike.png" },
-            "mako": { name: "MAKO", category: "Ракеты", country: "США", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 25500, dpm: 266383, reload: 5.25, lock_time: 1.50, projectiles: 2, anti_jamming: 0, hp: 100, start_speed: 77, max_speed: 544, accel_time: 2.82, range: 13.00, detonation_radius: 26, splash_damage: 400, splash_radius: 333, fire_penalty: 40, img: "img/Mako.png" },
-            "iskander": { name: "9K720 ISKANDER", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 37700, dpm: 232184, reload: 9.45, lock_time: 1.80, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 48, max_speed: 563, accel_time: 2.94, range: 10.40, fire_penalty: 40, img: "img/Iskander.png" },
-            "meteorit": { name: "P-750 METEORIT-M", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 27949, dpm: 203107, reload: 8.05, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 80, start_speed: 58, max_speed: 583, accel_time: 2.70, range: 10.40, fire_penalty: 40, sub_launch: 1, img: "img/P750MeteoritM.png" },
-            "s500d": { name: "S-500D", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 46500, dpm: 124553, reload: 22.40, lock_time: 0, projectiles: 1, anti_jamming: 1, hp: 175, start_speed: 233, max_speed: 485, accel_time: 0.93, range: 11.70, splash_damage: 7500, splash_radius: 300, fire_penalty: 42, img: "img/S500D.png" },
-            "df31ag": { name: "DF-31AG", category: "Ракеты", country: "Китай", rarity: "Легендарный", cluster: 0, min_range: 1.80, damage_burst: 53950, dpm: 298009, reload: 10.50, lock_time: 2.00, projectiles: 1, anti_jamming: 0, hp: 300, start_speed: 29, max_speed: 583, accel_time: 4.07, range: 15.60, detonation_radius: 33, fragmentation_damage: 22750, fire_penalty: 40, img: "img/DF31AG.png" },
-            "hvgp": { name: "HVGP (BLOCK I)", category: "Ракеты", country: "Япония", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 29249, dpm: 131950, reload: 13.30, lock_time: 0, projectiles: 1, anti_jamming: 1, hp: 100, start_speed: 233, max_speed: 583, accel_time: 2.40, range: 15.60, fire_penalty: 42, img: "img/HVGPBlock1.png" },
-            "brahmos2": { name: "BRAHMOS-II", category: "Ракеты", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 41600, dpm: 253500, reload: 9.10, lock_time: 1.50, projectiles: 2, anti_jamming: 0, hp: 100, start_speed: 77, max_speed: 583, accel_time: 2.00, range: 10.40, fire_penalty: 40, img: "img/BrahMos2.png" },
-            "nirbhay": { name: "NIRBHAY", category: "Ракеты", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 24100, dpm: 253910, reload: 5.60, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 38, max_speed: 505, accel_time: 2.00, range: 11.27, detonation_radius: 13, splash_damage: 2000, splash_radius: 500, fire_penalty: 40, img: "img/Nirbhay.png" },
-            "pralay": { name: "PRALAY", category: "Ракеты", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 31799, dpm: 265748, reload: 6.65, lock_time: 1.50, projectiles: 2, anti_jamming: 0, hp: 350, start_speed: 38, max_speed: 524, accel_time: 3.57, range: 9.53, splash_damage: 300, splash_radius: 200, fire_penalty: 32, img: "img/Pralay.png" },
-            "atmaca": { name: "ATMACA", category: "Ракеты", country: "Турция", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 29899, dpm: 263289, reload: 6.30, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 100, start_speed: 38, max_speed: 485, accel_time: 2.30, range: 12.13, fire_penalty: 40, img: "img/ATMACA.png" },
-            "hyunmoo": { name: "HYUNMOO 4.4", category: "Ракеты", country: "Южная Корея", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 276545, reload: 7.70, lock_time: 1.50, projectiles: 1, anti_jamming: 0, hp: 225, start_speed: 29, max_speed: 583, accel_time: 3.17, range: 13.87, detonation_radius: 6, fire_penalty: 45, sub_launch: 1, img: "img/Hyunmoo44.png" },
-            "perseus": { name: "CVS401 PERSEUS", category: "Ракеты", country: "Европейский Союз", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 27799, dpm: 255927, reload: 6.30, lock_time: 2.00, projectiles: 1, anti_jamming: 0, hp: 230, start_speed: 29, max_speed: 583, accel_time: 2.85, range: 11.27, detonation_radius: 20, splash_damage: 500, splash_radius: 66, fire_penalty: 40, img: "img/CVS401Perseus.png" },
-            "mdcn": { name: "MDCN", category: "Ракеты", country: "Франция", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 33800, dpm: 247726, reload: 7.70, lock_time: 1.00, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 38, max_speed: 563, accel_time: 2.70, range: 13.87, fire_penalty: 40, sub_launch: 1, img: "img/MDCN.png" },
-            "gabrielv": { name: "GABRIEL V", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 52650, dpm: 280002, reload: 9.80, lock_time: 1.50, projectiles: 3, anti_jamming: 0, hp: 90, start_speed: 58, max_speed: 485, accel_time: 3.14, range: 10.83, fire_penalty: 40, img: "img/GabrielV.png" },
-            "navalspikeer": { name: "NAVAL SPIKE ER", category: "Ракеты", country: "Израиль", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27300, dpm: 266175, reload: 5.60, lock_time: 1.50, projectiles: 3, anti_jamming: 1, hp: 75, start_speed: 29, max_speed: 349, accel_time: 4.71, range: 6.93, fire_penalty: 32, img: "img/NavalSpikeER.png" },
-            "stratus": { name: "STRATUS RS", category: "Ракеты", country: "Европейский Союз", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 27000, dpm: 282053, reload: 5.60, lock_time: 1.50, splash_damage: 1000, splash_radius: 133, projectiles: 1, anti_jamming: 0, hp: 260, start_speed: 38, max_speed: 583, accel_time: 2.24, range: 12.13, fire_penalty: 40, img: "img/Stratus.png" },
-            "mansuper": { name: "MANSUP-ER", category: "Ракеты", country: "Бразилия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 28899, dpm: 257025, reload: 6.30, lock_time: 1.30, splash_damage: 150, splash_radius: 500, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 437, accel_time: 2.58, range: 11.27, fire_penalty: 40, img: "img/MANSUPER.png" },
-            "s10granat": { name: "S-10 GRANAT", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 30000, dpm: 162272, reload: 11.00, lock_time: 0.50, detonation_radius: 33, splash_damage: 7500, splash_radius: 500, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 29, max_speed: 485, accel_time: 2.76, range: 10.00, fire_penalty: 40, sub_launch: 1, img: "img/S10Granat.png" },
-            "nasir": { name: "NASIR", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 22100, dpm: 257833, reload: 4.90, lock_time: 0.50, detonation_radius: 10, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 116, max_speed: 466, accel_time: 1.80, range: 8.67, fire_penalty: 40, img: "img/Nasir.png" },
-            "hyfly2": { name: "HYFLY-2", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 38200, dpm: 133644, reload: 17.15, lock_time: 0, splash_damage: 500, splash_radius: 133, projectiles: 1, anti_jamming: 1, hp: 110, start_speed: 272, max_speed: 515, accel_time: 1.79, range: 13.87, fire_penalty: 42, img: "img/Hyfly2.png" },
-            "hyfly2nuke": { name: "HYFLY-2 (ЯДЕРНАЯ)", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 42700, dpm: 130714, reload: 19.60, lock_time: 0, splash_damage: 5000, splash_radius: 266, projectiles: 1, anti_jamming: 1, hp: 150, start_speed: 272, max_speed: 515, accel_time: 2.08, range: 13.87, fire_penalty: 42, img: "img/HyFly2Nuke.png" },
-            "uum44subroc": { name: "UUM-44 SUBROC", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 34800, dpm: 204183, reload: 9.80, lock_time: 2.50, detonation_radius: 26, splash_damage: 7500, splash_radius: 333, projectiles: 1, anti_jamming: 0, hp: 300, start_speed: 48, max_speed: 544, accel_time: 2.83, range: 15.60, fire_penalty: 40, sub_launch: 1, img: "img/UUM44SUBROC.png" },
-            "p500nuke": { name: "P-500 BAZALT (ЯДЕРНАЯ)", category: "Ракеты", country: "Россия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 45100, dpm: 272031, reload: 9.45, lock_time: 3.00, detonation_radius: 33, splash_damage: 10000, splash_radius: 466, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 485, accel_time: 2.10, range: 14.73, fire_penalty: 45, img: "img/P500BazaltNuke.png" },
-            "p900alfa": { name: "P-900 ALFA", category: "Ракеты", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 31200, dpm: 241389, reload: 7.00, lock_time: 1.20, projectiles: 3, anti_jamming: 0, hp: 88, start_speed: 194, max_speed: 515, accel_time: 2.36, range: 9.97, fire_penalty: 40, sub_launch: 1, img: "img/P900Alfa.png" },
-            "agnii": { name: "AGNI-I", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 1, min_range: 1.33, damage_burst: 39500, dpm: 301379, reload: 7.70, lock_time: 1.25, detonation_radius: 13, splash_damage: 500, splash_radius: 100, fragmentation_damage: 13000, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 68, max_speed: 485, accel_time: 1.54, range: 13.87, fire_penalty: 55, img: "img/Agni1.png" },
-            "haeseongiii": { name: "HAESEONG III", category: "Ракеты", country: "Южная Корея", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 23500, dpm: 120565, reload: 11.50, lock_time: 1.00, projectiles: 1, anti_jamming: 0, hp: 270, start_speed: 77, max_speed: 485, accel_time: 3.00, range: 9.33, fire_penalty: 40, img: "img/HaeseongIII.png" },
-            "sealance": { name: "UUM-125 SEA LANCE", category: "Ракеты", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 36400, dpm: 237213, reload: 8.40, lock_time: 2.00, projectiles: 2, anti_jamming: 1, hp: 100, start_speed: 38, max_speed: 466, accel_time: 2.93, range: 11.27, fire_penalty: 32, img: "img/UUM125SeaLance.png" },
-            "asn4g": { name: "ASN4G", category: "Ракеты", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 32699, dpm: 246304, reload: 7.70, lock_time: 2.00, detonation_radius: 33, splash_damage: 1500, splash_radius: 333, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 145, max_speed: 583, accel_time: 2.50, range: 12.13, fire_penalty: 40, img: "img/ASN4G.png" },
-            "fattah1": { name: "FATTAH-1", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 33000, dpm: 275785, reload: 7.00, lock_time: 1.50, splash_damage: 500, splash_radius: 100, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 505, accel_time: 2.10, range: 10.83, fire_penalty: 40, img: "img/Fattah1.png" },
-            "fattah2": { name: "FATTAH-2", category: "Ракеты", country: "Иран", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 44200, dpm: 268541, reload: 9.45, lock_time: 2.50, projectiles: 1, anti_jamming: 0, hp: 350, start_speed: 77, max_speed: 641, accel_time: 2.64, range: 15.60, fire_penalty: 40, img: "img/Fattah2.png" },
-            "brahmosng": { name: "BRAHMOS NG", category: "Ракеты", country: "Индия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 26000, dpm: 271607, reload: 5.60, lock_time: 1.50, detonation_radius: 23, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 97, max_speed: 622, accel_time: 2.70, range: 15.60, fire_penalty: 40, img: "img/BrahmosNG.png" },
-            "yj19": { name: "YJ-19", category: "Ракеты", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29674, dpm: 130435, reload: 13.65, lock_time: 0, detonation_radius: 33, splash_damage: 750, splash_radius: 133, projectiles: 1, anti_jamming: 1, hp: 130, start_speed: 194, max_speed: 622, accel_time: 2.44, range: 15.60, fire_penalty: 42, img: "img/YJ19.png" },
-
-            // ----- ЗЕНИТНЫЕ РАКЕТЫ (DEDICATED AA) -----
-            "idas": { name: "IDAS", category: "Ракеты А/А", country: "Германия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 16900, dpm: 194187, reload: 4.90, lock_time: 0.25, projectiles: 2, anti_jamming: 0, hp: 95, start_speed: 77, max_speed: 524, accel_time: 2.30, range: 8.67, detonation_radius: 100, fire_penalty: 35, sub_launch: 1, air_target: 1, dedicated_aa: 1, img: "img/IDAS.png" },
-            "micam": { name: "MICA-M", category: "Ракеты А/А", country: "Франция", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 16950, dpm: 173121, reload: 5.25, lock_time: 0.25, detonation_radius: 46, splash_damage: 1750, splash_radius: 200, projectiles: 3, anti_jamming: 0, hp: 70, start_speed: 194, max_speed: 544, accel_time: 0.90, range: 12.57, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/MICAA3SM.png" },
-            "rim174sm6": { name: "RIM-174 (SM-6)", category: "Ракеты А/А", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 14949, dpm: 212667, reload: 4.20, lock_time: 0.35, detonation_radius: 100, projectiles: 1, anti_jamming: 0, hp: 240, start_speed: 233, max_speed: 485, accel_time: 1.63, range: 10.40, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM174.png" },
-            "feitian1": { name: "FEITIAN-1", category: "Ракеты А/А", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 29249, dpm: 226394, reload: 7.70, lock_time: 0.40, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 325, start_speed: 155, max_speed: 583, accel_time: 2.00, range: 11.70, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/Feitian1.png" },
-            "hq26": { name: "HQ-26", category: "Ракеты А/А", country: "Китай", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 12250, dpm: 174125, reload: 4.20, lock_time: 0.30, detonation_radius: 33, splash_damage: 2500, splash_radius: 500, projectiles: 1, anti_jamming: 0, hp: 200, start_speed: 155, max_speed: 505, accel_time: 1.80, range: 10.40, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/HQ26.png" },
-            "akashng": { name: "AKASH NG", category: "Ракеты А/А", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 12050, dpm: 212122, reload: 3.15, lock_time: 0.50, projectiles: 2, anti_jamming: 0, hp: 130, start_speed: 155, max_speed: 505, accel_time: 1.80, range: 13.00, detonation_radius: 33, splash_damage: 500, splash_radius: 166, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/AkashNG.png" },
-            "hstdv": { name: "HSTDV", category: "Ракеты А/А", country: "Индия", rarity: "Легендарный", cluster: 0, min_range: 0, damage_burst: 17550, dpm: 213465, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 250, start_speed: 116, max_speed: 583, accel_time: 2.00, range: 14.73, detonation_radius: 66, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/HSTDV.png" },
-            "rim174um": { name: "RIM-174UM", category: "Ракеты А/А", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13700, dpm: 183641, reload: 4.20, lock_time: 0.35, detonation_radius: 66, splash_damage: 1000, splash_radius: 100, projectiles: 2, anti_jamming: 0, hp: 150, start_speed: 58, max_speed: 466, accel_time: 1.40, range: 10.83, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM174UM.png" },
-            "s350vityaz": { name: "S-350 VITYAZ", category: "Ракеты А/А", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 16249, dpm: 184774, reload: 5.25, lock_time: 0.30, detonation_radius: 66, projectiles: 1, anti_jamming: 0, hp: 190, start_speed: 116, max_speed: 524, accel_time: 1.62, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S350Vityaz.png" },
-            "s500": { name: "S-500 PROMETHEUS", category: "Ракеты А/А", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 19500, dpm: 210954, reload: 4.90, lock_time: 0.50, detonation_radius: 66, projectiles: 1, ammo_clip: 3, anti_jamming: 0, hp: 95, start_speed: 291, max_speed: 427, accel_time: 1.40, range: 9.53, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/S500.png" },
-            "shtil1": { name: "SHTIL-1", category: "Ракеты А/А", country: "Россия", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 12550, dpm: 194855, reload: 3.50, lock_time: 1.00, detonation_radius: 33, splash_damage: 750, splash_radius: 100, projectiles: 2, anti_jamming: 0, hp: 115, start_speed: 136, max_speed: 524, accel_time: 1.82, range: 11.27, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/Shtil1.png" },
-            "sm3": { name: "RIM-161 (SM-3)", category: "Ракеты А/А", country: "США", rarity: "Эпический", cluster: 0, min_range: 0, damage_burst: 13000, dpm: 158122, reload: 4.90, lock_time: 0.40, projectiles: 1, anti_jamming: 0, hp: 180, start_speed: 213, max_speed: 408, accel_time: 1.25, range: 8.67, detonation_radius: 33, fire_penalty: 35, air_target: 1, dedicated_aa: 1, img: "img/RIM161.png" },
-
-            // ----- ТОРПЕДЫ -----
-            "mark48": { name: "MARK 48 (533 MM)", category: "Торпеды", country: "США", rarity: "Эпический", anti_jamming: 0, dpm: 237656, damage_burst: 22750, damage: 22750, reload: 5.60, lock_time: 1.50, detonation_radius: 16, projectiles: 1, range: 11.70, max_speed: 106, start_speed: 11, accel_time: 9.80, fire_penalty: 15, img: "img/Mark48.png" },
-            "t5365k": { name: "53-65K (533 MM)", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 229040, damage_burst: 37700, damage: 37700, reload: 9.80, lock_time: 2.00, detonation_radius: 16, splash_damage: 1000, splash_radius: 200, projectiles: 1, range: 13.00, max_speed: 97, start_speed: 11, accel_time: 8.80, fire_penalty: 20, img: "img/TA5365.png" },
-            "ugst_physic": { name: "UGST PHYSIC (533 MM)", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 202892, damage_burst: 37050, damage: 37050, reload: 10.50, lock_time: 2.50, detonation_radius: 20, projectiles: 1, range: 12.13, max_speed: 116, start_speed: 9, accel_time: 6.88, fire_penalty: 20, img: "img/UGSTPhysic.png" },
-            "yu7": { name: "YU-7 (324 MM)", category: "Торпеды", country: "Китай", rarity: "Эпический", anti_jamming: 0, dpm: 214031, damage_burst: 28599, damage: 14299, reload: 7.35, lock_time: 2.00, detonation_radius: 20, projectiles: 2, range: 11.27, max_speed: 106, start_speed: 19, accel_time: 6.43, fire_penalty: 10, img: "img/YU7.png" },
-            "a244slwt": { name: "A244 SLWT (324 MM)", category: "Торпеды", country: "Италия", rarity: "Эпический", anti_jamming: 0, dpm: 218028, damage_burst: 19500, damage: 19500, reload: 5.25, lock_time: 1.30, detonation_radius: 20, projectiles: 1, range: 10.40, max_speed: 116, start_speed: 11, accel_time: 7.71, fire_penalty: 15, img: "img/A244SLWT.png" },
-            "blackshark": { name: "BLACK SHARK", category: "Торпеды", country: "Италия", rarity: "Эпический", anti_jamming: 0, dpm: 209162, damage_burst: 37700, damage: 18850, reload: 9.80, lock_time: 2.30, detonation_radius: 23, projectiles: 2, range: 12.13, max_speed: 116, start_speed: 7, accel_time: 5.60, fire_penalty: 15, img: "img/BlackShark.png" },
-            "type12": { name: "TYPE 12 (324 MM)", category: "Торпеды", country: "Япония", rarity: "Эпический", anti_jamming: 0, dpm: 218931, damage_burst: 24700, damage: 12350, reload: 6.30, lock_time: 1.50, detonation_radius: 20, projectiles: 2, range: 11.27, max_speed: 136, start_speed: 13, accel_time: 7.88, fire_penalty: 10, img: "img/Type12.png" },
-            "varunastra": { name: "VARUNASTRA (533MM)", category: "Торпеды", country: "Индия", rarity: "Эпический", anti_jamming: 0, dpm: 200040, damage_burst: 33800, damage: 33800, reload: 9.80, lock_time: 2.00, detonation_radius: 20, projectiles: 1, range: 12.13, max_speed: 136, start_speed: 5, accel_time: 13.40, fire_penalty: 20, img: "img/Varunastra.png" },
-            "type89": { name: "TYPE 89 (533MM)", category: "Торпеды", country: "Япония", rarity: "Эпический", anti_jamming: 0, dpm: 237714, damage_burst: 41600, damage: 41600, reload: 10.15, lock_time: 2.00, detonation_radius: 23, projectiles: 1, range: 9.53, max_speed: 116, start_speed: 11, accel_time: 6.75, fire_penalty: 20, img: "img/Type89.png" },
-            "type6576a": { name: "TYPE 65-76A KIT", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 215888, damage_burst: 46900, damage: 42900, reload: 12.60, lock_time: 2.00, detonation_radius: 33, splash_damage: 4000, splash_radius: 666, projectiles: 1, range: 12.13, max_speed: 126, start_speed: 9, accel_time: 7.50, fire_penalty: 20, img: "img/Type6576Kit.png" },
-            "et40": { name: "ET40 (533 MM)", category: "Торпеды", country: "Китай", rarity: "Эпический", anti_jamming: 0, dpm: 253494, damage_burst: 48749, damage: 16249, reload: 10.85, lock_time: 1.50, detonation_radius: 13, projectiles: 1, ammo_clip: 3, range: 10.40, max_speed: 108, start_speed: 15, accel_time: 5.33, fire_penalty: 15, img: "img/ET40.png" },
-            "yu12": { name: "YU-12 (324 MM)", category: "Торпеды", country: "Китай", rarity: "Эпический", anti_jamming: 1, dpm: 189517, damage_burst: 37250, damage: 17875, reload: 11.20, lock_time: 2.00, detonation_radius: 26, splash_damage: 750, splash_radius: 333, projectiles: 2, range: 11.27, max_speed: 104, start_speed: 15, accel_time: 2.88, fire_penalty: 15, img: "img/YU12.png" },
-            "spearfish": { name: "SPEARFISH (533 MM)", category: "Торпеды", country: "Великобритания", rarity: "Эпический", anti_jamming: 0, dpm: 200040, damage_burst: 42250, damage: 42250, reload: 12.25, lock_time: 2.00, detonation_radius: 20, projectiles: 1, range: 13.00, max_speed: 108, start_speed: 9, accel_time: 8.50, fire_penalty: 20, img: "img/Spearfish.png" },
-            "spearfish_mod1": { name: "SPEARFISH MOD 1", category: "Торпеды", country: "Великобритания", rarity: "Эпический", anti_jamming: 1, dpm: 176875, damage_burst: 32299, damage: 27299, reload: 10.50, lock_time: 2.50, detonation_radius: 20, splash_damage: 5000, splash_radius: 666, projectiles: 1, range: 12.13, max_speed: 116, start_speed: 9, accel_time: 5.50, fire_penalty: 15, img: "img/SpearfishMod1.png" },
-            "tal_shyena": { name: "TAL SHYENA (324 MM)", category: "Торпеды", country: "Индия", rarity: "Легендарный", anti_jamming: 1, dpm: 213351, damage_burst: 26000, damage: 6500, reload: 6.65, lock_time: 1.00, detonation_radius: 20, projectiles: 4, range: 11.27, max_speed: 136, start_speed: 13, accel_time: 7.88, fire_penalty: 10, img: "img/TALShyena.png" },
-            "tiger_shark": { name: "TIGER SHARK (533MM)", category: "Торпеды", country: "Южная Корея", rarity: "Легендарный", anti_jamming: 1, dpm: 207638, damage_burst: 45500, damage: 45500, reload: 12.60, lock_time: 2.50, detonation_radius: 23, projectiles: 1, range: 13.00, max_speed: 97, start_speed: 7, accel_time: 7.67, fire_penalty: 20, img: "img/TigerShark.png" },
-            "dm2a5": { name: "DM2A5", category: "Торпеды", country: "Германия", rarity: "Эпический", anti_jamming: 1, dpm: 230541, damage_burst: 40000, damage: 39000, reload: 10.15, lock_time: 1.50, detonation_radius: 20, splash_damage: 1000, splash_radius: 200, projectiles: 1, range: 8.67, max_speed: 120, start_speed: 13, accel_time: 6.11, fire_penalty: 20, img: "img/DM2A5.png" },
-            "sut_264": { name: "SUT 264 (533 MM)", category: "Торпеды", country: "Германия", rarity: "Эпический", anti_jamming: 0, dpm: 204149, damage_burst: 42250, damage: 35750, reload: 11.90, lock_time: 2.50, detonation_radius: 33, splash_damage: 6500, splash_radius: 666, projectiles: 1, range: 12.13, max_speed: 116, start_speed: 9, accel_time: 6.11, fire_penalty: 20, img: "img/SUT264.png" },
-            "dtcn_l5": { name: "DTCN L5 (533 MM)", category: "Торпеды", country: "Франция", rarity: "Эпический", anti_jamming: 0, dpm: 251944, damage_burst: 35100, damage: 11700, reload: 7.35, lock_time: 1.50, detonation_radius: 30, projectiles: 3, range: 9.53, max_speed: 116, start_speed: 7, accel_time: 5.60, fire_penalty: 10, img: "img/DTCNL5.png" },
-            "f21_artemis": { name: "F21 ARTEMIS (533 MM)", category: "Торпеды", country: "Франция", rarity: "Эпический", anti_jamming: 0, dpm: 217279, damage_burst: 32499, damage: 32499, reload: 8.75, lock_time: 1.50, detonation_radius: 33, projectiles: 1, range: 12.13, max_speed: 147, start_speed: 21, accel_time: 7.22, fire_penalty: 20, img: "img/F21Artemis.png" },
-            "piranha": { name: "PIRANHA (324 MM)", category: "Торпеды", country: "Италия", rarity: "Эпический", anti_jamming: 0, dpm: 216967, damage_burst: 22800, damage: 5200, reload: 5.60, lock_time: 1.00, detonation_radius: 13, splash_damage: 500, splash_radius: 333, projectiles: 4, range: 11.27, max_speed: 110, start_speed: 23, accel_time: 3.75, fire_penalty: 10, img: "img/Piranha.png" },
-            "mark45_astor": { name: "MARK-45 ASTOR (483MM)", category: "Торпеды", country: "США", rarity: "Эпический", anti_jamming: 0, dpm: 237984, damage_burst: 51700, damage: 50700, reload: 12.60, lock_time: 2.00, detonation_radius: 33, splash_damage: 1000, splash_radius: 666, projectiles: 1, range: 13.00, max_speed: 103, start_speed: 5, accel_time: 7.14, fire_penalty: 20, img: "img/Mark45Astor.png" },
-            "poison": { name: "POISON TORPEDO", category: "Торпеды", country: "США", rarity: "Эпический", anti_jamming: 0, dpm: 212918, damage_burst: 29299, damage: 27299, reload: 8.05, lock_time: 1.50, detonation_radius: 33, splash_damage: 2000, splash_radius: 666, projectiles: 1, range: 10.40, max_speed: 128, start_speed: 13, accel_time: 7.38, fire_penalty: 15, img: "img/PoisonTorpedo.png" },
-            "ugst_futlyar": { name: "UGST FUTLYAR (533 MM)", category: "Торпеды", country: "Россия", rarity: "Эпический", anti_jamming: 0, dpm: 269285, damage_burst: 45500, damage: 45500, reload: 9.80, lock_time: 2.00, detonation_radius: 23, projectiles: 1, range: 11.70, max_speed: 132, start_speed: 13, accel_time: 7.63, fire_penalty: 20, img: "img/UGSTPhysic2.png" },
-            "akya": { name: "AKYA (533MM)", category: "Торпеды", country: "Турция", rarity: "Эпический", anti_jamming: 1, dpm: 199536, damage_burst: 31199, damage: 31199, reload: 9.10, lock_time: 1.80, detonation_radius: 20, projectiles: 1, range: 10.40, max_speed: 132, start_speed: 7, accel_time: 9.14, fire_penalty: 20, img: "img/Akya.png" },
-            "torped_47": { name: "TORPED 47 (400 MM)", category: "Торпеды", country: "Швеция", rarity: "Эпический", anti_jamming: 0, dpm: 240005, damage_burst: 29899, damage: 29899, reload: 7.35, lock_time: 1.00, detonation_radius: 33, projectiles: 1, range: 9.10, max_speed: 138, start_speed: 11, accel_time: 4.36, fire_penalty: 20, img: "img/Torped47.png" },
-            "torped_62": { name: "TORPED 62 (533 MM)", category: "Торпеды", country: "Швеция", rarity: "Эпический", anti_jamming: 0, dpm: 235415, damage_burst: 40300, damage: 20150, reload: 9.80, lock_time: 1.00, detonation_radius: 33, projectiles: 2, range: 10.40, max_speed: 116, start_speed: 17, accel_time: 3.48, fire_penalty: 15, img: "img/Torped62.png" },
-            "k731": { name: "K731 WHITE SHARK", category: "Торпеды", country: "Южная Корея", rarity: "Эпический", anti_jamming: 1, dpm: 210235, damage_burst: 40800, damage: 12350, reload: 10.85, lock_time: 1.00, detonation_radius: 26, splash_damage: 1250, splash_radius: 333, projectiles: 1, ammo_clip: 3, range: 12.13, max_speed: 126, start_speed: 13, accel_time: 5.80, fire_penalty: 10, img: "img/K731WhiteShark.png" },
-
-            // ----- ГРАНАТОМЕТЫ -----
-            "sr5_122": { name: "SR-5 122/300", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 18, dpm: 259826, damage_burst: 34860, damage: 8450, reload: 6.65, lock_time: 1.0, crit_chance: 20, splash_damage: 25, splash_radius: 100, projectiles: 9, range: 9.53, max_speed: 485, start_speed: 15, accel_time: 2.29, hp: 80, fire_penalty: 30, anti_jamming: 0, gl_type: "mixed", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/SR5.png" },
-            "rbu12000": { name: "RBU-12000 (300 MM)", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 18, dpm: 188687, damage_burst: 19026, damage: 2860, reload: 4.55, crit_chance: 20, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 6, range: 13.87, max_speed: 388, start_speed: 388, fire_penalty: 30, anti_jamming: 0, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/RBU12000.png" },
-            "hwhh003b": { name: "HWHH-003B (300 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 20, dpm: 196746, damage_burst: 18527, damage: 4094, reload: 4.90, crit_chance: 25, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 4, range: 9.53, max_speed: 388, start_speed: 388, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/HWHH003B.png" },
-            "himars": { name: "M142 HIMARS GMLRS", category: "Гранатометы", country: "США", rarity: "Эпический", recoil: 11, dpm: 273506, damage_burst: 36000, damage: 6000, reload: 5.95, lock_time: 1.5, detonation_radius: 26, splash_damage: 150, splash_radius: 66, projectiles: 6, range: 11.27, max_speed: 485, start_speed: 58, accel_time: 2.69, hp: 65, ammo_clip: 1, fire_penalty: 40, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/M142HIMARS.png" },
-            "ny_rocket": { name: "НОВОГОДНЯЯ РАКЕТНИЦА", category: "Гранатометы", country: "США", rarity: "Эпический", recoil: 11, dpm: 269122, damage_burst: 39000, damage: 6500, reload: 6.30, detonation_radius: 33, projectiles: 6, range: 9.53, max_speed: 388, start_speed: 58, accel_time: 4.25, hp: 40, fire_penalty: 40, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/NYMLRS.png" },
-            "pumpkin": { name: "ТЫКВОМЕТ (375ММ)", category: "Гранатометы", country: "США", rarity: "Эпический", recoil: 15, dpm: 222931, damage_burst: 21550, damage: 4875, reload: 4.90, crit_chance: 20, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 4, range: 8.67, max_speed: 427, start_speed: 427, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/PumpkinLauncher.png" },
-            "asroc": { name: "RUR-5C ASROC", category: "Гранатометы", country: "США", rarity: "Эпический", recoil: 14, dpm: 250227, damage_burst: 24071, damage: 3379, reload: 4.55, crit_chance: 30, detonation_radius: 33, splash_damage: 125, splash_radius: 100, projectiles: 6, range: 12.13, max_speed: 505, start_speed: 505, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/RUR5CASROC.png" },
-            "a22": { name: "A-22 (140 MM)", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 11, dpm: 233477, damage_burst: 27239, damage: 3379, reload: 5.60, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 1, ammo_clip: 8, range: 11.27, max_speed: 427, start_speed: 427, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "manual", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/A22.png" },
-            "rbu1200": { name: "RBU-1200 (250 MM)", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 12, dpm: 245635, damage_burst: 18218, damage: 3250, reload: 3.85, crit_chance: 15, detonation_radius: 33, splash_damage: 150, splash_radius: 100, projectiles: 5, range: 10.40, max_speed: 447, start_speed: 447, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/RBU1200.png" },
-            "rbu2500": { name: "RBU-2500 (212 MM)", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 11, dpm: 273942, damage_burst: 25568, damage: 1430, reload: 4.55, crit_chance: 20, detonation_radius: 66, splash_damage: 25, splash_radius: 100, projectiles: 16, range: 8.67, max_speed: 534, start_speed: 534, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/RBU2500.png" },
-            "vikhr": { name: "RPK-1 VIKHR", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 11, dpm: 336731, damage_burst: 47200, damage: 22100, reload: 7.70, lock_time: 1.5, detonation_radius: 20, splash_damage: 1500, splash_radius: 100, projectiles: 2, range: 7.80, max_speed: 340, start_speed: 77, accel_time: 1.35, hp: 100, fire_penalty: 30, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/RPK1Vihr.png" },
-            "sarma": { name: "SARMA MLRS (300 MM)", category: "Гранатометы", country: "Россия", rarity: "Эпический", recoil: 11, dpm: 336731, damage_burst: 46800, damage: 9750, reload: 7.70, lock_time: 1.0, detonation_radius: 26, fragmentation_damage: 17550, projectiles: 3, range: 11.70, min_range: 1.0, max_speed: 466, start_speed: 155, accel_time: 1.60, hp: 120, fire_penalty: 35, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/Sarma300.png" },
-            "ch901": { name: "CH-901", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 280800, damage_burst: 35100, damage: 11700, reload: 7.00, lock_time: 0, projectiles: 3, range: 9.53, max_speed: 388, start_speed: 77, accel_time: 2.29, hp: 150, fire_penalty: 40, anti_jamming: 1, gl_type: "laser", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/CH901Launcher.png" },
-            "firedragon": { name: "FIRE DRAGON 480", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 345257, damage_burst: 48100, damage: 24050, reload: 7.35, lock_time: 1.5, projectiles: 2, range: 13.87, max_speed: 563, start_speed: 29, accel_time: 2.29, hp: 300, fire_penalty: 35, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/FireDragon480.png" },
-            "fqf2500": { name: "FQF-2500 (240 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 14, dpm: 252285, damage_burst: 28256, damage: 3120, reload: 5.60, crit_chance: 20, detonation_radius: 33, splash_damage: 100, splash_radius: 133, projectiles: 8, range: 8.67, max_speed: 505, start_speed: 505, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/FQF2500.png" },
-            "fqf6000": { name: "FQF-6000", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 18, dpm: 253488, damage_burst: 27250, damage: 5200, reload: 5.25, detonation_radius: 33, splash_damage: 250, splash_radius: 100, projectiles: 5, range: 13.00, max_speed: 466, start_speed: 466, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/FQF6000.png" },
-            "hjj30": { name: "H/JJ30-8-300 (300 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 202352, damage_burst: 56000, damage: 5200, reload: 9.10, crit_chance: 50, detonation_radius: 33, splash_damage: 500, splash_radius: 166, projectiles: 1, ammo_clip: 8, range: 13.00, max_speed: 524, start_speed: 524, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "manual", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/HJJ30.png" },
-            "phl191": { name: "PHL-191 (370 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 244615, damage_burst: 42400, damage: 10400, reload: 9.80, detonation_radius: 33, splash_damage: 200, splash_radius: 100, projectiles: 4, range: 12.13, max_speed: 485, start_speed: 485, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/PHL191.png" },
-            "swarmer2": { name: "SWARMER-2 ATLAS", category: "Гранатометы", country: "США", rarity: "Эпический", recoil: 11, dpm: 280794, damage_burst: 46799, damage: 7799, reload: 8.75, lock_time: 0, detonation_radius: 33, splash_damage: 5, splash_radius: 33, projectiles: 6, range: 12.13, max_speed: 447, start_speed: 97, accel_time: 2.25, hp: 60, fire_penalty: 40, anti_jamming: 1, gl_type: "laser", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/Swarmer2Atlas.png" },
-            "type726": { name: "TYPE 726-4A", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 18, dpm: 205314, damage_burst: 28744, damage: 3120, reload: 6.30, crit_chance: 30, detonation_radius: 33, splash_damage: 33, splash_radius: 33, projectiles: 8, range: 9.53, max_speed: 476, start_speed: 476, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/Type7264A.png" },
-            "roketsan": { name: "ROKETSAN ASW", category: "Гранатометы", country: "Турция", rarity: "Эпический", recoil: 17, dpm: 213233, damage_burst: 16881, damage: 2535, reload: 3.50, crit_chance: 20, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 6, range: 13.00, max_speed: 427, start_speed: 427, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/ASWRocket.png" },
-            "sakarya": { name: "T-122 SAKARYA (122 MM)", category: "Гранатометы", country: "Турция", rarity: "Эпический", recoil: 11, dpm: 255869, damage_burst: 30022, damage: 2470, reload: 5.60, crit_chance: 35, detonation_radius: 33, splash_damage: 100, splash_radius: 133, projectiles: 10, range: 7.80, max_speed: 505, start_speed: 505, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/T122Sakarya.png" },
-            "trg230": { name: "TRG-230 (230 MM)", category: "Гранатометы", country: "Турция", rarity: "Эпический", recoil: 14, dpm: 249746, damage_burst: 41000, damage: 3899, reload: 8.05, detonation_radius: 33, splash_damage: 200, splash_radius: 100, projectiles: 10, range: 12.13, max_speed: 505, start_speed: 505, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/TRG230.png" },
-            "trg300": { name: "TRG-300 TIGER (300 MM)", category: "Гранатометы", country: "Турция", rarity: "Эпический", recoil: 17, dpm: 259805, damage_burst: 44600, damage: 10400, reload: 9.10, detonation_radius: 33, splash_damage: 750, splash_radius: 166, projectiles: 4, range: 13.00, max_speed: 544, start_speed: 544, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/TRG300Tiger.png" },
-            "pkxb": { name: "PKX-B (130 MM)", category: "Гранатометы", country: "Южная Корея", rarity: "Эпический", recoil: 11, dpm: 287774, damage_burst: 41600, damage: 10400, reload: 7.00, lock_time: 1.20, projectiles: 4, range: 8.67, max_speed: 349, start_speed: 29, accel_time: 2.75, hp: 50, fire_penalty: 40, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/LIGNex1.png" },
-            "lars2": { name: "LARS-2 (110 MM)", category: "Гранатометы", country: "Германия", rarity: "Эпический", recoil: 12, dpm: 263302, damage_burst: 31728, damage: 2080, reload: 5.25, crit_chance: 35, detonation_radius: 33, splash_damage: 200, splash_radius: 166, projectiles: 12, range: 8.67, max_speed: 485, start_speed: 485, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/LARS2.png" },
-            "rhan": { name: "R-HAN 122B", category: "Гранатометы", country: "Индонезия", rarity: "Эпический", recoil: 12, dpm: 213571, damage_burst: 29900, damage: 3250, reload: 7.00, crit_chance: 30, detonation_radius: 33, projectiles: 8, range: 13.00, max_speed: 544, start_speed: 544, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/RHan122B.png" },
-            "cas": { name: "C-AS", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 11, dpm: 382387, damage_burst: 30399, damage: 14949, reload: 4.55, lock_time: 0.25, detonation_radius: 33, splash_damage: 250, splash_radius: 166, projectiles: 2, range: 7.80, max_speed: 388, start_speed: 136, accel_time: 1.04, hp: 120, fire_penalty: 35, anti_jamming: 0, air_target: 1, gl_type: "missile", fire_mode: "burst", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/CAS.png" },
-            "astros": { name: "ASTROS II MK6", category: "Гранатометы", country: "Бразилия", rarity: "Эпический", recoil: 11, dpm: 261931, damage_burst: 29999, damage: 7474, reload: 5.95, lock_time: 1.50, detonation_radius: 33, splash_damage: 25, splash_radius: 100, projectiles: 4, range: 8.67, max_speed: 369, start_speed: 77, accel_time: 1.88, hp: 60, fire_penalty: 35, anti_jamming: 0, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/AstrosIIMK6.png" },
-            "ws3": { name: "WS-3 (400 MM)", category: "Гранатометы", country: "Китай", rarity: "Эпический", recoil: 11, dpm: 233276, damage_burst: 30840, damage: 4940, reload: 6.30, lock_time: 1.0, detonation_radius: 26, splash_damage: 200, splash_radius: 133, projectiles: 6, range: 10.40, max_speed: 388, start_speed: 77, accel_time: 2.29, hp: 65, fire_penalty: 35, anti_jamming: 1, gl_type: "missile", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 0, img: "img/WS3.png" },
-            "pinaka": { name: "PINAKA MK3", category: "Гранатометы", country: "Индия", rarity: "Эпический", recoil: 11, dpm: 268513, damage_burst: 41172, damage: 2210, reload: 7.00, crit_chance: 20, detonation_radius: 166, splash_damage: 1000, splash_radius: 200, projectiles: 1, ammo_clip: 16, range: 13.00, max_speed: 456, start_speed: 456, fire_penalty: 30, anti_jamming: 1, gl_type: "gun", fire_mode: "manual", can_hit_subs: 0, can_hit_torpedoes: 0, img: "img/PinakaMK3.png" },
-            "mar290": { name: "MAR-290 (290 MM)", category: "Гранатометы", country: "Израиль", rarity: "Эпический", recoil: 15, dpm: 253231, damage_burst: 33300, damage: 8124, reload: 7.35, detonation_radius: 26, splash_damage: 200, splash_radius: 166, projectiles: 4, range: 11.27, max_speed: 515, start_speed: 515, fire_penalty: 35, anti_jamming: 1, gl_type: "gun", fire_mode: "burst", can_hit_subs: 1, can_hit_torpedoes: 1, img: "img/MAR290.png" },
-
-            // ----- АВТОПУШКИ -----
-            "skyranger_buckshot": { name: "OERLIKON SKYRANGER BUCKSHOT", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 1, dpm: 156773, damage_burst: 24375, damage: 97, reload: 4.90, detonation_radius: 15, projectiles: 10, ammo_clip: 25, fire_delay: 0.12, range: 3.25, max_speed: 728, fire_penalty: 9, accuracy: 33, is_buckshot: 1, img: "img/OerlikonSkyrangerBuckshot.png" },
-            "rapidfire_40": { name: "RAPIDFIRE (40 MM)", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 40210, damage_burst: 3753, damage: 227, reload: 2.80, crit_chance: 20, detonation_radius: 33, projectiles: 1, ammo_clip: 15, fire_delay: 0.15, range: 3.03, max_speed: 680, fire_penalty: 9, accuracy: 100, img: "img/RapidFire.png" },
-           "rapidfire_lmm": { name: "RAPIDFIRE LMM", category: "Автопушки", country: "Франция", rarity: "Эпический", air_target: 1, dpm: 30734, dpm_gun: 16552, damage_gun: 160, ammo_clip_gun: 20, reload_gun: 8.0, dpm_missile: 14182, damage_missile: 600, ammo_clip_missile: 3, reload_missile: 7.5, damage_burst: 5000, damage: 160, reload: 8.0, detonation_radius: 26, splash_damage: 50, splash_radius: 66, projectiles: 1, ammo_clip: 20, fire_delay: 0.20, range: 4.77, start_speed: 174, max_speed: 349, accel_time: 1.80, fire_penalty: 12, accuracy: 100, img: "img/RapidFireLMM.png" },
-            "type30_jeag": { name: "TYPE-30 JEAG (40 MM)", category: "Автопушки", country: "Япония", rarity: "Легендарный", air_target: 1, dpm: 45348, damage_burst: 3250, damage: 650, reload: 3.50, detonation_radius: 20, projectiles: 1, ammo_clip: 5, fire_delay: 0.15, range: 3.47, max_speed: 933, fire_penalty: 12, accuracy: 100, img: "img/40mmJPRailgun.png" },
-            "oto_marlin": { name: "OTO MARLIN 40 (40 MM)", category: "Автопушки", country: "Италия", rarity: "Эпический", air_target: 0, dpm: 53931, damage_burst: 3146, damage: 2860, reload: 3.50, crit_chance: 20, projectiles: 1, ammo_clip: 1, fire_delay: 0.15, range: 9.10, max_speed: 933, fire_penalty: 15, accuracy: 100, img: "img/OTOMarlin.png" },
-            "bofors_40_mk3": { name: "BOFORS 40/L70 MK 3 (40 MM)", category: "Автопушки", country: "Швеция", rarity: "Эпический", air_target: 1, dpm: 29031, damage_burst: 1858, damage: 422, reload: 2.94, crit_chance: 20, detonation_radius: 26, projectiles: 1, ammo_clip: 4, fire_delay: 0.15, range: 4.33, max_speed: 777, fire_penalty: 9, accuracy: 100, img: "img/BoforsL70MK3.png" },
-            "mk46_30mm": { name: "MK-46 (30 MM)", category: "Автопушки", country: "США", rarity: "Редкий", air_target: 0, dpm: 57842, damage_burst: 4290, damage: 1300, reload: 3.85, crit_chance: 20, projectiles: 1, ammo_clip: 3, fire_delay: 0.15, range: 6.93, max_speed: 485, fire_penalty: 15, accuracy: 100, img: "img/MK46.png" },
-            "millennium_35mm": { name: "OERLIKON MILLENNIUM (35 MM)", category: "Автопушки", country: "Европейский Союз", rarity: "Эпический", air_target: 0, dpm: 51480, damage_burst: 3861, damage: 351, reload: 3.15, crit_chance: 20, projectiles: 1, ammo_clip: 10, fire_delay: 0.12, range: 6.07, max_speed: 777, fire_penalty: 11, accuracy: 100, img: "img/OerlikonMillenium.png" },
-            "seahawk_sigma": { name: "SEAHAWK SIGMA (30 MM)", category: "Автопушки", country: "Великобритания", rarity: "Легендарный", air_target: 1, dpm: 28060, dpm_gun: 16274, damage_gun: 120, ammo_clip_gun: 15, reload_gun: 5.5, dpm_missile: 11786, damage_missile: 450, ammo_clip_missile: 2, reload_missile: 5.0, damage_burst: 2700, damage: 120, reload: 5.5, detonation_radius: 26, splash_damage: 100, splash_radius: 66, projectiles: 1, ammo_clip: 15, fire_delay: 0.15, range: 4.77, start_speed: 194, max_speed: 311, accel_time: 1.33, fire_penalty: 12, accuracy: 100, img: "img/SeahawkSigma.png" },
-            "komar_3m47": { name: "3M47-03E KOMAR", category: "Автопушки", country: "Россия", rarity: "Редкий", air_target: 1, dpm: 46530, dpm_gun: 25714, damage_gun: 1200, ammo_clip_gun: 2, reload_gun: 5.0, dpm_missile: 20816, damage_missile: 750, ammo_clip_missile: 2, reload_missile: 4.5, damage_burst: 3900, damage: 1200, reload: 5.0, detonation_radius: 100, splash_damage: 100, splash_radius: 100, projectiles: 1, ammo_clip: 2, fire_delay: 0.20, range: 5.20, start_speed: 194, max_speed: 349, accel_time: 2.00, fire_penalty: 15, accuracy: 100, img: "img/3M4703EKomar.png" },
-            "gibka_3m47": { name: "3M-47 GIBKA", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, dpm: 59428, damage_burst: 5200, damage: 5200, reload: 5.25, detonation_radius: 66, projectiles: 1, ammo_clip: 1, fire_delay: 0.20, range: 7.80, start_speed: 291, max_speed: 583, accel_time: 3.33, fire_penalty: 15, accuracy: 100, img: "img/GibkaNPK.png" },
-            "paket_nk": { name: "PAKET-NK", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 190434, damage_burst: 18250, damage: 8124, reload: 5.25, detonation_radius: 33, splash_damage: 1000, splash_radius: 233, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 4.77, start_speed: 23, max_speed: 73, accel_time: 1.63, fire_penalty: 10, accuracy: 100, img: "img/PaketNK.png" },
-            "afg5": { name: "AFG5", category: "Автопушки", country: "Германия", rarity: "Легендарный", air_target: 0, can_hit_subs: 1, dpm: 248000, damage_burst: 18600, damage: 2600, reload: 3.50, detonation_radius: 53, splash_damage: 500, splash_radius: 233, projectiles: 1, ammo_clip: 6, fire_delay: 0.15, range: 5.63, max_speed: 272, fire_penalty: 30, accuracy: 100, img: "img/AFGS.png" },
-            "aft_10": { name: "AFT-10", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 0, dpm: 115015, damage_burst: 12460, damage: 5980, reload: 6.30, detonation_radius: 20, splash_damage: 250, splash_radius: 200, hp: 350, projectiles: 1, ammo_clip: 2, fire_delay: 0.20, range: 7.37, start_speed: 77, max_speed: 427, accel_time: 2.40, fire_penalty: 15, accuracy: 100, img: "img/AFT10.png" },
-            "cs_an3": { name: "CS/AN-3 (30 MM)", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 0, dpm: 78862, damage_burst: 8872, damage: 844, reload: 3.15, crit_chance: 10, detonation_radius: 6, projectiles: 1, ammo_clip: 10, fire_delay: 0.12, range: 7.80, max_speed: 631, fire_penalty: 10, accuracy: 100, img: "img/CSAN3.png" },
-            "hpj_17": { name: "H/PJ-17 (30 MM)", category: "Автопушки", country: "Китай", rarity: "Редкий", air_target: 0, dpm: 54996, damage_burst: 4858, damage: 844, reload: 3.50, crit_chance: 30, detonation_radius: 6, projectiles: 1, ammo_clip: 5, fire_delay: 0.15, range: 7.37, max_speed: 680, fire_penalty: 11, accuracy: 100, img: "img/HPJ17.png" },
-           "skyranger_hybrid": { name: "OERLIKON SKYRANGER 30 HYBRID", category: "Автопушки", country: "Европейский Союз", rarity: "Легендарный", air_target: 1, dpm: 28591, dpm_gun: 12574, damage_gun: 95, ammo_clip_gun: 20, reload_gun: 6.0, dpm_missile: 16017, damage_missile: 500, ammo_clip_missile: 3, reload_missile: 5.0, damage_burst: 3400, damage: 95, reload: 6.0, detonation_radius: 20, splash_damage: 25, splash_radius: 46, projectiles: 1, ammo_clip: 20, fire_delay: 0.15, range: 3.90, start_speed: 155, max_speed: 349, accel_time: 2.50, fire_penalty: 11, accuracy: 100, img: "img/Skyranger30.png" },
-            "typhoon_nlos": { name: "TYPHOON MLS-NLOS", category: "Автопушки", country: "Израиль", rarity: "Эпический", air_target: 1, dpm: 59984, damage_burst: 3899, damage: 1949, reload: 3.50, detonation_radius: 20, projectiles: 1, ammo_clip: 2, fire_delay: 0.15, range: 3.90, start_speed: 213, max_speed: 291, accel_time: 1.60, fire_penalty: 12, accuracy: 100, img: "img/TyphoonMLS.png" },
-            "denel_35dpg": { name: "DENEL 35DPG (35 MM)", category: "Автопушки", country: "ЮАР", rarity: "Эпический", air_target: 1, dpm: 29283, damage_burst: 2860, damage: 130, reload: 3.01, crit_chance: 20, detonation_radius: 26, projectiles: 1, ammo_clip: 20, fire_delay: 0.12, range: 3.90, max_speed: 777, fire_penalty: 9, accuracy: 100, img: "img/Denel.png" },
-            "mk47_sea_striker": { name: "MK 47 SEA STRIKER", category: "Автопушки", country: "США", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 248243, damage_burst: 31320, damage: 2730, reload: 5.25, detonation_radius: 53, splash_damage: 750, splash_radius: 266, projectiles: 1, ammo_clip: 9, fire_delay: 0.15, range: 6.07, max_speed: 340, fire_penalty: 30, accuracy: 100, img: "img/MK47SeaStriker.png" },
-            "paket_nkm": { name: "PAKET-NKM", category: "Автопушки", country: "Россия", rarity: "Эпический", air_target: 0, can_hit_subs: 1, dpm: 211200, damage_burst: 26400, damage: 7799, reload: 7.00, detonation_radius: 33, splash_damage: 1000, splash_radius: 233, projectiles: 1, ammo_clip: 3, fire_delay: 0.20, range: 5.20, start_speed: 19, max_speed: 77, accel_time: 2.00, fire_penalty: 10, accuracy: 100, img: "img/PaketNKM.png" },
-            "urws_30mm": { name: "URWS (30 MM)", category: "Автопушки", country: "Китай", rarity: "Эпический", air_target: 1, dpm: 28862, damage_burst: 4642, damage: 130, reload: 3.85, crit_chance: 15, detonation_radius: 33, splash_damage: 15, splash_radius: 66, projectiles: 1, ammo_clip: 30, fire_delay: 0.12, range: 3.47, max_speed: 777, fire_penalty: 9, accuracy: 100, img: "img/URWS.png" },
-
-            // ----- ПВО -----
-            // Скриншот 1
-            "rim7": { name: "RIM-7 SEA SPARROW", category: "ПВО", aa_type: "Ракетное", country: "США", rarity: "Эпический", dpm: 28557, damage_burst: 1599, damage: 1599, reload: 4.20, splash_damage: 50, splash_radius: 100, range: 3.90, max_speed: 272, start_speed: 116, accel_time: 2.67, ammo_clip: 1, fire_penalty: 20, fire_delay: 0.05, img: "img/RIM7.png" },
-            "searam": { name: "SEA RAM", category: "ПВО", aa_type: "Ракетное", country: "США", rarity: "Эпический", dpm: 28600, damage_burst: 1430, damage: 715, reload: 2.80, range: 3.47, max_speed: 252, start_speed: 174, accel_time: 0.80, ammo_clip: 2, fire_penalty: 15, fire_delay: 0.2, img: "img/SeaRAM.png" },
-            "kashtan_m": { name: "KASHTAN-M (30 MM)", category: "ПВО", aa_type: "Гибрид", country: "Россия", rarity: "Эпический", dpm: 17937, dpm_gun: 8337, damage_gun: 32, ammo_clip_gun: 75, reload_gun: 4.0, dpm_missile: 9600, damage_missile: 800, ammo_clip_missile: 1, reload_missile: 5.0, damage_burst: 800, damage: 800, reload: 5.0, crit_chance: 20, range: 3.47, max_speed: 252, start_speed: 116, accel_time: 2.33, ammo_clip: 1, fire_penalty: 20, fire_delay: 0.2, img: "img/KashtanM.png" },
-            "m22_uragan": { name: "M-22 URAGAN", category: "ПВО", aa_type: "Ракетное", country: "Россия", rarity: "Эпический", dpm: 20788, damage_burst: 1819, damage: 1819, reload: 5.25, detonation_radius: 10, range: 3.90, max_speed: 311, start_speed: 174, accel_time: 1.17, ammo_clip: 1, fire_penalty: 20, fire_delay: 0.05, img: "img/Uragan.png" },
-            "hq10": { name: "HQ-10 (FL-3000N)", category: "ПВО", aa_type: "Ракетное", country: "Китай", rarity: "Эпический", dpm: 30244, damage_burst: 1235, damage: 1235, reload: 2.45, detonation_radius: 13, range: 3.68, max_speed: 252, start_speed: 116, accel_time: 2.33, ammo_clip: 1, fire_penalty: 20, fire_delay: 0.05, img: "img/HHQ10.png" },
-            "hpj11": { name: "H/PJ-11 (30 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Китай", rarity: "Эпический", dpm: 21441, damage_burst: 8580, damage: 52, reload: 3.15, crit_chance: 20, detonation_radius: 16, range: 3.03, max_speed: 680, start_speed: 680, ammo_clip: 150, fire_penalty: 10, fire_delay: 0.14, img: "img/Type1130.png" },
-
-            // Скриншот 2
-            "anseq3": { name: "ANSEQ-3", category: "ПВО", aa_type: "Лазерное", country: "США", rarity: "Эпический", dpm: 20288, damage_burst: 8007, damage: 41, reload: 2.80, crit_chance: 20, detonation_radius: 20, range: 3.25, max_speed: 777, start_speed: 777, ammo_clip: 175, fire_penalty: 15, fire_delay: 0.12, img: "img/ANSEQ3.png" },
-            "helios": { name: "HELIOS LASER", category: "ПВО", aa_type: "Лазерное", country: "США", rarity: "Эпический", dpm: 20331, damage_burst: 4290, damage: 52, reload: 3.78, crit_chance: 20, detonation_radius: 16, range: 2.77, max_speed: 728, start_speed: 728, ammo_clip: 75, fire_penalty: 15, fire_delay: 0.12, img: "img/HeliosLaser.png" },
-            "rim162d": { name: "RIM-162D", category: "ПВО", aa_type: "Ракетное", country: "США", rarity: "Эпический", dpm: 30673, damage_burst: 2050, damage: 974, reload: 3.71, detonation_radius: 16, splash_damage: 50, splash_radius: 100, range: 3.81, max_speed: 330, start_speed: 272, accel_time: 0.60, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.3, img: "img/RIM162D.png" },
-            "thel": { name: "THEL", category: "ПВО", aa_type: "Лазерное", country: "Израиль", rarity: "Эпический", dpm: 21198, damage_burst: 5434, damage: 49, reload: 3.50, crit_chance: 20, detonation_radius: 13, range: 2.43, max_speed: 728, start_speed: 728, ammo_clip: 100, fire_penalty: 15, fire_delay: 0.12, img: "img/THEL.png" },
-            "ak630m2": { name: "AK-630M2 KVARTET", category: "ПВО", aa_type: "Пулеметное", country: "Россия", rarity: "Эпический", dpm: 28373, damage_burst: 7292, damage: 44, reload: 3.50, crit_chance: 20, detonation_radius: 20, range: 3.47, max_speed: 680, start_speed: 680, ammo_clip: 150, fire_penalty: 10, fire_delay: 0.08, img: "img/AK630M2Kvartet.png" },
-           "pantsirm": { name: "PANTSIR-M (30 MM)", category: "ПВО", aa_type: "Гибрид", country: "Россия", rarity: "Эпический", dpm: 22130, dpm_gun: 13403, damage_gun: 44, ammo_clip_gun: 75, reload_gun: 5.0, dpm_missile: 8727, damage_missile: 800, ammo_clip_missile: 1, reload_missile: 5.5, damage_burst: 800, damage: 800, reload: 5.5, crit_chance: 20, detonation_radius: 13, range: 3.68, max_speed: 291, start_speed: 136, accel_time: 1.14, ammo_clip: 1, fire_penalty: 20, fire_delay: 0.15, img: "img/PantsirM.png" },
-
-            // Скриншот 3
-            "peresvet": { name: "PERESVET", category: "ПВО", aa_type: "Лазерное", country: "Россия", rarity: "Эпический", dpm: 18078, damage_burst: 4387, damage: 58, reload: 4.20, detonation_radius: 13, range: 3.64, max_speed: 728, start_speed: 728, ammo_clip: 75, fire_penalty: 15, fire_delay: 0.14, img: "img/Peresvet.png" },
-            "palash": { name: "3M89 PALASH (30 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Россия", rarity: "Эпический", dpm: 25808, damage_burst: 8293, damage: 75, reload: 2.45, crit_chance: 20, detonation_radius: 16, range: 3.25, max_speed: 728, start_speed: 728, ammo_clip: 100, fire_penalty: 10, fire_delay: 0.17, img: "img/ZRAKPalash.png" },
-            "jrng6": { name: "JRNG-6 CIWS", category: "ПВО", aa_type: "Гибрид", country: "Китай", rarity: "Эпический", dpm: 20211, dpm_gun: 12286, damage_gun: 40, ammo_clip_gun: 75, reload_gun: 4.5, dpm_missile: 7925, damage_missile: 350, ammo_clip_missile: 2, reload_missile: 5.0, damage_burst: 700, damage: 350, reload: 5.0, crit_chance: 15, detonation_radius: 13, range: 3.90, max_speed: 291, start_speed: 291, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.15, img: "img/JRNG6.png" },
-            "ly70": { name: "LY-70", category: "ПВО", aa_type: "Ракетное", country: "Китай", rarity: "Эпический", dpm: 28837, damage_burst: 3100, damage: 1300, reload: 5.95, detonation_radius: 23, splash_damage: 250, splash_radius: 166, range: 4.33, max_speed: 408, start_speed: 97, accel_time: 1.07, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.5, img: "img/LY70.png" },
-            "silent_hunter": { name: "SILENT HUNTER", category: "ПВО", aa_type: "Лазерное", country: "Китай", rarity: "Эпический", dpm: 19317, damage_burst: 7405, damage: 40, reload: 5.60, crit_chance: 10, detonation_radius: 20, range: 2.77, max_speed: 777, start_speed: 777, ammo_clip: 175, fire_penalty: 15, fire_delay: 0.1, img: "img/SilentHunter.png" },
-            "type1130": { name: "TYPE 1130 AESA (30 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Китай", rarity: "Эпический", dpm: 21832, damage_burst: 10010, damage: 52, reload: 3.15, crit_chance: 20, detonation_radius: 20, range: 4.12, max_speed: 728, start_speed: 728, ammo_clip: 175, fire_penalty: 10, fire_delay: 0.14, img: "img/Type1130AESA.png" },
-
-            // Скриншот 4
-            "type2030": { name: "TYPE 2030 (30 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Китай", rarity: "Эпический", dpm: 23086, damage_burst: 7078, damage: 42, reload: 3.50, crit_chance: 20, detonation_radius: 23, range: 3.03, max_speed: 777, start_speed: 777, ammo_clip: 150, fire_penalty: 10, fire_delay: 0.1, img: "img/Type2030.png" },
-            "myriad": { name: "MYRIAD CIWS (25 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Италия", rarity: "Эпический", dpm: 22614, damage_burst: 4504, damage: 54, reload: 4.55, crit_chance: 20, detonation_radius: 23, range: 3.47, max_speed: 777, start_speed: 777, ammo_clip: 75, fire_penalty: 10, fire_delay: 0.1, img: "img/Myriad.png" },
-            "dragonfire": { name: "DRAGONFIRE", category: "ПВО", aa_type: "Лазерное", country: "Великобритания", rarity: "Эпический", dpm: 21013, damage_burst: 4826, damage: 58, reload: 4.90, crit_chance: 20, detonation_radius: 13, range: 3.25, max_speed: 728, start_speed: 728, ammo_clip: 75, fire_penalty: 15, fire_delay: 0.12, img: "img/DragonFire.png" },
-            "seawolf": { name: "GWS-25 SEA WOLF", category: "ПВО", aa_type: "Ракетное", country: "Великобритания", rarity: "Эпический", dpm: 28034, damage_burst: 2710, damage: 1105, reload: 5.60, detonation_radius: 20, splash_damage: 250, splash_radius: 200, range: 4.55, max_speed: 388, start_speed: 155, accel_time: 1.0, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.2, img: "img/GWS25SeaWolf.png" },
-            "hpls100": { name: "HPLS 100", category: "ПВО", aa_type: "Лазерное", country: "США", rarity: "Эпический", dpm: 19394, damage_burst: 3575, damage: 65, reload: 4.20, crit_chance: 20, detonation_radius: 13, range: 3.47, max_speed: 777, start_speed: 777, ammo_clip: 50, fire_penalty: 15, fire_delay: 0.14, img: "img/HPLS100.png" },
-            "type93kinsam": { name: "TYPE 93 KIN SAM", category: "ПВО", aa_type: "Ракетное", country: "Япония", rarity: "Эпический", dpm: 30374, damage_burst: 1949, damage: 974, reload: 3.50, detonation_radius: 13, range: 3.90, max_speed: 291, start_speed: 291, accel_time: 2.0, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.35, img: "img/Type93KinSAM.png" },
-
-            // Скриншот 5
-            "oerlikon_hel": { name: "OERLIKON HEL", category: "ПВО", aa_type: "Лазерное", country: "Европейский Союз", rarity: "Эпический", dpm: 24946, damage_burst: 3900, damage: 65, reload: 3.50, crit_chance: 40, detonation_radius: 13, range: 3.12, max_speed: 728, start_speed: 728, ammo_clip: 50, fire_penalty: 15, fire_delay: 0.12, img: "img/OerlikonHEL.png" },
-            "alka_dews": { name: "ALKA (DEWS)", category: "ПВО", aa_type: "Лазерное", country: "Турция", rarity: "Эпический", dpm: 22413, damage_burst: 6769, damage: 63, reload: 5.25, detonation_radius: 16, splash_damage: 4, splash_radius: 20, range: 3.25, max_speed: 728, start_speed: 728, ammo_clip: 100, fire_penalty: 15, fire_delay: 0.13, img: "img/ALKA.png" },
-            "gokdeniz_er": { name: "GOKDENIZ ER", category: "ПВО", aa_type: "Ракетное", country: "Турция", rarity: "Эпический", dpm: 29010, damage_burst: 1789, damage: 844, reload: 3.50, detonation_radius: 13, splash_damage: 50, splash_radius: 100, range: 3.90, max_speed: 272, start_speed: 194, accel_time: 0.57, ammo_clip: 2, fire_penalty: 15, fire_delay: 0.2, img: "img/GOKDENIZER.png" },
-            "ciws2": { name: "CIWS-II (30MM)", category: "ПВО", aa_type: "Пулеметное", country: "Южная Корея", rarity: "Эпический", dpm: 21683, damage_burst: 3968, damage: 48, reload: 2.10, crit_chance: 20, detonation_radius: 23, range: 3.25, max_speed: 777, start_speed: 777, ammo_clip: 75, fire_penalty: 10, fire_delay: 0.12, img: "img/LIGNex1CIWS2.png" },
-            "crotale": { name: "CROTALE R440", category: "ПВО", aa_type: "Ракетное", country: "Франция", rarity: "Эпический", dpm: 34243, damage_burst: 2340, damage: 1170, reload: 3.85, detonation_radius: 10, range: 3.68, max_speed: 291, start_speed: 233, accel_time: 0.50, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.25, img: "img/CrotaleR440.png" },
-            "helmap": { name: "HELMA-P", category: "ПВО", aa_type: "Лазерное", country: "Франция", rarity: "Эпический", dpm: 24483, damage_burst: 2530, damage: 66, reload: 2.80, detonation_radius: 20, splash_damage: 6, splash_radius: 20, range: 2.77, max_speed: 777, start_speed: 777, ammo_clip: 35, fire_penalty: 15, fire_delay: 0.1, img: "img/HELMAP.png" },
-
-            // Скриншот 6
-            "roland2": { name: "ROLAND 2", category: "ПВО", aa_type: "Ракетное", country: "Франция", rarity: "Эпический", dpm: 39466, damage_burst: 2960, damage: 1430, reload: 4.20, detonation_radius: 13, splash_damage: 50, splash_radius: 100, range: 4.77, max_speed: 291, start_speed: 155, accel_time: 4.67, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.3, img: "img/Roland2.png" },
-            "ironbeam": { name: "IRON BEAM", category: "ПВО", aa_type: "Лазерное", country: "Израиль", rarity: "Эпический", dpm: 19005, damage_burst: 4612, damage: 58, reload: 4.20, detonation_radius: 20, splash_damage: 3, splash_radius: 20, range: 3.47, max_speed: 777, start_speed: 777, ammo_clip: 75, fire_penalty: 15, fire_delay: 0.14, img: "img/IronBeam.png" },
-            "spyder_mr": { name: "SPYDER-MR", category: "ПВО", aa_type: "Ракетное", country: "Израиль", rarity: "Эпический", dpm: 29442, damage_burst: 2640, damage: 585, reload: 4.90, detonation_radius: 13, splash_damage: 75, splash_radius: 100, range: 4.16, max_speed: 388, start_speed: 116, accel_time: 1.40, ammo_clip: 4, fire_penalty: 15, fire_delay: 0.16, img: "img/Spyder.png" },
-            "osu35k": { name: "OSU-35K (35 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Европейский Союз", rarity: "Эпический", dpm: 38522, damage_burst: 5971, damage: 227, reload: 2.10, crit_chance: 10, detonation_radius: 33, range: 3.47, max_speed: 874, start_speed: 874, ammo_clip: 25, fire_penalty: 10, fire_delay: 0.3, img: "img/OSU35K.png" },
-            "excalibur_perhel": { name: "EXCALIBUR PERHEL", category: "ПВО", aa_type: "Лазерное", country: "США", rarity: "Эпический", dpm: 24893, damage_burst: 8580, damage: 52, reload: 2.80, crit_chance: 20, detonation_radius: 20, range: 2.60, max_speed: 728, start_speed: 728, ammo_clip: 150, fire_penalty: 15, fire_delay: 0.12, img: "img/ExcaliburLaser.png" },
-            "rim8talos": { name: "RIM-8 TALOS (ЯДЕРНАЯ 5Ч)", category: "ПВО", aa_type: "Ракетное", country: "США", rarity: "Эпический", dpm: 30785, damage_burst: 4900, damage: 1949, reload: 9.10, detonation_radius: 33, splash_damage: 500, splash_radius: 333, range: 4.33, max_speed: 408, start_speed: 136, accel_time: 1.40, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.45, img: "img/RIM8TalosNuke.png" },
-
-            // Скриншот 7
-           "garpun": { name: "GARPUN (30 MM)", category: "ПВО", aa_type: "Гибрид", country: "Россия", rarity: "Эпический", dpm: 27364, dpm_gun: 11000, damage_gun: 40, ammo_clip_gun: 50, reload_gun: 4.5, dpm_missile: 16364, damage_missile: 600, ammo_clip_missile: 2, reload_missile: 4.0, damage_burst: 1200, damage: 600, reload: 4.0, crit_chance: 20, detonation_radius: 13, range: 4.07, max_speed: 272, start_speed: 136, accel_time: 2.33, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.15, img: "img/ZRKGarpun.png" },
-            "ly1": { name: "LY-1", category: "ПВО", aa_type: "Лазерное", country: "Китай", rarity: "Эпический", dpm: 23857, damage_burst: 4672, damage: 123, reload: 6.65, detonation_radius: 23, splash_damage: 10, splash_radius: 26, range: 3.68, max_speed: 826, start_speed: 826, ammo_clip: 35, fire_penalty: 15, fire_delay: 0.15, img: "img/LY1.png" },
-            "seadart": { name: "SEA DART", category: "ПВО", aa_type: "Ракетное", country: "Великобритания", rarity: "Эпический", dpm: 31951, damage_burst: 2210, damage: 1105, reload: 3.85, detonation_radius: 20, range: 4.33, max_speed: 330, start_speed: 155, accel_time: 1.29, ammo_clip: 2, fire_penalty: 20, fire_delay: 0.3, img: "img/SeaDart.png" },
-            "jm61": { name: "JM61-RFS DUAL (20 MM)", category: "ПВО", aa_type: "Пулеметное", country: "Япония", rarity: "Эпический", dpm: 24138, damage_burst: 6256, damage: 45, reload: 3.15, crit_chance: 20, detonation_radius: 20, range: 3.47, max_speed: 728, start_speed: 728, ammo_clip: 125, fire_penalty: 10, fire_delay: 0.1, img: "img/JM61RFSDual.png" },
-            "ksam": { name: "KSAM BLOCK 2", category: "ПВО", aa_type: "Ракетное", country: "Южная Корея", rarity: "Эпический", dpm: 26000, damage_burst: 2080, damage: 520, reload: 4.20, crit_chance: 20, detonation_radius: 20, range: 4.77, max_speed: 340, start_speed: 194, accel_time: 0.83, ammo_clip: 4, fire_penalty: 15, fire_delay: 0.2, img: "img/KSAMBlock2.png" },
-           "type730c": { name: "TYPE 730C", category: "ПВО", aa_type: "Гибрид", country: "Китай", rarity: "Эпический", dpm: 18592, dpm_gun: 9768, damage_gun: 42, ammo_clip_gun: 75, reload_gun: 5.8, dpm_missile: 8824, damage_missile: 500, ammo_clip_missile: 2, reload_missile: 6.5, damage_burst: 1000, damage: 500, reload: 6.5, crit_chance: 15, detonation_radius: 13, range: 3.90, max_speed: 311, start_speed: 155, accel_time: 1.33, ammo_clip: 2, fire_penalty: 15, fire_delay: 0.2, img: "img/Type730C.png" },
-         };
-// Вспомогательная функция баллистического движка (рассчитывает безопасную дистанцию до отката ловушек)
-        // Задержка реакции ПВО: время на обнаружение цели, сопровождение радаром/оптикой и разворот
-        // ствола/пусковой на цель ДО начала фактической стрельбы. Раньше стрельба начиналась в ту же
-        // секунду, когда ракета входила в зону поражения — окно перехвата (engageTime) целиком уходило
-        // на выстрелы. Разница по типам отражает реальную специфику: лазеру/пулемётной установке нужно
-        // только довернуть ствол (быстро), ракетному ПВО — ещё и подготовить/захватить цель перед
-        // пуском собственной ракеты (дольше), гибриду — среднее между стволом и ракетой.
-        // ВАЖНО: объявлена здесь, ДО подсчёта рейтингов (см. "for (let key in DB)" ниже) и до
-        // определения computeAAEngagement. Раньше константа была объявлена через const ближе к концу
-        // файла, а computeAAEngagement (объявление функции, поднимается автоматически) уже вызывался
-        // из калькулятора рейтинга ПВО значительно раньше по ходу выполнения скрипта — обращение к ещё
-        // неинициализированной const-переменной валило рейтинг ПВО с ReferenceError (temporal dead zone).
-        // Время, которое ОДИН модуль ПВО тратит на переключение на следующую цель после того, как
-        // предыдущая сбита/прорвалась (довернуть ствол/луч, захватить цель, стабилизировать наведение).
-        // Один модуль в каждый момент времени работает ТОЛЬКО по одной ракете.
-        // Значения — игровые допущения (в базе такого поля нет), их можно править.
-        const AA_RETARGET_TIME = {
-            "Лазерное": 0.75,
-            "Пулеметное": 0.9,
-            "Гибрид": 1.1,
-            "Ракетное": 1.6
-        };
-
-        // Параметры оценки ПВО для РЕЙТИНГА (см. getAARatingEffectiveness). Объявлены здесь, до
-        // подсчёта рейтингов, по той же причине (temporal dead zone), что и AA_REACTION_TIME.
-        const AUTO_AA_BASE_BONUS = 40;   // за сам факт зенитной способности
-        const AUTO_AA_KILL_BONUS = 250;  // за реальную способность сбивать ракеты (доля 0..1)
-        const AA_RATING_LAUNCH_DIST = 10;   // км
-        const AA_RATING_SALVOS = [2, 3, 4]; // ракет в залпе
-        const AA_RATING_MOUNTS = [1, 2, 4]; // модулей ПВО
-
-        const AA_REACTION_TIME = {
-            "Лазерное": 0.3,
-            "Пулеметное": 0.4,
-            "Гибрид": 0.6,
-            "Ракетное": 1.0
-        };
-
-        // Параметры разброса роя атакующих ракет (см. runInterceptEngine/buildMissileSwarm ниже —
-        // "нюанс" о том, что ракеты залпа не летят в одну линию). ВАЖНО: объявлены здесь, ДО подсчёта
-        // рейтингов (см. "for (let key in DB)"), а не рядом с самим движком ближе к концу файла —
-        // иначе по той же причине, что и с AA_REACTION_TIME выше (temporal dead zone для ещё не
-        // инициализированной const), рейтинг ПВО упал бы с ReferenceError при первом же проходе по базе.
-        const AA_SWARM_SPREAD = {
-            perProjectile: 0.15,    // сек: разнос между боеголовками ОДНОГО пуска (разные траектории)
-            perLaunch: 0.35,        // сек: разнос между РАЗНЫМИ пусками/ракетами (не идеальный "залп стенкой")
-            maxShareOfWindow: 0.45  // разброс не должен "съедать" больше 45% базового окна перехвата
-        };
-
-        function getSafeDistance(item) {
-            const MW_COEF = 0.00278;
-            let T = 11.0; // Полный цикл ловушек (2 сек + 9 сек)
-            let v0 = (item.start_speed || 0) * MW_COEF;
-            let vmax = (item.max_speed || 0) * MW_COEF;
-            let ta = item.accel_time || 0.1;
-
-            if (T <= ta) {
-                let a = (vmax - v0) / ta;
-                return (v0 * T) + (a * Math.pow(T, 2) / 2);
-            } else {
-                return (((v0 + vmax) / 2) * ta) + (vmax * (T - ta));
-            }
-        }
-
-        // Усредненный "портрет" реальной атакующей ракеты (по фактическим ракетам из БД),
-        // относительно которого считается эффективность ПВО. Без этого рейтинг ПВО был оторван
-        // от того, против чего ПВО реально работает — против ракет.
-        let _threatMissileProfileCache = null;
-        function getThreatMissileProfile() {
-            if (_threatMissileProfileCache) return _threatMissileProfileCache;
-            // Раньше в усреднение попадали и зенитные ракеты ("Ракеты А/А"), хотя ПВО кораблю нужно
-            // отражать реальные УДАРНЫЕ ракеты, а не другие зенитные ракеты. Зенитные ракеты в среднем
-            // короче и медленнее ударных, поэтому их подмешивание занижало усреднённую "угрозу" и
-            // немного завышало итоговый рейтинг всех систем ПВО. Теперь профиль строится только
-            // по ударным противокорабельным ракетам.
-            const threatKeys = Object.keys(DB).filter(k => DB[k].category === "Ракеты");
-            let sums = { max_speed: 0, start_speed: 0, accel_time: 0, hp: 0, projectiles: 0, n: 0 };
-            threatKeys.forEach(k => {
-                const m = DB[k];
-                sums.max_speed += (m.max_speed || 0);
-                sums.start_speed += (m.start_speed || m.max_speed || 0);
-                sums.accel_time += (m.accel_time || 0.1);
-                sums.hp += (m.hp || 50);
-                // Средняя "кучность" залпа боевых ракет (сколько боеголовок обычно прилетает
-                // за один пуск) — нужна, чтобы рейтинг ПВО считался против реалистичного РОЯ
-                // ракет, а не против вакуумной одиночной ракеты (см. нюанс "не в одну линию").
-                sums.projectiles += (m.projectiles || 1);
-                sums.n++;
-            });
-            _threatMissileProfileCache = sums.n > 0 ? {
-                avgMaxSpeed: sums.max_speed / sums.n,
-                avgStartSpeed: sums.start_speed / sums.n,
-                avgAccelTime: sums.accel_time / sums.n,
-                avgHp: sums.hp / sums.n,
-                avgProjectiles: sums.projectiles / sums.n
-            } : { avgMaxSpeed: 400, avgStartSpeed: 100, avgAccelTime: 2, avgHp: 250, avgProjectiles: 1 };
-            return _threatMissileProfileCache;
-        }
-
-        // --- Трекер очков рейтинга: каждая надбавка/штраф в формулах ниже записывается с названием,
-        //     чтобы кнопка "Почему такой рейтинг?" могла показать, из чего он сложился.
-        let _bdLog = null;
-        function _T(label, v) { if (_bdLog) _bdLog.push({ label: label, value: +v }); return v; }
-        function _N(label, v) { if (_bdLog) _bdLog.push({ label: label, value: -v }); return v; }
-
-        // Глобальный объект конфигурации меты (позволяет легко менять тайминги или привязывать их к
-        // ползункам UI).
-        const META_CONFIG = {
-            flareCycleMissile: 11.0, // Базовый цикл перезарядки ловушек для ракет
-            flareCycleTorpedo: 29.0, // Базовый цикл ловушек для торпед
-            gunMetaDistance: 7.5,    // Средняя дистанция перестрелки для расчета падения точности пушек
-            softCapFactor: 0.25      // Коэффициент полезности дальности свыше "меты" (даёт 25% баллов вместо отсечения)
-        };
-
-        // Мягкое ограничение дальности: раньше Math.min(range, cap) полностью обнулял пользу от
-        // дальности сверх "меты" — теперь избыток даёт softCapFactor (25%) баллов вместо жёсткого среза.
-        function getEffectiveRange(range, cap) {
-            if (range <= cap) return range;
-            return cap + (range - cap) * META_CONFIG.softCapFactor;
-        }
-
-        // Общий шанс наводящейся ракеты пробить ловушки цели (флары/РЭБ). Раньше эта формула была
-        // продублирована в 4 местах (рейтинг "Ракеты", рейтинг "Автопушки", computeAAEngagement,
-        // simulateAABreakthrough) — теперь один источник истины, чтобы тир-лист и бой не расходились.
-        // Чем короче цикл перезарядки ракетного канала относительно цикла сброса ловушек цели,
-        // тем выше шанс попасть в "чистое" окно между сбросами.
-        function getMissileHitRatio(misReload, flareCycle) {
-            flareCycle = flareCycle || META_CONFIG.flareCycleMissile;
-            misReload = misReload != null ? misReload : 5.0;
-            if (misReload <= flareCycle / 2) return 1 - (misReload / flareCycle);
-            if (misReload < flareCycle) return 0.50;
-            return 0.30;
-        }
-
-        // "Шкала отдельного орудия автопушки": те же веса, что и у обычной (негибридной) автопушки.
-        // Используется для пушечного канала гибридов, чтобы он оценивался ровно как самостоятельный
-        // ствол, а не как произвольная доля смешанного числа.
-        function scoreAsGunChannel(effDpm, effBurst) {
-            return ((effDpm / 250000) * 300) + ((effBurst / 30000) * 150);
-        }
-
-        // "Шкала отдельной ракеты": те же веса, что и у категории "Ракеты" (см. calculateRating).
-        // Используется для ракетного канала гибридов — по логике отдельного ракетного оружия,
-        // а не подогнанная под шкалу автопушки/ПВО.
-        function scoreAsMissileChannel(effDpm, effBurst) {
-            return ((effDpm / 300000) * 250) + ((effBurst / 60000) * 100);
-        }
-
-        const RATING_CALCULATORS = {
-            "Пушки": function(item) {
-                let score = 100;
-                let hasClip = item.ammo_clip !== undefined && item.ammo_clip > 1;
-                let pCount = item.projectiles || 1;
-                let totalShots = pCount * (item.ammo_clip || 1);
-
-                let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
-                let speedFactor = 800 / item.max_speed;
-                let evasionPenalty = (META_CONFIG.gunMetaDistance * speedFactor * 1.5);
-
-                item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty);
-                item.effectiveDpm = item.dpm * (item.accuracyScore / 100);
-
-                // Раньше сюда добавлялся ещё и "сырой" DPM (без поправки на точность) с большим весом,
-                // из-за чего неточное оружие (картечь и т.п.) всё равно получало огромный бонус в обход
-                // штрафа за точность. Теперь сырой DPM даёт лишь небольшой "базовый" бонус за класс орудия,
-                // а основной вклад — только у показателя, уже скорректированного на реальную точность.
-                score += _T("DPM (паспортный)", ((item.dpm / 400000) * 30));
-                score += _T("Эффективный DPM", ((item.effectiveDpm / 400000) * 220));
-
-                let alphaMultiplier = 1;
-                if (hasClip) {
-                    if (item.ammo_clip >= 10) alphaMultiplier = 0.2;
-                    else if (item.ammo_clip > 3) alphaMultiplier = 0.5;
-                    else alphaMultiplier = 0.8;
-                } else {
-                    if (totalShots === 2) alphaMultiplier = 0.95;
-                    else if (totalShots === 3) alphaMultiplier = 0.85;
-                    else if (totalShots > 3) alphaMultiplier = Math.max(0.1, 1 - (totalShots * 0.04));
-                }
-
-                item.effectiveBurst = item.damage_burst * (item.accuracyScore / 100) * alphaMultiplier;
-                score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 180));
-
-                score += _T("Скорость снаряда", ((item.max_speed / 1200) * 130));
-
-                let effectiveRange = getEffectiveRange(item.range, 11);
-                score += _T("Дальность", ((effectiveRange / 11) * 20));
-                if (item.range < 11.0) {
-                    score -= _N("Штраф: дальность ниже 11 км", (((11.0 - item.range) * 8)));
-                }
-
-                if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 10) * 5));
-                if (item.reload < 3.0) score += _T("Быстрая перезарядка", (20));
-
-                // Большая обойма уже штрафуется через alphaMultiplier (режет эффективный альфа-страйк
-                // до 0.2x). Раньше сверху добавлялся ещё и отдельный фиксированный штраф за саму обойму —
-                // одна и та же особенность оружия наказывалась дважды. Теперь для оружия с обоймой
-                // отдельного штрафа нет, только сниженный alphaMultiplier.
-                if (!hasClip) {
-                    score += _T("Залповая схема (без обоймы)", ((40 - ((pCount - 1) * 5))));
-                }
-
-                if (item.air_target === 1) score += _T("Атака авиации", (40));
-                if (item.splash_damage > 0) { score += _T("Сплэш и взрыв", (5)); score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 5)); }
-                if (item.splash_radius > 0) { score += _T("Сплэш и взрыв", ((item.splash_radius / 50) * 3.75)); }
-                if (item.detonation_radius > 0) score += _T("Сплэш и взрыв", (10));
-                score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
-                return score;
-            },
-           "Ракеты": function(item) {
-                let score = 100;
-                item.accuracyScore = 100;
-
-                if (item.anti_jamming === 1) {
-                    item.effectiveDpm = item.dpm;
-                    item.effectiveBurst = item.damage_burst;
-                } else {
-                    let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
-                    let clusterBonus = hasCluster ? 0.1 : 0;
-
-                    item.effectiveBurst = item.damage_burst;
-
-                    let hitRatio = getMissileHitRatio(item.reload);
-
-                    item.effectiveDpm = item.dpm * Math.min(1, hitRatio + clusterBonus);
-                }
-
-                score += _T("Базовый бонус класса", (150));
-                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250));
-                score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 60000) * 100));
-
-                if (item.anti_jamming === 1) {
-                    score += _T("Помехозащита (РЭБ)", (200));
-                }
-                // Раньше здесь ещё дополнительно вычитался отдельный "штраф за уязвимость к ловушкам"
-                // на основе getSafeDistance(), хотя та же самая уязвимость уже заложена в hitRatio при
-                // расчёте effectiveDpm выше — одна и та же слабость наказывалась дважды. Теперь
-                // уклонение от ловушек влияет на рейтинг только через уже сниженный эффективный DPM.
-
-                let hasCluster = (item.cluster === 1 || item.fragmentation_damage > 0);
-                if (hasCluster) {
-                    if (item.anti_jamming === 1) score += _T("Кластерная БЧ", (20)); else score += _T("Кластерная БЧ", (10));
-                }
-
-                let isAA = (item.air_target === 1 || item.dedicated_aa === 1);
-
-                if (isAA) {
-                    score += _T("Зенитная специализация", (45));
-
-                    if (item.projectiles > 1) {
-                        score += _T("Зенитная специализация", ((item.projectiles - 1) * 20));
-                    }
-
-                    if (item.splash_damage > 0 && item.splash_radius > 0) {
-                        score += _T("Зенитный сплэш", (60));
-                        score += _T("Зенитный сплэш", ((item.splash_radius / 50) * 15));
-                        score += _T("Зенитный сплэш", ((item.splash_damage / 1000) * 10));
-                    } else if (item.detonation_radius > 0) {
-                        score += _T("Зенитный сплэш", (20));
-                    }
-                } else {
-                    score += _T("Боеголовки в залпе", ((item.projectiles * 45)));
-                    if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 5000) * 30));
-                    if (item.splash_radius) score += _T("Сплэш и взрыв", ((item.splash_radius / 300) * 20));
-                    if (item.detonation_radius) score += _T("Сплэш и взрыв", ((item.detonation_radius / 20) * 15));
-                }
-
-                let effectiveHp = item.hp;
-                if (item.lock_time === 0) {
-                    effectiveHp *= 0.6;
-                }
-                score += _T("Живучесть (HP)", ((effectiveHp / 400) * 160));
-
-                score += _T("Стартовая скорость", ((item.start_speed / 400) * 120));
-                score -= _N("Штраф: время разгона", ((item.accel_time * 25)));
-                score += _T("Максимальная скорость", ((item.max_speed / 600) * 100));
-
-                let effectiveRange = getEffectiveRange(item.range, 10);
-                score += _T("Дальность", ((effectiveRange / 10) * 20));
-                if (item.range < 11.5) {
-                    score -= _N("Штраф: дальность ниже 11.5 км", (((11.5 - item.range) * 20)));
-                }
-
-                if (item.reload <= 8.0) score += _T("Быстрая перезарядка", ((8.0 - item.reload) * 15));
-                if (item.fragmentation_damage) score += _T("Осколочный урон", ((item.fragmentation_damage / 25000) * 40));
-
-                if (item.air_target === 1 && !item.dedicated_aa) score += _T("Атака авиации", (50));
-                if (item.sub_launch === 1) score += _T("Подводный пуск", (50));
-
-                score += _T("Время захвата цели", ((50 - (item.lock_time * 10))));
-
-                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.8)));
-                // Коэффициент был непропорционально большим относительно остальных штрафов в этой
-                // категории (accel_time×25, fire_penalty×0.8) и у ракет с мёртвой зоной 2-3 км
-                // перекрывал весь бонус за кластерную БЧ/РЭБ. Снижен до масштаба остальных штрафов.
-                if (item.min_range > 0) score -= _N("Штраф: мёртвая зона", ((item.min_range * 15)));
-                return score;
-            },
-            "Торпеды": function(item) {
-                let score = 100;
-                let accuracyScore = 100;
-
-                if (item.anti_jamming === 1) {
-                    item.effectiveDpm = item.dpm;
-                    item.effectiveBurst = item.damage_burst;
-                } else {
-                    let trapCycle = META_CONFIG.flareCycleTorpedo;
-                    let hitRatio = 0;
-
-                    let speedCoeff = Math.min(1.2, item.max_speed / 120);
-
-                    if (item.reload <= (trapCycle / 2)) {
-                        hitRatio = Math.min(1, (1 - (item.reload / trapCycle)) * speedCoeff);
-                    } else if (item.reload < trapCycle) {
-                        hitRatio = 0.55 * speedCoeff;
-                    } else {
-                        hitRatio = 0.35 * speedCoeff;
-                    }
-
-                    item.effectiveDpm = item.dpm * Math.min(1, hitRatio);
-                    item.effectiveBurst = item.damage_burst;
-                }
-
-                score += _T("Базовый бонус класса", (100));
-                score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 250));
-                score += _T("Эффективный альфа-страйк", ((item.damage_burst / 70000) * 150));
-                score += _T("Скорость", ((item.max_speed / 160) * 120));
-
-                if (item.accel_time <= 5) score += _T("Быстрый разгон", (40));
-                else score -= _N("Штраф: время разгона", ((item.accel_time * 5)));
-
-                if (item.anti_jamming === 1) score += _T("Помехозащита (РЭБ)", (150));
-                if (item.ammo_clip && item.ammo_clip > 1) score += _T("Обойма", ((item.ammo_clip * 10)));
-
-                if (item.projectiles) {
-                    score += _T("Торпеды в залпе", ((item.projectiles * 25)));
-                }
-
-                let effectiveRange = getEffectiveRange(item.range, 12);
-                score += _T("Дальность", ((effectiveRange / 12) * 30));
-
-                if (item.splash_damage) score += _T("Сплэш и взрыв", ((item.splash_damage / 6000) * 20));
-                if (item.detonation_radius) score += _T("Сплэш и взрыв", ((item.detonation_radius / 40) * 20));
-
-                score += _T("Время захвата цели", ((50 - (item.lock_time * 10))));
-
-                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
-                return score;
-            },
-          "Гранатометы": function(item) {
-                let score = 100;
-
-                // 1. Штраф за отдачу
-                let recoil = item.recoil !== undefined ? item.recoil : 15;
-                let recoilPenalty = (recoil - 11) * 5;
-                score -= _N("Штраф: отдача", (Math.max(0, recoilPenalty)));
-
-                if (item.gl_type === "gun" || item.gl_type === "mixed") {
-                    let baseAccuracy = item.accuracy !== undefined ? item.accuracy : 100;
-                    let speedFactor = 800 / item.max_speed;
-                    let evasionPenalty = (META_CONFIG.gunMetaDistance * speedFactor * 1.5);
-
-                    let projCount = item.projectiles || 1;
-                    let spreadPenalty = (item.range / 10) * recoil * (1 + (projCount * 0.1));
-
-                    item.accuracyScore = Math.max(5, baseAccuracy - evasionPenalty - spreadPenalty);
-                    let hitRatio = Math.min(1, (item.accuracyScore / 100) + 0.15);
-
-                    item.effectiveDpm = item.dpm * hitRatio;
-                    item.effectiveBurst = item.damage_burst * hitRatio;
-
-                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220));
-                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200));
-                    score += _T("Скорость", ((item.max_speed / 600) * 80));
-
-                    score += _T("Тип гранатомёта", ((item.gl_type === "mixed") ? 60 : 120));
-
-                    if (item.lock_time > 0) {
-                        score -= _N("Штраф: время захвата", ((item.lock_time * 50)));
-                    }
-
-                } else if (item.gl_type === "missile") {
-                    item.accuracyScore = 100;
-                    let effectiveHp = item.hp || 100;
-                    score += _T("Живучесть (HP)", ((effectiveHp / 200) * 120));
-
-                    let isFlarable = (item.anti_jamming === 0);
-
-                    // Раньше effectiveDpm/effectiveBurst считались через фиксированный множитель
-                    // (0.6/0.4), а более точный hitRatio по циклу отвода ловушек (зависит от
-                    // reload) считался отдельно и шёл только в бонус "Проходимость через ловушки" —
-                    // то есть реальная скорострельность вообще не влияла на эффективный урон, только
-                    // на добавочные очки. Теперь hitRatio, как и у обычных ракет/торпед, напрямую
-                    // масштабирует effectiveDpm/effectiveBurst.
-                    let hitRatio = 1;
-                    if (isFlarable) {
-                        let flareCycle = META_CONFIG.flareCycleMissile;
-                        if (item.reload <= (flareCycle / 2)) {
-                            hitRatio = 1.2 - (item.reload / flareCycle);
-                        } else if (item.reload < flareCycle) {
-                            hitRatio = 0.70;
-                        } else {
-                            hitRatio = 0.40;
-                        }
-                        // Верхняя граница: при перезарядке короче ~2.2с hitRatio иначе уходил выше 1.0
-                        // (>100% проходимости через ловушки). Ограничено единицей, как у обычных ракет.
-                        hitRatio = Math.min(1, hitRatio);
-                        item.effectiveDpm = item.dpm * hitRatio;
-                        item.effectiveBurst = item.damage_burst * hitRatio;
-                    } else {
-                        item.effectiveDpm = item.dpm * 0.85;
-                        item.effectiveBurst = item.damage_burst * 0.85;
-                    }
-
-                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220));
-                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200));
-
-                    if (item.start_speed) score += _T("Стартовая скорость", ((item.start_speed / 300) * 50));
-                    if (item.max_speed) score += _T("Скорость", ((item.max_speed / 600) * 60));
-
-                    if (item.lock_time > 0) {
-                        score -= _N("Штраф: время захвата", ((item.lock_time * 50)));
-                    }
-
-                    if (!isFlarable) {
-                        score += _T("Помехозащита (РЭБ)", (100));
-                    }
-
-                    if (item.projectiles > 3) score += _T("Залповая плотность", (30));
-                } else if (item.gl_type === "laser") {
-                    item.accuracyScore = 100;
-                    let effectiveHp = (item.hp || 100) * 0.6;
-                    score += _T("Живучесть (HP)", ((effectiveHp / 200) * 100));
-
-                    item.effectiveDpm = item.dpm * 0.6;
-                    item.effectiveBurst = item.damage_burst * 0.6;
-
-                    score += _T("Эффективный DPM", ((item.effectiveDpm / 300000) * 220));
-                    score += _T("Эффективный альфа-страйк", ((item.effectiveBurst / 50000) * 200));
-
-                    if (item.lock_time > 0) {
-                        score -= _N("Штраф: время захвата", ((item.lock_time * 50)));
-                    }
-                    score += _T("Лазерное наведение", (80));
-                }
-
-                if (item.crit_chance > 0) {
-                    score += _T("Шанс крита", ((item.crit_chance / 30) * 25));
-                }
-
-                if (item.can_hit_torpedoes === 1) {
-                    let splashFactor = (item.splash_radius || 0) / 50;
-                    score += _T("Перехват торпед", (30 + (splashFactor * 10)));
-                    if (item.projectiles) score += _T("Перехват торпед", (Math.min(40, item.projectiles * 5)));
-                }
-                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (40));
-                if (item.only_torpedoes === 1) score += _T("Перехват торпед", (200));
-
-                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 35));
-                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 50) * 10));
-                if (item.detonation_radius > 0) score += _T("Сплэш и взрыв", ((item.detonation_radius / 30) * 10));
-
-                if (item.fire_mode === "burst") {
-                    score += _T("Режим залпа", (40));
-                } else if (item.fire_mode === "manual") {
-                    score -= _N("Штраф: ручной режим", (40));
-                }
-
-                if (item.air_target === 1) score += _T("Атака авиации", (60));
-                score += _T("Дальность", ((item.range * 2)));
-                let effectiveRange = getEffectiveRange(item.range, 12);
-                score += _T("Дальность", ((effectiveRange / 12) * 20));
-
-                return score;
-            },
-           "Автопушки": function(item) {
-                let score = 100;
-
-                // Точность оружия (accuracy): у обычных стволов почти всегда 100%, но у "картечных"
-                // (Skyranger Buckshot и т.п.) она искусственно занижена (разброс дроби/картечи) —
-                // раньше это поле нигде не участвовало в расчёте, и такие стволы получали рейтинг
-                // так, будто ВСЕ снаряды долетают в цель. Это разброс именно ствола, поэтому он
-                // должен уменьшать только пушечную часть урона, а не ракетный канал гибридного
-                // оружия — у ракеты своя точность наведения, и её "проходимость" уже отдельно
-                // считается через hitRatio (уклонение от ловушек) ниже.
-                let accuracyFactor = item.accuracy != null ? (item.accuracy / 100) : 1;
-                item.accuracyScore = item.accuracy != null ? item.accuracy : 100;
-
-                let effDpm = item.dpm * accuracyFactor;
-                let effBurst = item.damage_burst * accuracyFactor;
-
-                // Проверяем, является ли автопушка гибридной (есть ракетный канал)
-                let isHybridAuto = (item.dpm_missile !== undefined);
-                if (isHybridAuto) {
-                    // Шанс попадания ракеты из автопушки сквозь ловушки врага — общая формула,
-                    // та же, что и у категории "Ракеты" и у боевого симулятора.
-                    let hitRatio = getMissileHitRatio(item.reload_missile);
-
-                    let gunEffDpm = (item.dpm_gun || 0) * accuracyFactor;
-                    let gunEffBurst = (item.damage_gun || 0) * (item.ammo_clip_gun || 1) * accuracyFactor;
-                    let misEffDpm = (item.dpm_missile || 0) * hitRatio;
-                    let misEffBurst = (item.damage_missile || 0) * (item.ammo_clip_missile || 1) * hitRatio;
-
-                    effDpm = gunEffDpm + misEffDpm;
-                    effBurst = gunEffBurst + misEffBurst;
-
-                    // Раньше смешанный effDpm/effBurst (пушка + ракета одной суммой) целиком
-                    // прогонялся через единую шкалу автопушек — как будто оба канала однородны.
-                    // Но пушечный и ракетный залп по своей природе устроены по-разному (скорострельность,
-                    // масштаб урона за выстрел), поэтому теперь очки начисляются раздельно: пушечный
-                    // канал — по шкале обычной (негибридной) автопушки, ракетный — по шкале отдельного
-                    // ракетного оружия (категория "Ракеты"). Это и есть "расчёт как для пулемёта и как
-                    // для ракеты по отдельности", а не одна усреднённая формула на двоих.
-                    score += _T("Пушечный канал (эфф. DPM + альфа, шкала автопушки)", scoreAsGunChannel(gunEffDpm, gunEffBurst));
-                    score += _T("Ракетный канал (эфф. DPM + альфа, шкала ракеты)", scoreAsMissileChannel(misEffDpm, misEffBurst));
-                } else {
-                    score += _T("Эффективный DPM", ((effDpm / 250000) * 300));
-                    score += _T("Эффективный альфа-страйк", ((effBurst / 30000) * 150));
-                }
-
-                item.effectiveDpm = effDpm;
-                item.effectiveBurst = effBurst;
-
-                if (accuracyFactor < 1) score -= _N("Штраф: низкая точность (разброс)", ((1 - accuracyFactor) * 120));
-
-                if (item.air_target === 1) {
-                    // Раньше — плоские +150 за сам факт "может бить по воздуху". Теперь считаем, сколько
-                    // ракет из типового залпа эта автопушка реально сбивает (фокус-огонь, пауза на
-                    // перенаведение, время пролёта зоны) — той же моделью, что и у категории "ПВО".
-                    const E = getAARatingEffectiveness(item);
-                    item.killChanceVsMissile = E.kill;
-                    score += _T("Атака авиации", (AUTO_AA_BASE_BONUS));
-                    score += _T("Реальный шанс сбить ракету", (E.kill * AUTO_AA_KILL_BONUS));
-                }
-                if (item.can_hit_subs === 1) score += _T("Атака подлодок", (250));
-
-                let effectiveRange = getEffectiveRange(item.range, 10);
-                score += _T("Дальность", ((effectiveRange / 10) * 60));
-                score += _T("Скорость снаряда", ((item.max_speed / 1000) * 50));
-
-                if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 30) * 30));
-                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 100) * 20));
-                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 1000) * 10));
-
-                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
-
-                return Math.round(score);
-            },
-           "ПВО": function(item) {
-                // У категории "ПВО" раньше вообще не было своего калькулятора — все юниты этого
-                // класса получали фиксированные 500 очков (см. calculateRating: фолбэк на "нет
-                // калькулятора для этой категории"). Теперь считаем реальный шанс перехвата через
-                // ту же физическую модель, что и в симуляторе боя (computeAAEngagement), против
-                // усреднённого профиля боевых ракет из базы — а не просто по "паспортным" цифрам.
-                let score = 100;
-
-                const threat = getThreatMissileProfile();
-                const threatMissile = {
-                    start_speed: threat.avgStartSpeed,
-                    max_speed: threat.avgMaxSpeed,
-                    accel_time: threat.avgAccelTime,
-                    hp: threat.avgHp,
-                    // Реалистичная "кучность" залпа: реальная ракета редко летит в одиночку — берём
-                    // среднее число боеголовок за пуск по всей базе боевых ракет. Дальше движок
-                    // runInterceptEngine раскладывает их как отдельные цели с разнесённым дедлайном
-                    // (не "в одну линию") и последовательным фокус-огнём ПВО — см. его комментарий.
-                    projectiles: Math.max(1, Math.round(threat.avgProjectiles || 1)),
-                    anti_jamming: 0 // средний случай: у части атакующих ракет РЭБ нет — иначе рейтинг
-                                    // никак не наказывал бы медленные ракетные/гибридные ПВО за это
-                };
-
-                // Дистанция = собственная дальность ПВО: тогда "окно перехвата" в симуляции — это
-                // именно время прохождения ракетой всей эффективной дальности этого ПВО, честно
-                // сравнимое между разными юнитами независимо от того, на каком расстоянии их запускают.
-                const E = getAARatingEffectiveness(item);
-
-                item.accuracyScore = Math.round(E.accuracy * 100);
-                // Доля суммарного HP типичного роя, которую ПВО успевает снять за окно перехвата —
-                // честная метрика и для одиночной ракеты (n=1), и для роя из нескольких боеголовок:
-                // чем крупнее рой, тем больше totalMissileHP и тем труднее сбить его полностью,
-                // как и должно быть.
-                item.killChanceVsMissile = E.kill;
-                item.effectiveDpm = item.dpm;
-                item.effectiveBurst = item.damage_burst;
-
-                score += _T("Реальный шанс сбить ракету", (item.killChanceVsMissile * 350));
-                score += _T("DPM (паспортный)", ((item.dpm / 30000) * 60));
-
-                // Дистанция перехвата в симуляции выше уже берётся равной собственной дальности ПВО,
-                // поэтому большая дальность и так даёт более длинное окно перехвата (больше выстрелов,
-                // выше "Реальный шанс сбить ракету"). Отдельный явный бонус за дальность снижен, чтобы
-                // не начислять его повторно поверх уже заложенного эффекта в основном показателе.
-                let effectiveRange = getEffectiveRange(item.range || 0, 5);
-                score += _T("Дальность", ((effectiveRange / 5) * 25));
-
-                if (item.aa_type === "Гибрид") score += _T("Двухканальность (пушка + ракета)", 40);
-                if (item.crit_chance > 0) score += _T("Шанс крита", ((item.crit_chance / 20) * 20));
-                if (item.detonation_radius > 0) score += _T("Осколочное поражение", ((item.detonation_radius / 30) * 15));
-                if (item.splash_damage > 0) score += _T("Сплэш и взрыв", ((item.splash_damage / 500) * 10));
-                if (item.splash_radius > 0) score += _T("Сплэш и взрыв", ((item.splash_radius / 100) * 10));
-
-                if (item.fire_penalty) score -= _N("Штраф маскировки", ((item.fire_penalty * 0.5)));
-                // Раньше здесь ещё вычитался отдельный фиксированный штраф "уязвимость к ловушкам" для
-                // Ракетного/Гибридного ПВО, хотя та же самая уязвимость (цель без РЭБ) уже заложена
-                // прямо в физическую симуляцию выше (×0.6 к урону канала для этих типов) — одна и та же
-                // причина штрафовалась дважды. Теперь она учитывается только внутри симуляции.
-
-                return Math.round(score);
-            },
-        };
-
-        RATING_CALCULATORS["Ракеты А/А"] = RATING_CALCULATORS["Ракеты"];
-
-        function calculateRating(item) {
-            if (RATING_CALCULATORS[item.category]) {
-                // Искусственный потолок в 1000 очков удалён. Оставлен только минимальный порог в 1 очко.
-                return Math.max(1, Math.round(RATING_CALCULATORS[item.category](item)));
-            }
-            return 500;
-        }
-
-        for (let key in DB) { DB[key].rating = calculateRating(DB[key]); }
-
-        // =========================================================
-        // РАЗБОР РЕЙТИНГА (score breakdown)
-        // =========================================================
-        const RATING_HINTS = {
-            "DPM (паспортный)": "Урон в минуту из таблицы, без поправки на промахи",
-            "Эффективный DPM": "Урон в минуту с поправкой на промахи и ловушки врага",
-            "Эффективный альфа-страйк": "Урон одного залпа с поправкой на попадания",
-            "Альфа-страйк": "Урон одного залпа",
-            "Скорость снаряда": "Чем быстрее снаряд, тем сложнее уклониться",
-            "Скорость": "Максимальная скорость снаряда, ракеты или торпеды",
-            "Стартовая скорость": "Быстрый старт оставляет ПВО меньше времени",
-            "Максимальная скорость": "Разгонная скорость ракеты",
-            "Дальность": "Бонус за дальность, у каждой категории своя планка",
-            "Штраф: дальность ниже 11 км": "Снимает очки за каждый километр ниже 11",
-            "Штраф: дальность ниже 11.5 км": "Снимает очки за каждый километр ниже 11.5",
-            "Шанс крита": "Бонус за вероятность критического попадания",
-            "Быстрая перезарядка": "Бонус за короткую перезарядку",
-            "Штраф: большая обойма": "Длинная обойма забирает очки: залп получается растянутым",
-            "Залповая схема (без обоймы)": "Бонус за оружие без обоймы: весь урон приходит сразу",
-            "Атака авиации": "Оружие умеет бить по воздушным целям",
-            "Атака подлодок": "Оружие умеет бить по подлодкам",
-            "Сплэш и взрыв": "Урон и радиус взрыва, радиус детонации",
-            "Штраф маскировки": "Выстрел демаскирует корабль: чем сильнее штраф, тем меньше очков",
-            "Базовый бонус класса": "Фиксированный бонус категории",
-            "Помехозащита (РЭБ)": "Ловушки не отводят оружие, поэтому самый большой бонус в категории",
-            "Штраф: уязвимость к ловушкам": "Ракета не успевает пролететь безопасную дистанцию до срабатывания ловушек",
-            "Кластерная БЧ": "Осколочная боевая часть частично обходит ловушки и ПВО",
-            "Зенитная специализация": "Бонус за ракеты, заточенные под воздушные цели",
-            "Зенитный сплэш": "Сплэш и радиус детонации у зенитных ракет",
-            "Боеголовки в залпе": "Число ракет в одном пуске",
-            "Живучесть (HP)": "Прочность ракеты: чем выше, тем труднее сбить",
-            "Штраф: время разгона": "Долгий разгон даёт цели время на реакцию",
-            "Осколочный урон": "Урон осколками кластерной боевой части",
-            "Подводный пуск": "Можно стартовать из-под воды",
-            "Время захвата цели": "Меньше время захвата, больше очков (может уйти в минус)",
-            "Штраф: время захвата": "Долгий захват цели снимает очки",
-            "Штраф: мёртвая зона": "Внутри мёртвой зоны ракета не стартует",
-            "Быстрый разгон": "Торпеда быстро набирает скорость",
-            "Обойма": "Число торпед в обойме",
-            "Торпеды в залпе": "Число торпед в одном залпе",
-            "Штраф: отдача": "Сильная отдача ухудшает стрельбу гранатомёта",
-            "Тип гранатомёта": "Пушечный тип надёжнее ракетного, смешанный ниже",
-            "Проходимость через ловушки": "Насколько ракетные гранаты пробиваются сквозь ловушки",
-            "Залповая плотность": "Много ракет в залпе",
-            "Лазерное наведение": "Лазерный тип наведения",
-            "Перехват торпед": "Гранатомёт может сбивать вражеские торпеды",
-            "Режим залпа": "Залповая стрельба удобнее ручной",
-            "Штраф: ручной режим": "Ручной режим стрельбы снимает очки",
-            "Шанс сбить ракету": "Главный вклад ПВО: реально ли оно собьёт типичную ракету",
-            "Чистота попаданий": "Чем меньше разброс, тем выше бонус",
-            "Скорость перехвата": "Успевает ли перехватчик догнать типичную ракету",
-            "Сплэш и радиус взрыва": "Эффективность против роя ракет",
-            "Плотность огня": "Размер обоймы ПВО"
-        };
-
-        function computeBreakdownForItem(item) {
-            const calc = RATING_CALCULATORS[item.category];
-            if (!calc) return null;
-            const copy = Object.assign({}, item); // калькуляторы дописывают в объект effectiveDpm и т.п.
-            _bdLog = [];
-            let raw, log;
-            try { raw = calc(copy); } finally { log = _bdLog; _bdLog = null; }
-            const map = {};
-            log.forEach(e => { const v = isFinite(e.value) ? e.value : 0; map[e.label] = (map[e.label] || 0) + v; });
-            return { map: map, raw: raw, copy: copy };
-        }
-
-        const _bdAvgCache = {};
-        function getCategoryBreakdownAvg(category) {
-            if (_bdAvgCache[category]) return _bdAvgCache[category];
-            const keys = Object.keys(DB).filter(k => DB[k].category === category);
-            const sums = {};
-            keys.forEach(k => {
-                const r = computeBreakdownForItem(DB[k]);
-                if (!r) return;
-                Object.keys(r.map).forEach(l => { sums[l] = (sums[l] || 0) + r.map[l]; });
-            });
-            const avg = {};
-            Object.keys(sums).forEach(l => { avg[l] = sums[l] / (keys.length || 1); });
-            _bdAvgCache[category] = avg;
-            return avg;
-        }
-
-        function getRatingBreakdown(itemId) {
-            const item = DB[itemId];
-            const r = computeBreakdownForItem(item);
-            if (!r) return null;
-            const avg = getCategoryBreakdownAvg(item.category);
-            const labels = Object.keys(r.map);
-            Object.keys(avg).forEach(l => { if (labels.indexOf(l) < 0) labels.push(l); });
-            const parts = labels.map(l => ({
-                label: l,
-                value: r.map[l] || 0,
-                avg: avg[l] || 0,
-                hint: RATING_HINTS[l] || ''
-            }));
-            const sum = parts.reduce((a, p) => a + p.value, 0);
-            return {
-                item: item, base: 100, parts: parts, sum: sum,
-                raw: 100 + sum, final: item.rating,
-                clamped: (Math.round(r.raw) !== item.rating),
-                eff: {
-                    dpm: r.copy.effectiveDpm, burst: r.copy.effectiveBurst,
-                    accuracy: r.copy.accuracyScore, kill: r.copy.killChanceVsMissile
-                }
-            };
-        }
+         // База оружия приходит из Supabase (таблица items), расчётные поля (rating, effectiveDpm…) — из Edge Function calc.
+        let DB = {};
+        // Рейтинги, разбор рейтинга, симулятор ПВО и дуэль считаются на сервере (Supabase Edge Function `calc`).
 
         let compareQueue = [];
         function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
@@ -3819,7 +2846,7 @@
                 if (sortType === 'dpm') return b.dpm - a.dpm;
                 if (sortType === 'burst') return b.damage_burst - a.damage_burst;
                 if (sortType === 'speed') return b.max_speed - a.max_speed;
-                if (sortType === 'rating') return b.rating - a.rating;
+                if (sortType === 'rating') return (b.rating || 0) - (a.rating || 0);
                 return a.name.localeCompare(b.name);
             });
 
@@ -4781,394 +3808,6 @@
         }
 
         // Время полета снаряда/ракеты с разгоном (v0 -> vmax за accelTime) на дистанцию distance
-        function missileFlightTime(v0, vmax, accelTime, distance) {
-            if (distance <= 0) return 0;
-            accelTime = accelTime || 0;
-            vmax = vmax || v0 || 0.00001;
-            v0 = v0 || vmax;
-            if (accelTime <= 0 || vmax <= v0) {
-                return distance / vmax;
-            }
-            let accelDist = ((v0 + vmax) / 2) * accelTime;
-            if (distance <= accelDist) {
-                let currentSpeed = v0 + ((vmax - v0) * (distance / accelDist));
-                return distance / ((v0 + currentSpeed) / 2);
-            } else {
-                return accelTime + ((distance - accelDist) / vmax);
-            }
-        }
-
-        // Точность оружия — СТРОГО из полей, которые реально есть в базе. Раньше для ПВО и
-        // Автопушек здесь стояла своя таблица "индексов разброса" (11/14/16/22) по типу
-        // наведения — подобранная вручную, а не взятая из базы (в базе такого поля вообще нет
-        // ни у одного юнита ПВО). Для автопушек это было ещё и прямым рассогласованием: тир-лист
-        // (RATING_CALCULATORS["Автопушки"]) честно брал реальное поле item.accuracy из базы
-        // (100 почти у всех стволов, 33 — у картечных), а этот движок для той же самой пушки
-        // выдумывал СВОЙ, другой процент. Теперь везде используется одна и та же логика:
-        // если в базе явно указана точность — берём её; если нет — считаем 100%, а разницу между
-        // юнитами дают только реальные характеристики (DPM, урон, скорострельность, скорость/разгон
-        // снаряда или собственной ракеты-перехватчика — см. кинематику ниже в runInterceptEngine,
-        // она уже и так считается по настоящим max_speed/start_speed/accel_time/range).
-        function getEffectiveAccuracy(item) {
-            if (item.is_buckshot) return item.accuracy != null ? item.accuracy / 100 : 1;
-
-            if (item.category === "ПВО") {
-                // В базе нет ни одного поля accuracy у юнитов ПВО — данных о точности просто
-                // не существует. Придумывать "индекс разброса" по названию типа наведения —
-                // значит выдавать догадку за данные. Честный вариант при отсутствии данных —
-                // не штрафовать точность вообще (100%) и оценивать юнит по тому, что в базе
-                // ЕСТЬ на самом деле.
-                return 1;
-            }
-
-            if (item.category === "Автопушки") {
-                // Точность реально задана в базе для каждой автопушки — используем её напрямую,
-                // как и тир-лист, вместо выдуманного индекса по конструктивному подтипу.
-                return item.accuracy != null ? item.accuracy / 100 : 1;
-            }
-
-            if (item.accuracy != null) return item.accuracy / 100;
-            return 1;
-        }
-
-        // =========================================================
-        // ЕДИНЫЙ ДВИЖОК ПЕРЕХВАТА ПВО (доработка "нюансов роя")
-        // =========================================================
-        // Раньше весь залп атакующих ракет считался ОДНИМ общим "окном перехвата" (engageTime) и
-        // ОДНИМ общим пулом урона (totalAADamage), который в конце просто делился на HP одной ракеты
-        // (floor(totalAADamage / singleMissileHP)). У этого было два нереалистичных допущения:
-        //   1) Все ракеты роя как будто летят "в одну линию" и одновременно проходят через ТОЧНО
-        //      одинаковое окно перехвата — как будто это одна точка, а не N разных ракет на разных,
-        //      слегка разнесённых по времени траекториях (разные боеголовки одного пуска, разные пуски).
-        //   2) Урон "размазывался" по завершении расчёта одним делением, без явной модели того, КАК
-        //      именно ПВО ведёт огонь по рою. В игре все точки/каналы ПВО стреляют по ОДНОЙ ракете, и
-        //      только когда она уничтожена — перенацеливаются на следующую (последовательный
-        //      фокус-огонь), а не "размазывают" урон по всем ракетам роя одновременно.
-        //
-        // Новая модель:
-        //  - Каждая ракета роя — отдельная цель со своим индивидуальным дедлайном (временем долёта
-        //    до корабля), слегка смещённым относительно "средней" ракеты залпа: боеголовки одного
-        //    пуска (mis.projectiles) разнесены слабо (свои траектории, но пуск один), ракеты разных
-        //    пусков (misQty) — чуть сильнее (не идеально синхронизированы между собой).
-        //  - Все стволы/каналы ПВО (aaQty штук, плюс пушечный+ракетный канал у гибридов) стреляют
-        //    ПО ОДНОЙ И ТОЙ ЖЕ, ближайшей по дедлайну живой ракете. Как только суммарный урон по ней
-        //    достигает её HP — она уничтожается, и огонь МГНОВЕННО переключается на следующую ракету
-        //    в очереди. Если дедлайн текущей цели наступает раньше, чем её добили — она прорывается
-        //    (survives), а огонь также переключается дальше, не "теряя" оставшиеся выстрелы.
-        //  - Все прежние временные расчёты (задержка реакции, сигмоида по запасу времени на перехват,
-        //    квадратичный штраф по скорости интерцептора, гибридные каналы, лазер/пулемёт, шанс
-        //    пробития ловушек) остаются такими же — меняется только то, ПРОТИВ КАКОЙ именно ракеты
-        //    роя и с каким индивидуальным дедлайном они считаются в каждый момент времени.
-        //
-        // computeAAEngagement (рейтинг ПВО, дуэль кораблей) и simulateAABreakthrough (интерактивный
-        // калькулятор "РАССЧИТАТЬ ВЕРОЯТНОСТЬ") теперь — тонкие обёртки над этим общим движком, чтобы
-        // рой ракет и логика фокус-огня считались абсолютно одинаково в обоих местах и никогда не
-        // расходились между собой.
-        // (Константы AA_SWARM_SPREAD объявлены выше, рядом с AA_REACTION_TIME — см. комментарий там.)
-
-        // Строит рой из N отдельных ракет-целей с индивидуальными дедлайнами вокруг baseEngageTime.
-        function buildMissileSwarm(baseEngageTime, projectilesPerLaunch, misQty, singleMissileHP) {
-            const totalMissiles = Math.max(1, misQty * projectilesPerLaunch);
-            if (totalMissiles === 1) {
-                return [{ hp: singleMissileHP, deadline: Math.max(0.05, baseEngageTime) }];
-            }
-            let raw = [];
-            for (let g = 0; g < misQty; g++) {
-                for (let p = 0; p < projectilesPerLaunch; p++) {
-                    raw.push(g * AA_SWARM_SPREAD.perLaunch + p * AA_SWARM_SPREAD.perProjectile);
-                }
-            }
-            let minOff = Math.min.apply(null, raw), maxOff = Math.max.apply(null, raw);
-            let spread = maxOff - minOff;
-            let cap = baseEngageTime * AA_SWARM_SPREAD.maxShareOfWindow;
-            let scale = (spread > cap && spread > 0) ? (cap / spread) : 1;
-            let mid = (minOff + maxOff) / 2;
-            return raw.map(function(off) {
-                return { hp: singleMissileHP, deadline: Math.max(0.05, baseEngageTime + (off - mid) * scale) };
-            });
-        }
-
-        // Общий движок для ЛЮБОГО числа групп ПВО и групп ракет (слоты симулятора).
-        //   aaGroups  = [{ aa, qty }, ...]  — разные системы ПВО, у каждой своё число модулей
-        //   misGroups = [{ mis, qty }, ...] — разные ракеты, у каждой своё число пусковых
-        // Все ракеты стартуют одновременно с дистанции distance. У каждой пары (ПВО × ракета) своё окно:
-        // ракета входит в зону конкретной ПВО в свой момент и летит внутри неё своё время.
-        // Правила те же, что и раньше: фокус-огонь по ближайшей по времени долёта живой ракете, пауза на
-        // перенаведение (у каждой ПВО своя), реакция ПВО, встречный перехват для ракетных каналов.
-        // Для ОДНОЙ группы ПВО и ОДНОЙ группы ракет результат совпадает с прежним движком.
-        function runInterceptEngineMulti(aaGroups, misGroups, distance) {
-            const MW_COEF = 0.00278;
-            const TIMING_SHARPNESS = 0.6;
-            const AA_MIN_KILL_MARGIN = 0.25; // сек: ракету надо поразить хотя бы за столько до попадания в корабль
-
-            // 1. Атакующие ракеты по группам
-            const mg = misGroups.map(function(g) {
-                const mis = g.mis;
-                const v0 = (mis.start_speed || mis.max_speed || 0) * MW_COEF;
-                const vmax = (mis.max_speed || 0) * MW_COEF;
-                const accel = mis.accel_time || 0.1;
-                return { mis: mis, qty: g.qty, v0: v0, vmax: vmax, accel: accel,
-                         flyTime: missileFlightTime(v0, vmax, accel, distance),
-                         hp: mis.hp || 50, projectiles: mis.projectiles || 1 };
-            });
-
-            // 2. Группы ПВО
-            const ag = aaGroups.map(function(g) {
-                const aa = g.aa;
-                const hasProfile = (aa.accel_time || 0) > 0;
-                const isHybrid = (aa.dpm_gun !== undefined && aa.dpm_missile !== undefined);
-                // Тип ПВО: у категории "ПВО" задан в базе; у автопушек с air_target определяем по каналам.
-                let kind = aa.aa_type;
-                if (!kind) {
-                    if (isHybrid) kind = "Гибрид";
-                    else kind = hasProfile ? "Ракетное" : "Пулеметное";
-                }
-                let reaction = AA_REACTION_TIME[kind];
-                if (reaction === undefined) reaction = hasProfile ? 0.6 : 0.4;
-                let retarget = AA_RETARGET_TIME[kind];
-                if (retarget === undefined) retarget = hasProfile ? 1.2 : 0.8;
-                return { aa: aa, qty: g.qty, range: aa.range || 3.0,
-                         v0: (aa.start_speed || aa.max_speed || 0) * MW_COEF,
-                         vmax: (aa.max_speed || 0) * MW_COEF,
-                         accel: aa.accel_time || 0,
-                         hasProfile: hasProfile, isHybrid: isHybrid, kind: kind,
-                         reaction: reaction, retarget: retarget,
-                         accuracy: getEffectiveAccuracy(aa) };
-            });
-
-            // 3. Окно каждой пары (ПВО a × ракета g)
-            const pair = ag.map(function(a) {
-                return mg.map(function(m) {
-                    const enter = distance > a.range ? missileFlightTime(m.v0, m.vmax, m.accel, distance - a.range) : 0;
-                    const zoneTime = Math.max(0, m.flyTime - enter);   // сколько ракета летит внутри зоны этой ПВО
-                    const base = Math.max(0, zoneTime - a.reaction);   // окно после реакции
-                    const zoneLen = Math.min(distance, a.range);
-                    const zoneSpeed = (zoneTime > 0 && zoneLen > 0) ? (zoneLen / zoneTime) : (m.vmax || 1);
-                    let speedFactor = 1;
-                    if (a.hasProfile && m.vmax > 0) speedFactor = Math.pow(Math.min(1, a.vmax / m.vmax), 2);
-                    return { enter: enter, zoneTime: zoneTime, base: base, open: enter + a.reaction,
-                             zoneSpeed: zoneSpeed, speedFactor: speedFactor };
-                });
-            });
-
-            // 4. Рой: каждая ракета — отдельная цель со временем долёта (arrival, от момента пуска).
-            //    Разброс внутри группы считается по самой "широкой" ПВО (с наибольшим окном), чтобы результат
-            //    не зависел от порядка слотов; для одной ПВО это ровно прежний расчёт.
-            let swarm = [];
-            mg.forEach(function(m, gi) {
-                let ref = 0;
-                for (let ai = 1; ai < ag.length; ai++) if (pair[ai][gi].base > pair[ref][gi].base) ref = ai;
-                const P = pair[ref][gi];
-                buildMissileSwarm(P.base, m.projectiles, m.qty, m.hp).forEach(function(sm) {
-                    swarm.push({ g: gi, hp: sm.hp, arrival: P.open + sm.deadline, status: 'pending' });
-                });
-            });
-            swarm.sort(function(x, y) { return (x.arrival - y.arrival) || (x.g - y.g); });
-            const totalMissiles = swarm.length;
-            let totalMissileHP = 0;
-            swarm.forEach(function(sm) { totalMissileHP += sm.hp; });
-            const maxArrival = swarm[swarm.length - 1].arrival;
-
-            // 5. Расписание выстрелов (только моменты стрельбы — вероятность считается в момент выстрела)
-            function buildShotSchedule(clipSize, fireDelay, reload, maxTime) {
-                let times = [];
-                let currentTime = 0;
-                let clipLeft = clipSize || 1;
-                let guard = 0;
-                while (currentTime < maxTime && guard < 100000) {
-                    guard++;
-                    if (clipLeft > 0) {
-                        times.push(currentTime);
-                        clipLeft--;
-                        currentTime += (fireDelay || 0.2);
-                    } else {
-                        currentTime += (reload || 3.0);
-                        clipLeft = clipSize || 1;
-                    }
-                }
-                return times;
-            }
-
-            let events = [];
-            ag.forEach(function(a, ai) {
-                const aa = a.aa;
-                // ПВО начинает стрелять, когда ПЕРВАЯ ракета вошла в её зону и прошла реакция
-                let start = Infinity;
-                pair[ai].forEach(function(P) { if (P.open < start) start = P.open; });
-                const span = Math.max(0.05, maxArrival - start);
-
-                let channels = [];
-                function addChannel(damage, reload, clipSize, fireDelay, useKinematics, chAccuracy, extraMult, antiJamSensitive) {
-                    if (!damage) return;
-                    channels.push({ damage: damage, times: buildShotSchedule(clipSize, fireDelay, reload, span),
-                                    useKinematics: useKinematics, chAccuracy: chAccuracy, extraMult: extraMult,
-                                    antiJamSensitive: !!antiJamSensitive });
-                }
-                const pellets = (aa.projectiles > 1 ? aa.projectiles : 1);
-                if (a.kind === "Лазерное" || a.kind === "Пулеметное") {
-                    addChannel(aa.damage * pellets, aa.reload, aa.ammo_clip, aa.fire_delay, false, a.accuracy, 1, false);
-                } else if (a.isHybrid) {
-                    addChannel(aa.damage_missile, aa.reload_missile, aa.ammo_clip_missile, aa.fire_delay,
-                        a.hasProfile, 1, getMissileHitRatio(aa.reload_missile), false);
-                    addChannel(aa.damage_gun, aa.reload_gun, aa.ammo_clip_gun, aa.fire_delay, false, a.accuracy, 1, false);
-                } else {
-                    addChannel(aa.damage * pellets, aa.reload, aa.ammo_clip, aa.fire_delay, a.hasProfile, a.accuracy, 1,
-                        a.kind === "Ракетное");
-                }
-                for (let m = 0; m < a.qty; m++) {
-                    channels.forEach(function(ch) {
-                        ch.times.forEach(function(off) {
-                            events.push({ t: start + off, a: ai, m: m, ch: ch });
-                        });
-                    });
-                }
-            });
-            events.sort(function(x, y) { return (x.t - y.t) || (x.a - y.a) || (x.m - y.m); });
-
-            // 6. Встречный перехват: ракета ПВО и атакующая ракета летят навстречу друг другу. Точка встречи x
-            //    (км от корабля) — из условия: время полёта перехватчика до x (с разгоном) = время, за которое
-            //    атакующая ракета долетит до x. Запас x / скорость_ракеты — за сколько секунд ДО попадания в
-            //    корабль ракета будет поражена.
-            function interceptLeadTime(t, arrival, a, P) {
-                let tau = arrival - t;
-                if (tau <= 0) return -1;
-                let d0 = P.zoneSpeed * tau; // расстояние от ракеты до корабля в момент выстрела
-                let lo = 0, hi = d0;
-                for (let it = 0; it < 30; it++) {
-                    let mid = (lo + hi) / 2;
-                    let gap = missileFlightTime(a.v0, a.vmax, a.accel, mid) - (d0 - mid) / P.zoneSpeed;
-                    if (gap > 0) hi = mid; else lo = mid;
-                }
-                return lo / P.zoneSpeed;
-            }
-            function shotHitProbability(t, arrival, ch, a, P) {
-                let timingProb = 1;
-                if (ch.useKinematics) {
-                    let lead = interceptLeadTime(t, arrival, a, P);
-                    timingProb = 1 / (1 + Math.exp(-(lead - AA_MIN_KILL_MARGIN) / TIMING_SHARPNESS));
-                }
-                return timingProb * ch.chAccuracy * (ch.useKinematics ? P.speedFactor : 1);
-            }
-
-            // 7. Прогон боя — ФОКУС-ОГОНЬ: каждая ПВО бьёт ближайшую по времени долёта живую ракету, которую уже
-            //    может поражать (в зоне + реакция прошла). Когда цель сбита или прорвалась, ПВО, которые по ней
-            //    работали, вместе перенаводятся — каждая теряет свой retarget-время, в которое не стреляет.
-            const busyUntil = ag.map(function() { return 0; });
-            let pending = swarm.length;
-            let totalAADamage = 0, shotsFired = 0, shotsLanded = 0;
-
-            function markLeak(sm) {
-                sm.status = 'leaked'; pending--;
-                for (let bi = 0; bi < ag.length; bi++) {
-                    if (pair[bi][sm.g].open <= sm.arrival) busyUntil[bi] = Math.max(busyUntil[bi], sm.arrival + ag[bi].retarget);
-                }
-            }
-            function pickTarget(ai, t) {
-                for (let i = 0; i < swarm.length; i++) {
-                    let sm = swarm[i];
-                    if (sm.status !== 'pending') continue;
-                    if (sm.arrival <= t) { markLeak(sm); continue; }
-                    if (t < pair[ai][sm.g].open) continue; // ещё не в зоне этой ПВО / не прошла реакция
-                    return sm;
-                }
-                return null;
-            }
-
-            for (let i = 0; i < events.length; i++) {
-                let ev = events[i];
-                if (pending <= 0) break;
-                if (ev.t < busyUntil[ev.a] - 1e-9) continue;          // ПВО перенаводится
-                let target = pickTarget(ev.a, ev.t);
-                if (!target) continue;
-                if (ev.t < busyUntil[ev.a] - 1e-9) continue;          // перенаведение после прорвавшейся ракеты
-
-                const a = ag[ev.a], P = pair[ev.a][target.g], ch = ev.ch;
-                let extra = ch.extraMult;
-                if (ch.antiJamSensitive && mg[target.g].mis.anti_jamming === 0) extra *= 0.6;
-                let p = shotHitProbability(ev.t, target.arrival, ch, a, P) * extra;
-                let dealt = Math.min(p * ch.damage, Math.max(0, target.hp)); // без учёта переурона
-                shotsFired += 1;
-                shotsLanded += p;
-                totalAADamage += dealt;
-                target.hp -= p * ch.damage;
-
-                if (target.hp <= 0) {
-                    target.status = 'destroyed'; pending--;
-                    for (let bi = 0; bi < ag.length; bi++) {
-                        if (pair[bi][target.g].open <= ev.t) busyUntil[bi] = Math.max(busyUntil[bi], ev.t + ag[bi].retarget);
-                    }
-                }
-            }
-            swarm.forEach(function(sm) { if (sm.status === 'pending') sm.status = 'leaked'; });
-
-            let destroyedMissiles = swarm.filter(function(sm) { return sm.status === 'destroyed'; }).length;
-            let survivedMissiles = totalMissiles - destroyedMissiles;
-            let survivalProbability = (survivedMissiles / totalMissiles) * 100;
-
-            const A0 = ag[0], M0 = mg[0], P0 = pair[0][0];
-            return { zoneTime: P0.zoneTime, aaRange: A0.range, misSpeed: M0.vmax, retargetTime: A0.retarget, flyTime: M0.flyTime,
-                     engageTime: P0.base, reactionTime: A0.reaction, speedFactor: P0.speedFactor, accuracy: A0.accuracy,
-                     totalAADamage: totalAADamage, shotsFired: shotsFired, shotsLanded: shotsLanded,
-                     totalMissiles: totalMissiles, totalMissileHP: totalMissileHP, singleMissileHP: M0.hp,
-                     destroyedMissiles: destroyedMissiles, survivedMissiles: survivedMissiles,
-                     survivalProbability: survivalProbability, aaHasMissileProfile: A0.hasProfile,
-                     swarmSpreadSec: (maxArrival - swarm[0].arrival),
-                     // подробности по группам (для режима с несколькими слотами)
-                     aaInfo: ag.map(function(a) { return { aa: a.aa, qty: a.qty, kind: a.kind, range: a.range, reaction: a.reaction,
-                                                          retarget: a.retarget, accuracy: a.accuracy, hasProfile: a.hasProfile }; }),
-                     misInfo: mg.map(function(m, gi) {
-                         let total = 0, destroyed = 0;
-                         swarm.forEach(function(sm) { if (sm.g === gi) { total++; if (sm.status === 'destroyed') destroyed++; } });
-                         return { mis: m.mis, qty: m.qty, speed: m.vmax, total: total, destroyed: destroyed };
-                     }),
-                     pair: pair };
-        }
-
-        // Один тип ПВО против одного типа ракет — то, что используют рейтинг и дуэль кораблей.
-        function runInterceptEngine(aa, aaQty, mis, misQty, distance) {
-            return runInterceptEngineMulti([{ aa: aa, qty: aaQty }], [{ mis: mis, qty: misQty }], distance);
-        }
-
-        // Эффективность ПВО для РЕЙТИНГА. Раньше считалась как "один модуль против одной средней
-        // ракеты", из-за чего не были видны ни фокус-огонь по очереди, ни пауза на перенаведение,
-        // ни время пролёта зоны. Теперь — тот же движок, что и в симуляторе, против типовых залпов
-        // из 2/3/4 средних ударных ракет при 1/2/4 модулях, ракеты запускаются с дистанции
-        // AA_RATING_LAUNCH_DIST (за пределами зоны ПВО), поэтому время пролёта зоны определяется
-        // реальной дальностью ПВО и скоростью ракеты. Результат — средняя доля сбитых ракет (0..1).
-        function getAARatingEffectiveness(item) {
-            const threat = getThreatMissileProfile();
-            const threatMissile = {
-                start_speed: threat.avgStartSpeed,
-                max_speed: threat.avgMaxSpeed,
-                accel_time: threat.avgAccelTime,
-                hp: threat.avgHp,
-                projectiles: 1,
-                anti_jamming: 0
-            };
-            let sum = 0, n = 0, last = null;
-            AA_RATING_SALVOS.forEach(function(missiles) {
-                AA_RATING_MOUNTS.forEach(function(mounts) {
-                    const R = runInterceptEngine(item, mounts, threatMissile, missiles, AA_RATING_LAUNCH_DIST);
-                    sum += R.destroyedMissiles / R.totalMissiles;
-                    n++;
-                    last = R;
-                });
-            });
-            return { kill: n ? sum / n : 0, accuracy: last ? last.accuracy : 1 };
-        }
-
-        // Обёртка: используется рейтингом ПВО (RATING_CALCULATORS["ПВО"]) и симулятором дуэли кораблей.
-        function computeAAEngagement(aa, aaQty, mis, misQty, distance) {
-            return runInterceptEngine(aa, aaQty, mis, misQty, distance);
-        }
-
-        // Обёртка: используется интерактивным калькулятором (кнопка "РАССЧИТАТЬ ВЕРОЯТНОСТЬ").
-        // Раньше это была отдельная копия формулы — теперь оба места используют один и тот же движок
-        // runInterceptEngine, поэтому рой ракет и логика фокус-огня считаются идентично везде и больше
-        // не могут разойтись между собой.
-        function simulateAABreakthrough(aa, aaQty, mis, misQty, distance) {
-            return runInterceptEngine(aa, aaQty, mis, misQty, distance);
-        }
 
         // Результат для комбинации из нескольких слотов ПВО и/или ракет
         function simMultiResultHTML(R, distance, resColor, verdict) {
@@ -5208,7 +3847,7 @@
                 </div>`;
         }
 
-        function simulateAA() {
+        async function simulateAA() {
             const distance = parseFloat(document.getElementById('sim-dist').value);
 
             // Собираем ВСЕ слоты: любое число разных систем ПВО и разных ракет
@@ -5234,7 +3873,8 @@
             const aa = aaGroups[0].aa;
             const mis = misGroups[0].mis;
 
-            const R = runInterceptEngineMulti(aaGroups, misGroups, distance);
+            let R;
+            try { R = await sbCalc('intercept', { aa: aaSel, mis: misSel, distance: distance }); } catch (e) { return calcFail(e); }
             const { zoneTime, aaRange, misSpeed, retargetTime, engageTime, reactionTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
                     destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
 
@@ -5336,16 +3976,17 @@
             closeModal('breakdown-modal');
         }
 
-        function openRatingBreakdown(itemId) {
+        async function openRatingBreakdown(itemId) {
             if (!itemId || !DB[itemId]) return;
             if (!isPro()) {
                 if (!isAuth) { switchMainPage('page-admin', document.getElementById('nav-admin')); setAuthMode('register'); }
                 showToast(L('РАЗБОР РЕЙТИНГА ДОСТУПЕН ТОЛЬКО В PRO', 'RATING BREAKDOWN IS PRO ONLY'), true);
                 return;
             }
-            const bd = getRatingBreakdown(itemId);
+            let bd;
+            try { bd = await sbCalc('breakdown', { id: itemId }); } catch (e) { return calcFail(e); }
             if (!bd) return;
-            const item = bd.item;
+            const item = DB[itemId];
             const fmt = v => (v > 0 ? '+' : (v < 0 ? '−' : '')) + Math.abs(Math.round(v)).toLocaleString(LANG === 'en' ? 'en' : 'ru');
 
             const visible = bd.parts.filter(p => Math.abs(p.value) >= 0.5).sort((a, b) => b.value - a.value);
@@ -5601,7 +4242,7 @@
 
             let ranking;
             if (isPro()) {
-                const byRating = items.slice().sort((a, b) => b.rating - a.rating);
+                const byRating = items.slice().sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 ranking = `<div class="mc-rank">${byRating.map((it, i) => `<div class="mc-rank-item ${i === 0 ? 'first' : ''}"><span>${i + 1}</span>${it.name}<b>${it.rating}</b></div>`).join('')}</div>`;
             } else {
                 ranking = '';
@@ -5681,7 +4322,7 @@
             ['S', 'A', 'B'].forEach(letter => {
                 const inRow = keys.filter(k => rarityLetter(DB[k].rarity) === letter);
                 if (!inRow.length) return;
-                inRow.sort((a, b) => isPro() ? (DB[b].rating - DB[a].rating) : DB[a].name.localeCompare(DB[b].name));
+                inRow.sort((a, b) => isPro() ? ((DB[b].rating || 0) - (DB[a].rating || 0)) : DB[a].name.localeCompare(DB[b].name));
                 rowsHtml += `<div class="tier-row">
                     <div class="tier-badge tier-${letter}">${letter}</div>
                     <div class="tier-items">${inRow.map(k => `
@@ -5756,40 +4397,9 @@
         // =========================================================
         // ДУЭЛЬ КОРАБЛЕЙ: бой двух сборок из Конструктора во времени
         // =========================================================
-        const DUEL_OFFENSE = ['Пушки', 'Ракеты', 'Торпеды', 'Гранатометы'];
         const DUEL_MAX_TIME = 180;
         const DUEL_DIST_MIN = 2, DUEL_DIST_MAX = 20;
 
-        function isMissileType(item) { return item.category === 'Ракеты' || (item.category === 'Гранатометы' && item.gl_type === 'missile'); }
-        function isAADefender(item) { return item.category === 'ПВО' || (item.category === 'Автопушки' && item.air_target === 1); }
-
-        // Время полета залпа до цели на дистанции D (км)
-        function duelFlightTime(item, D) {
-            const vmax = (item.max_speed || 0) * MW_K;
-            if (!vmax) return 0.3;
-            const missileLike = item.category === 'Ракеты' || item.category === 'Торпеды' || (item.category === 'Гранатометы' && item.gl_type === 'missile');
-            if (missileLike) {
-                const v0 = (item.start_speed || item.max_speed || 0) * MW_K;
-                return missileFlightTime(v0, vmax, item.accel_time || 0.1, D);
-            }
-            return D / vmax;
-        }
-
-        // Доля урона залпа, которая доходит до цели (промахи у пушек, ловушки у ракет и торпед)
-        function duelHitFactor(item, D) {
-            const cat = item.category;
-            const isGunShell = cat === 'Пушки' || (cat === 'Гранатометы' && (item.gl_type === 'gun' || item.gl_type === 'mixed'));
-            if (isGunShell) {
-                const base = item.accuracy !== undefined ? item.accuracy : 100;
-                const evasion = D * (800 / (item.max_speed || 800)) * 1.5;
-                if (cat === 'Пушки') return Math.max(5, base - evasion) / 100;
-                const recoil = item.recoil !== undefined ? item.recoil : 15;
-                const spread = (item.range / 10) * recoil * (1 + ((item.projectiles || 1) * 0.1));
-                return Math.min(1, Math.max(5, base - evasion - spread) / 100 + 0.15);
-            }
-            if (item.dpm > 0 && item.effectiveDpm !== undefined) return Math.min(1, item.effectiveDpm / item.dpm);
-            return 1;
-        }
 
         function getBuildSlots(shipNum) {
             const out = [];
@@ -5802,100 +4412,6 @@
         }
 
         // Чистая функция боя: slots1/slots2 = [{item, qty}], D = дистанция (км), hp1/hp2 = HP кораблей
-        function runDuel(slots1, slots2, D, hp1, hp2) {
-            const ships = [{ slots: slots1, hp: hp1 }, { slots: slots2, hp: hp2 }];
-            const events = [[], []];   // events[i] = попадания по кораблю i
-            const stats = [[], []];    // stats[a] = по слотам атакующего корабля a
-
-            for (let a = 0; a < 2; a++) {
-                const att = ships[a], def = ships[1 - a];
-                const aaSlots = def.slots.filter(s => isAADefender(s.item));
-                const off = att.slots.filter(s => DUEL_OFFENSE.indexOf(s.item.category) >= 0);
-
-                // ПВО делит огонь между всеми ракетными слотами пропорционально их прочности
-                let hpTotal = 0;
-                const hpOf = s => (s.item.hp || 50) * (s.item.projectiles || 1) * s.qty;
-                off.filter(s => isMissileType(s.item)).forEach(s => { hpTotal += hpOf(s); });
-
-                off.forEach(s => {
-                    const item = s.item;
-                    const st = { slot: s, status: 'ok', note: '', damage: 0, volleys: 0, killed: 0, total: 0, hit: 1, survive: 1 };
-                    stats[a].push(st);
-                    if (item.range < D) { st.status = 'range'; st.note = 'не достаёт: дальность ' + item.range + ' км'; return; }
-                    if ((item.min_range || 0) > D) { st.status = 'dead'; st.note = 'мёртвая зона до ' + item.min_range + ' км'; return; }
-
-                    let cycle = (item.dpm > 0 && item.damage_burst > 0) ? 60 * item.damage_burst / item.dpm : (item.reload || 5);
-                    cycle = Math.max(0.5, cycle);
-                    const lock = item.lock_time || 0;
-                    const flight = duelFlightTime(item, D);
-                    st.hit = duelHitFactor(item, D);
-
-                    if (isMissileType(item) && aaSlots.length) {
-                        st.total = (item.projectiles || 1) * s.qty;
-                        const singleHP = item.hp || 50;
-                        let aaDmg = 0;
-                        aaSlots.forEach(d => { aaDmg += computeAAEngagement(d.item, d.qty, item, s.qty, D).totalAADamage; });
-                        aaDmg *= hpTotal > 0 ? hpOf(s) / hpTotal : 1;
-                        st.killed = Math.min(st.total, Math.floor(aaDmg / singleHP));
-                        st.survive = (st.total - st.killed) / st.total;
-                        if (st.killed > 0) st.note = 'ПВО врага сбивает ' + st.killed + ' из ' + st.total + ' ракет';
-                    }
-
-                    const perVolley = item.damage_burst * s.qty * st.hit * st.survive;
-                    for (let k = 0; ; k++) {
-                        const tFire = lock + k * cycle;
-                        const tHit = tFire + flight;
-                        if (tHit > DUEL_MAX_TIME) break;
-                        events[1 - a].push({ t: tHit, dmg: perVolley, st: st });
-                    }
-                });
-            }
-
-            const kill = [Infinity, Infinity];
-            const hpLeft = [ships[0].hp, ships[1].hp];
-            for (let i = 0; i < 2; i++) {
-                events[i].sort((x, y) => x.t - y.t);
-                let hp = ships[i].hp;
-                for (const e of events[i]) { hp -= e.dmg; if (hp <= 0) { kill[i] = e.t; break; } }
-                hpLeft[i] = Math.max(0, hp);
-            }
-
-            let winner, tEnd, leader = null;
-            const anyDamage = events[0].length + events[1].length > 0 && (events[0].concat(events[1]).some(e => e.dmg > 0));
-            if (kill[0] === Infinity && kill[1] === Infinity) {
-                winner = 'timeout'; tEnd = DUEL_MAX_TIME;
-                const p1 = hpLeft[0] / ships[0].hp, p2 = hpLeft[1] / ships[1].hp;
-                if (Math.abs(p1 - p2) > 0.01) leader = p1 > p2 ? 1 : 2;
-            } else if (Math.abs(kill[0] - kill[1]) < 0.05) {
-                winner = 'draw'; tEnd = Math.min(kill[0], kill[1]);
-            } else {
-                winner = kill[1] < kill[0] ? 1 : 2; // корабль 1 побеждает, если корабль 2 погиб раньше
-                tEnd = Math.min(kill[0], kill[1]);
-            }
-
-            // Итоговые HP и урон слотов на момент конца боя
-            const hpAtEnd = [ships[0].hp, ships[1].hp];
-            for (let i = 0; i < 2; i++) {
-                events[i].forEach(e => { if (e.t <= tEnd + 1e-9) { hpAtEnd[i] -= e.dmg; e.st.damage += e.dmg; e.st.volleys++; } });
-                hpAtEnd[i] = Math.max(0, hpAtEnd[i]);
-            }
-
-            // Таймлайн HP в процентах
-            const step = tEnd <= 60 ? 0.5 : 1;
-            const times = [], h1 = [], h2 = [];
-            const ptr = [0, 0], cur = [ships[0].hp, ships[1].hp];
-            for (let t = 0; t <= tEnd + step / 2; t += step) {
-                for (let i = 0; i < 2; i++) {
-                    while (ptr[i] < events[i].length && events[i][ptr[i]].t <= t) { cur[i] -= events[i][ptr[i]].dmg; ptr[i]++; }
-                }
-                times.push(+t.toFixed(1));
-                h1.push(+(Math.max(0, cur[0]) / ships[0].hp * 100).toFixed(1));
-                h2.push(+(Math.max(0, cur[1]) / ships[1].hp * 100).toFixed(1));
-            }
-
-            return { winner: winner, leader: leader, tEnd: tEnd, kill: kill, hpPct: [hpAtEnd[0] / ships[0].hp * 100, hpAtEnd[1] / ships[1].hp * 100],
-                     anyDamage: anyDamage, timeline: { t: times, hp1: h1, hp2: h2 }, stats: stats };
-        }
 
         function duelSlotsTable(shipNum, stats, tEnd) {
             const color = shipNum === 1 ? 'var(--primary)' : 'var(--secondary)';
@@ -5912,7 +4428,7 @@
             return `<div class="duel-ship"><div class="duel-ship-title" style="color:${color}">${L('КОРАБЛЬ','SHIP')} ${shipNum} · ${L('нанёс','dealt')} ${Math.round(total).toLocaleString(LANG === 'en' ? 'en' : 'ru')} ${L('урона','damage')}</div>${rows}</div>`;
         }
 
-        function runDuelUI() {
+        async function runDuelUI() {
             const s1 = getBuildSlots(1), s2 = getBuildSlots(2);
             if (!s1.length || !s2.length) return showToast(L('ДОБАВЬТЕ СЛОТЫ ОБОИМ КОРАБЛЯМ','ADD SLOTS TO BOTH SHIPS'), true);
             const D = parseFloat(document.getElementById('duel-dist').value);
@@ -5920,7 +4436,18 @@
             const hp2 = Math.max(1000, parseInt(document.getElementById('duel-hp2').value) || 300000);
             document.getElementById('duel-dist-val').textContent = D.toFixed(1);
 
-            const r = runDuel(s1, s2, D, hp1, hp2);
+            let duelRes;
+            try {
+                duelRes = await sbCalc('duel', {
+                    s1: s1.map(x => ({ key: x.key, qty: x.qty })),
+                    s2: s2.map(x => ({ key: x.key, qty: x.qty })),
+                    D: D, hp1: hp1, hp2: hp2
+                });
+            } catch (e) { return calcFail(e); }
+            const r = duelRes.main;
+            r.stats.forEach(arr => arr.forEach(st => { st.slot.item = DB[st.slot.key]; }));
+            const sweepByD = {};
+            duelRes.sweep.forEach(x => { sweepByD[x.d] = x; });
 
             let verdict, cls;
             if (!r.anyDamage) { verdict = L('На дистанции','At') + ' ' + D.toFixed(1) + ' ' + L('км ни одно оружие не наносит урон. Посмотрите полосу дистанций ниже.','km no weapon deals damage. Check the distance strip below.'); cls = 'none'; }
@@ -5936,7 +4463,7 @@
             // Кто выигрывает на каждой дистанции
             const cells = [];
             for (let d = DUEL_DIST_MIN; d <= DUEL_DIST_MAX; d++) {
-                const rr = runDuel(s1, s2, d, hp1, hp2);
+                const rr = sweepByD[d] || { anyDamage: false };
                 let c = 'none', label = '—';
                 if (rr.anyDamage) {
                     if (rr.winner === 1 || rr.winner === 2) { c = 'w' + rr.winner; label = rr.tEnd.toFixed(0) + L('с','s'); }
@@ -6013,7 +4540,22 @@
             document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(o => o.classList.remove('active')); });
         }
 
-        window.onload = () => { initApp(); };
+        window.onload = async () => {
+            if (!sb) {
+                bootShow('<div style="font-size:1.1rem">SUPABASE НЕ НАСТРОЕН</div><div style="max-width:520px;opacity:.7;font-size:.8rem;letter-spacing:0;line-height:1.6">Укажите SUPABASE_URL и SUPABASE_ANON_KEY в начале скрипта (раздел «SUPABASE») и задеплойте функцию calc.</div>');
+                return;
+            }
+            try {
+                await loadCatalog();
+                if (isPro() && !catalogHasRatings()) await loadCatalog();
+            } catch (e) {
+                console.error(e);
+                bootShow('<div style="font-size:1.1rem">НЕ УДАЛОСЬ ЗАГРУЗИТЬ БАЗУ</div><div style="opacity:.7;font-size:.8rem;letter-spacing:0">Проверьте интернет и повторите попытку.</div><button onclick="location.reload()" style="padding:12px 22px;border-radius:99px;border:1px solid var(--line);background:var(--surface-alt);color:var(--text-main);font-family:inherit;cursor:pointer">ПОВТОРИТЬ</button>');
+                return;
+            }
+            bootHide();
+            initApp();
+        };
     </script>
     <script>
     /* =========================================================
@@ -6078,19 +4620,13 @@
         var langBtn = $('nav-lang');
         if (langBtn) langBtn.addEventListener('click', function () { setTimeout(moveIndicator, 60); });
 
-        /* --- Эффект переключения вкладок: шторка с размытием + красная линия --- */
+        /* --- Переключение вкладок: без анимации, только прокрутка вверх --- */
         var origSwitch = window.switchMainPage;
         if (typeof origSwitch === 'function') {
             window.switchMainPage = function (pageId) {
                 var cur = document.querySelector('.page.active');
                 var same = cur && cur.id === pageId;
-                if (ready && !same) {
-                    if (fxOn() && !reduce) {
-                        var v = $('veil');
-                        if (v) { v.classList.remove('go'); void v.offsetWidth; v.classList.add('go'); }
-                    }
-                    window.scrollTo({ top: 0, behavior: 'instant' });
-                }
+                if (ready && !same) window.scrollTo({ top: 0, behavior: 'instant' });
                 return origSwitch.apply(this, arguments);
             };
         }
