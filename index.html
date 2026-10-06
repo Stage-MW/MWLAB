@@ -1728,8 +1728,8 @@
         //    Он публичный по замыслу — защищают данные правила RLS. service_role ключ сюда НЕЛЬЗЯ.
         // 2) Пока поля пустые, сайт работает в старом локальном режиме (аккаунты только на устройстве).
         // =========================================================
-        const SUPABASE_URL = '';       // например: 'https://abcdxyz.supabase.co'
-        const SUPABASE_ANON_KEY = '';  // anon / publishable key
+       const SUPABASE_URL = 'https://noxmicgoosxoqderhgdp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_yFQF-VF1LGeTUOhK0Kj61A_YDAAGg3W';
         const SB_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
         const sb = (SB_CONFIGURED && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         let userTier = 'free'; // free | pro: в режиме Supabase приходит из profiles.tier
