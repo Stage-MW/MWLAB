@@ -1728,8 +1728,8 @@
         //    Он публичный по замыслу — защищают данные правила RLS. service_role ключ сюда НЕЛЬЗЯ.
         // 2) Пока поля пустые, сайт работает в старом локальном режиме (аккаунты только на устройстве).
         // =========================================================
-       const SUPABASE_URL = 'https://noxmicgoosxoqderhgdp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_yFQF-VF1LGeTUOhK0Kj61A_YDAAGg3W';
+        const SUPABASE_URL = 'https://noxmicgoosxoqderhgdp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_yFQF-VF1LGeTUOhK0Kj61A_YDAAGg3W';
         const SB_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
         const sb = (SB_CONFIGURED && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         let userTier = 'free'; // free | pro: в режиме Supabase приходит из profiles.tier
@@ -1744,7 +1744,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_yFQF-VF1LGeTUOhK0Kj61A_YDAAGg3W';
             const r = await sb.functions.invoke('calc', { body: Object.assign({ action: action }, payload || {}) });
             if (r.error) {
                 let msg = r.error.message || 'calc error';
-                try { if (r.error.context && r.error.context.json) { const j = await r.error.context.json(); if (j && j.error) msg = j.error; } } catch (e) {}
+                try { if (r.error.context && r.error.context.status) msg = 'HTTP ' + r.error.context.status; if (r.error.context && r.error.context.json) { const j = await r.error.context.json(); if (j && (j.error || j.message)) msg = (j.error || j.message) + (r.error.context.status ? ' (HTTP ' + r.error.context.status + ')' : ''); } } catch (e) {}
                 const err = new Error(msg); err.code = msg; throw err;
             }
             return r.data;
@@ -4550,7 +4550,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_yFQF-VF1LGeTUOhK0Kj61A_YDAAGg3W';
                 if (isPro() && !catalogHasRatings()) await loadCatalog();
             } catch (e) {
                 console.error(e);
-                bootShow('<div style="font-size:1.1rem">НЕ УДАЛОСЬ ЗАГРУЗИТЬ БАЗУ</div><div style="opacity:.7;font-size:.8rem;letter-spacing:0">Проверьте интернет и повторите попытку.</div><button onclick="location.reload()" style="padding:12px 22px;border-radius:99px;border:1px solid var(--line);background:var(--surface-alt);color:var(--text-main);font-family:inherit;cursor:pointer">ПОВТОРИТЬ</button>');
+                bootShow('<div style="font-size:1.1rem">НЕ УДАЛОСЬ ЗАГРУЗИТЬ БАЗУ</div><div style="opacity:.7;font-size:.8rem;letter-spacing:0">Проверьте интернет и повторите попытку.</div><div style="opacity:.55;font-size:.72rem;letter-spacing:0;max-width:560px;word-break:break-word">Причина: ' + String((e && e.message) || e).replace(/</g, '&lt;') + '</div><button onclick="location.reload()" style="padding:12px 22px;border-radius:99px;border:1px solid var(--line);background:var(--surface-alt);color:var(--text-main);font-family:inherit;cursor:pointer">ПОВТОРИТЬ</button>');
                 return;
             }
             bootHide();
@@ -4846,3 +4846,4 @@ const SUPABASE_ANON_KEY = 'sb_publishable_yFQF-VF1LGeTUOhK0Kj61A_YDAAGg3W';
     </script>
 </body>
 </html>
+
