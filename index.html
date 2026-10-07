@@ -868,6 +868,7 @@
         .auth-card .search-input { max-width: 100%; text-align: center; margin-bottom: 14px; }
         .auth-card .cat-btn-main { width: 100%; }
         .crown { width: 84px; height: 84px; background: var(--primary-dim); border: 1px solid var(--line); border-radius: 50%; margin: 0 auto 22px auto; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; box-shadow: 0 0 50px -10px var(--secondary); }
+        #admin-body td { padding: 8px 10px 8px 0; border-top: 1px solid var(--line); }
         .visit-num { font-family: var(--f-display); font-weight: 900; font-size: 3.2rem; letter-spacing: -0.04em; margin-bottom: 30px; }
         .pro-label { font-family: var(--f-hud); font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
 
@@ -1523,8 +1524,9 @@
                     <h3 id="auth-tier-title" style="font-family:var(--f-display); font-weight:800; font-size:1rem; margin-bottom: 18px;"></h3>
                     <div class="auth-user-name" id="auth-user-name"></div>
                     <div class="auth-user-meta" id="auth-user-meta"></div>
-                    <p class="pro-label" data-i18n="admin.visits">ПОСЕЩЕНИЯ САЙТА</p>
+                    <p class="pro-label" data-i18n="admin.visits">УНИКАЛЬНЫЕ ПОСЕТИТЕЛИ</p>
                     <div class="visit-num" id="visit-counter">0</div>
+                    <button type="button" class="cat-btn-main" id="admin-open-btn" style="display:none;width:100%;margin-bottom:10px;" onclick="openAdminPanel()">ПАНЕЛЬ АДМИНИСТРАТОРА</button>
                     <button class="cat-btn-main btn-red" style="width:100%;" onclick="logout()" data-i18n="admin.logout">ВЫЙТИ ИЗ АККАУНТА</button>
                     <button type="button" class="link-btn" id="auth-delete" onclick="deleteAccount()" data-at="btn.delete"></button>
                 </div>
@@ -1535,6 +1537,14 @@
                 <button type="button" class="cat-btn-main active" onclick="mwInstall()" data-pt="inst.btn"></button>
             </div>
         </main>
+    </div>
+
+    <!-- ПАНЕЛЬ АДМИНИСТРАТОРА (данные приходят только админу, проверка на сервере) -->
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:920px;" role="dialog" aria-modal="true" aria-label="Панель администратора">
+            <button class="modal-close" onclick="closeModal('admin-modal')" aria-label="Закрыть">×</button>
+            <div id="admin-body"></div>
+        </div>
     </div>
 
     <!-- РАЗБОР РЕЙТИНГА -->
@@ -2214,9 +2224,115 @@
             else if (isAuth) setTimeout(sbLoadTier, 0);
         })();
 
-        let siteVisits = localStorage.getItem('mw_site_visits') || 0;
-        siteVisits++;
-        localStorage.setItem('mw_site_visits', siteVisits);
+        // ===== Реальный счётчик посещений (Supabase) =====
+        // Один посетитель = один анонимный случайный id в этом браузере. Сервер считает уникальных посетителей по дням.
+        var siteVisits = '—';
+        function mwVisitorId() {
+            try {
+                let v = localStorage.getItem('mw_vid');
+                if (!v || v.length < 12) {
+                    v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+                        : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 12));
+                    localStorage.setItem('mw_vid', v);
+                }
+                return v;
+            } catch (e) { return null; }
+        }
+        function renderVisitCounter() {
+            const el = document.getElementById('visit-counter');
+            if (el) el.innerText = siteVisits;
+        }
+        async function refreshVisitCounter() {
+            if (!sb) return;
+            try {
+                const r = await sb.rpc('get_visit_stats');
+                if (r.data && r.data.total_visitors !== undefined) { siteVisits = r.data.total_visitors; renderVisitCounter(); }
+            } catch (e) { console.error(e); }
+        }
+        async function trackVisit() {
+            if (!sb) return;
+            try {
+                const vid = mwVisitorId();
+                if (vid) await sb.rpc('track_visit', { p_visitor: vid });
+            } catch (e) { console.error(e); }
+            await refreshVisitCounter();
+        }
+
+        // ===== Админ-панель (видна только аккаунтам из таблицы admins) =====
+        var isAdminUser = false, adminCheckedFor = null;
+        async function checkAdmin() {
+            const id = (isAuth && authUser) ? authUser.id : null;
+            if (id === adminCheckedFor) return;
+            adminCheckedFor = id;
+            isAdminUser = false;
+            if (sb && id) {
+                try { const r = await sb.rpc('is_admin'); isAdminUser = (r.data === true); } catch (e) { console.error(e); }
+            }
+            const b = document.getElementById('admin-open-btn');
+            if (b) b.style.display = isAdminUser ? '' : 'none';
+        }
+        function adminEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        function adminFmt(d) { if (!d) return '—'; try { return new Date(d).toLocaleString(LANG === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { return String(d); } }
+        var adminUsersCache = [];
+        function adminRenderUsers(q) {
+            q = (q || '').trim().toLowerCase();
+            const rows = adminUsersCache.filter(function (u) { return !q || String(u.email || '').toLowerCase().indexOf(q) >= 0; });
+            const tb = document.getElementById('admin-users-tbody');
+            if (!tb) return;
+            tb.innerHTML = rows.length ? rows.map(function (u) {
+                const pro = u.tier === 'pro' && (!u.tier_until || Date.parse(u.tier_until) > Date.now());
+                return '<tr><td>' + adminEsc(u.email) + '</td><td>' + adminFmt(u.created_at) + '</td><td>' + adminFmt(u.last_sign_in_at) + '</td>'
+                    + '<td>' + (pro ? '<b>PRO</b>' + (u.tier_until ? ' <span style="opacity:.55">до ' + adminFmt(u.tier_until) + '</span>' : '') : 'free') + '</td>'
+                    + '<td>' + (u.confirmed ? '✓' : '—') + '</td></tr>';
+            }).join('') : '<tr><td colspan="5" style="opacity:.6">Ничего не найдено</td></tr>';
+            const c = document.getElementById('admin-users-count'); if (c) c.textContent = rows.length + ' / ' + adminUsersCache.length;
+        }
+        async function openAdminPanel() {
+            if (!isAdminUser || !sb) return;
+            openModal('admin-modal');
+            const body = document.getElementById('admin-body');
+            body.innerHTML = '<p class="pro-label">ЗАГРУЗКА…</p>';
+            try {
+                const res = await Promise.all([sb.rpc('admin_stats'), sb.rpc('admin_list_users')]);
+                if (res[0].error) throw res[0].error;
+                if (res[1].error) throw res[1].error;
+                const st = res[0].data || {};
+                adminUsersCache = res[1].data || [];
+                const card = function (label, val) {
+                    return '<div style="padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--surface-alt)">'
+                        + '<div class="pro-label" style="margin-bottom:6px">' + label + '</div>'
+                        + '<div style="font-family:var(--f-display);font-weight:800;font-size:1.5rem">' + adminEsc(val) + '</div></div>';
+                };
+                const daily = st.daily || [];
+                const maxN = Math.max.apply(null, [1].concat(daily.map(function (d) { return d.n; })));
+                const bars = daily.map(function (d) {
+                    const h = Math.max(4, Math.round(d.n / maxN * 70));
+                    return '<div title="' + adminEsc(d.day) + ': ' + d.n + '" style="flex:1;min-width:10px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px">'
+                        + '<span style="font-size:.6rem;opacity:.6">' + d.n + '</span>'
+                        + '<div style="width:100%;height:' + h + 'px;border-radius:6px 6px 2px 2px;background:var(--accent)"></div>'
+                        + '<span style="font-size:.55rem;opacity:.45">' + adminEsc(String(d.day).slice(5)) + '</span></div>';
+                }).join('');
+                body.innerHTML =
+                    '<h2 style="font-family:var(--f-display);font-weight:800;font-size:1.1rem;margin-bottom:18px">ПАНЕЛЬ АДМИНИСТРАТОРА</h2>'
+                    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px">'
+                    + card('СЕГОДНЯ', st.today) + card('7 ДНЕЙ', st.last7) + card('УНИКАЛЬНЫХ ВСЕГО', st.total_visitors)
+                    + card('ВИЗИТОВ ВСЕГО', st.total_visits) + card('РЕГИСТРАЦИЙ', st.users) + card('PRO', st.pro_users) + '</div>'
+                    + '<p class="pro-label">УНИКАЛЬНЫЕ ПОСЕТИТЕЛИ ПО ДНЯМ (14 ДНЕЙ, UTC)</p>'
+                    + '<div style="display:flex;gap:4px;align-items:flex-end;min-height:100px;margin-bottom:24px">' + (bars || '<span style="opacity:.6">Данных пока нет</span>') + '</div>'
+                    + '<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px">'
+                    + '<p class="pro-label" style="margin:0">ПОЛЬЗОВАТЕЛИ <span id="admin-users-count"></span></p>'
+                    + '<input id="admin-users-q" type="search" placeholder="поиск по email" style="padding:8px 14px;border-radius:99px;border:1px solid var(--line);background:var(--surface-alt);color:var(--text-main);font-family:var(--f-hud);font-size:.75rem;min-width:200px"></div>'
+                    + '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;white-space:nowrap">'
+                    + '<thead><tr style="text-align:left;opacity:.55;font-family:var(--f-hud);font-size:.66rem;letter-spacing:.12em"><th style="padding:8px 10px 8px 0">EMAIL</th><th>РЕГИСТРАЦИЯ</th><th>ПОСЛЕДНИЙ ВХОД</th><th>ТАРИФ</th><th>ПОДТВ.</th></tr></thead>'
+                    + '<tbody id="admin-users-tbody"></tbody></table></div>';
+                const qi = document.getElementById('admin-users-q');
+                if (qi) qi.addEventListener('input', function () { adminRenderUsers(qi.value); });
+                adminRenderUsers('');
+            } catch (e) {
+                console.error(e);
+                body.innerHTML = '<p class="pro-label">НЕТ ДОСТУПА ИЛИ ОШИБКА СЕРВЕРА</p>';
+            }
+        }
 
         // Рейтинг меты, сортировка по нему и разбор показываются только PRO
         function applyRatingVisibility() {
@@ -2239,7 +2355,7 @@
             if (isAuth) {
                 adminDash.style.display = 'block';
                 adminAuth.style.display = 'none';
-                document.getElementById('visit-counter').innerText = siteVisits;
+                renderVisitCounter();
                 if (lockIcon) lockIcon.style.display = 'none';
                 navAdminBtn.classList.add('auth-active');
                 sortOpts.forEach(opt => opt.disabled = false);
@@ -2253,6 +2369,7 @@
 
             applyRatingVisibility();
             renderAuthTexts();
+            checkAdmin();
             refreshProGatedViews();
             if(document.getElementById('page-catalog').classList.contains('active')) {
                 handleFilter();
@@ -2496,7 +2613,7 @@
             'admin.login': { ru: 'ЛОГИН', en: 'USERNAME' },
             'admin.password': { ru: 'ПАРОЛЬ', en: 'PASSWORD' },
             'admin.enter': { ru: 'ВОЙТИ', en: 'LOG IN' },
-            'admin.visits': { ru: 'ПОСЕЩЕНИЯ САЙТА', en: 'SITE VISITS' },
+            'admin.visits': { ru: 'УНИКАЛЬНЫЕ ПОСЕТИТЕЛИ', en: 'UNIQUE VISITORS' },
             'admin.logout': { ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'LOG OUT' },
             'roster.categoryph': { ru: 'Категория —', en: 'Category —' },
 
@@ -3600,6 +3717,25 @@
         }
 
         /* --- ГЕНЕРАТОР ИНФОГРАФИКИ --- */
+        // Водяной знак: узкая полоса под отчётом с мелкой подписью (не перекрывает содержимое)
+        function addReportWatermark(src) {
+            const strip = Math.max(24, Math.round(src.width * 0.02));
+            const out = document.createElement('canvas');
+            out.width = src.width;
+            out.height = src.height + strip;
+            const ctx = out.getContext('2d');
+            ctx.fillStyle = cssVar('--bg-base') || '#000';
+            ctx.fillRect(0, 0, out.width, out.height);
+            ctx.drawImage(src, 0, 0);
+            const fs = Math.max(11, Math.round(strip * 0.45));
+            ctx.font = '600 ' + fs + 'px ' + (cssVar('--f-hud') || 'monospace');
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = cssVar('--text-muted') || 'rgba(150,150,150,0.6)';
+            ctx.fillText('MWL by.mitso', out.width / 2, src.height + strip / 2);
+            return out;
+        }
+
         function exportToImage(elementId, filename) {
             const el = document.getElementById(elementId);
             if (!el || el.style.display === 'none') return showToast(L("ОШИБКА: НЕТ ДАННЫХ","ERROR: NO DATA"), true);
@@ -3635,7 +3771,7 @@
 
                     let link = document.createElement('a');
                     link.download = `${filename}_${new Date().getTime()}.png`;
-                    link.href = canvas.toDataURL('image/png');
+                    link.href = addReportWatermark(canvas).toDataURL('image/png');
                     link.click();
                     showToast(L("ОТЧЕТ СОХРАНЕН","REPORT SAVED"));
                 }).catch(err => {
@@ -4555,6 +4691,7 @@
             }
             bootHide();
             initApp();
+            trackVisit();
         };
     </script>
     <script>
@@ -4846,4 +4983,3 @@
     </script>
 </body>
 </html>
-
