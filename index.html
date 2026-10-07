@@ -99,7 +99,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
-        html { background-color: var(--bg-base); scroll-behavior: smooth; overflow-x: hidden; overflow-x: clip; width: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
+        html { background-color: var(--bg-base); min-height: 100%; min-height: -webkit-fill-available; scroll-behavior: smooth; overflow-x: hidden; overflow-x: clip; width: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
 
         ::selection { background: var(--secondary); color: #fff; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -116,13 +116,15 @@
             width: 100%;
             position: relative;
             min-height: 100vh;
-            min-height: 100svh;
+            min-height: -webkit-fill-available;
+            min-height: 100dvh;
+            min-height: max(100dvh, var(--app-h, 0px));
             transition: background-color 0.6s ease, color 0.4s ease;
         }
 
         /* --- ЗЕРНО + ВИНЬЕТКА (как плёнка на референсе) --- */
         body::before {
-            content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: -30vh; z-index: -1; pointer-events: none;
             background:
                 radial-gradient(120% 90% at 50% 0%, transparent 40%, rgba(0, 0, 0, 0.55) 100%),
                 radial-gradient(60% 50% at 50% 38%, var(--halo) 0%, transparent 70%);
@@ -147,7 +149,7 @@
         }
 
         /* --- ФОНОВЫЙ СЛОЙ: размытые световые полосы + блик за курсором --- */
-        #bg-fx { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        #bg-fx { position: fixed; top: 0; left: 0; right: 0; bottom: -30vh; z-index: 0; pointer-events: none; overflow: hidden; }
         .bg-bar {
             position: absolute; top: 12%; bottom: 12%; width: 70px;
             background: linear-gradient(90deg, transparent, var(--halo), transparent);
@@ -986,11 +988,13 @@
                 transition: transform 0.35s var(--ease-out), opacity 0.25s ease;
             }
             .tab-btn { max-width: 150px; }
+            /* Продолжение фона панели вниз: если iOS даёт области страницы меньше высоты экрана, снизу не остаётся пустой полосы */
+            .tabbar::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 40vh; background: var(--bar-bg); pointer-events: none; }
             html.kbd-open .tabbar { transform: translateY(110%); opacity: 0; pointer-events: none; }
 
             /* Контент не прячется под панелями */
             .page { padding-bottom: calc(var(--tabbar-h) + 28px + env(safe-area-inset-bottom, 0px)); }
-            .hero { padding-bottom: calc(var(--tabbar-h) + 44px + env(safe-area-inset-bottom, 0px)); min-height: calc(100vh - 130px); min-height: calc(100svh - 130px); }
+            .hero { padding-bottom: calc(var(--tabbar-h) + 44px + env(safe-area-inset-bottom, 0px)); min-height: calc(100vh - 130px); min-height: calc(100dvh - 130px); }
             #toast-container { bottom: calc(var(--tabbar-h) + 14px + env(safe-area-inset-bottom, 0px)); }
             .toast { border-radius: 24px; padding: 12px 20px; }
             .compare-tray { bottom: calc(var(--tabbar-h) + 10px + env(safe-area-inset-bottom, 0px)); }
@@ -4957,9 +4961,22 @@
         }
         syncTabs();
 
+        /* --- Реальная высота экрана: на iPhone после клавиатуры, сворачивания и поворота область страницы может «застрять» меньше экрана --- */
+        function syncAppHeight() {
+            var h = Math.max(window.innerHeight || 0, (window.visualViewport && window.visualViewport.height) || 0, document.documentElement.clientHeight || 0);
+            if (h) root.style.setProperty('--app-h', Math.round(h) + 'px');
+        }
+        function resyncViewport() { syncAppHeight(); window.scrollTo(window.pageXOffset, window.pageYOffset); }
+        syncAppHeight();
+        window.addEventListener('resize', syncAppHeight);
+        window.addEventListener('orientationchange', function () { setTimeout(resyncViewport, 250); });
+        window.addEventListener('pageshow', resyncViewport);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(resyncViewport, 120); });
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', syncAppHeight);
+
         /* --- Клавиатура: прячем нижнюю панель, пока пользователь вводит текст --- */
         document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) root.classList.add('kbd-open'); });
-        document.addEventListener('focusout', function () { setTimeout(function () { var a = document.activeElement; if (!a || !/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) root.classList.remove('kbd-open'); }, 60); });
+        document.addEventListener('focusout', function () { setTimeout(function () { var a = document.activeElement; if (!a || !/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) root.classList.remove('kbd-open'); resyncViewport(); }, 60); });
 
         /* --- Быстрые ссылки (?page=catalog) — для ярлыков на иконке приложения --- */
         function openFromUrl() {
