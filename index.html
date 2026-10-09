@@ -328,6 +328,15 @@
             display: inline-flex !important; align-items: center;
         }
         .hero-cta .led { background: var(--secondary); }
+        .hero-support {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; padding: 13px 26px;
+            border-radius: 99px; border: 1px solid var(--line); background: var(--surface-alt); color: var(--text-main);
+            font-family: var(--f-hud); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none;
+            transition: transform 0.2s ease, border-color 0.2s ease; -webkit-tap-highlight-color: transparent;
+        }
+        .hero-support:hover { border-color: var(--secondary); transform: translateY(-1px); }
+        .hero-support .heart { color: var(--secondary); font-size: 0.9rem; letter-spacing: 0; }
+        .alpha-note { color: var(--text-main) !important; opacity: 0.85; border: 1px dashed var(--line); border-radius: 14px; padding: 10px 12px; margin: 4px 0 0 !important; }
 
         .hero-specs {
             width: 100%; max-width: 1180px; margin-top: 54px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; align-items: start;
@@ -1084,12 +1093,6 @@
         .auth-note { margin-top: 18px; font-size: 0.74rem; line-height: 1.5; color: var(--text-muted); text-align: center; }
         .auth-user-name { font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; margin-bottom: 6px; overflow-wrap: anywhere; }
         .auth-user-meta { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 26px; overflow-wrap: anywhere; }
-        .donate-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
-        .donate-link:hover { filter: brightness(1.12); }
-        .hero-donate { margin-top: 14px; font-family: var(--f-hud); font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; display: inline-block; padding: 8px 14px; border-radius: 99px; border: 1px solid var(--line); transition: color .3s, border-color .3s; }
-        .hero-donate:hover { color: var(--text-main); border-color: var(--secondary); }
-        .alpha-badge { margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-alt); font-size: 0.8rem; line-height: 1.5; text-align: center; }
-        .alpha-badge b { color: var(--secondary); }
         .link-btn { background: none; border: 0; color: var(--text-muted); font-family: var(--f-body); font-size: 0.78rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 12px; margin-top: 8px; min-height: 44px; }
         .link-btn:hover { color: var(--secondary); }
 
@@ -1187,7 +1190,7 @@
 
                 <div class="hud hud-tl" aria-hidden="true">
                     <div><span>DATABASE:</span><b>MWLAB-01</b></div>
-                    <div><span>PROCESSOR:</span><b>TACTICAL CORE V3.0</b></div>
+                    <div><span>PROCESSOR:</span><b>TACTICAL CORE V1.0 ALPHA</b></div>
                 </div>
                 <div class="hud hud-tr" aria-hidden="true">
                     <div><span>SYS:</span><b id="hud-status">ONLINE</b></div>
@@ -1204,7 +1207,7 @@
                 <div class="home-divider"></div>
                 <p class="home-desc" data-i18n="home.desc">Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.</p>
                 <button class="cat-btn-main active hero-cta" data-i18n="home.cta" onclick="switchMainPage('page-catalog', document.getElementById('nav-catalog'))">ОТКРЫТЬ АРСЕНАЛ</button>
-                <a class="hero-donate" href="https://www.donationalerts.com/r/m1ts0" target="_blank" rel="noopener noreferrer" data-i18n="donate.link">♥ ПОДДЕРЖАТЬ АВТОРА</a>
+                <a class="hero-support" href="https://www.donationalerts.com/r/m1ts0" target="_blank" rel="noopener noreferrer"><span class="heart" aria-hidden="true">♥</span><span data-i18n="home.support">ПОДДЕРЖАТЬ АВТОРА</span></a>
 
                 <div class="hero-specs">
                     <dl aria-hidden="true">
@@ -1224,7 +1227,7 @@
                 </div>
 
                 <div class="hero-foot" aria-hidden="true">
-                    <span>V 1.0 (ALPHA)</span><span id="user-count">—</span><span>//</span><span>MWLAB</span>
+                    <span>V 1.1 (ALPHA)</span><span id="hud-users">—</span><span>//</span><span>MWLAB</span>
                 </div>
             </section>
         </main>
@@ -1503,7 +1506,6 @@
                     </form>
 
                     <form class="auth-form" id="form-register" role="tabpanel" aria-labelledby="tab-register" onsubmit="return submitRegister(event)" novalidate>
-                        <div class="alpha-badge" id="alpha-badge"></div>
                         <div class="auth-field">
                             <label for="auth-r-user" data-at="f.username"></label>
                             <input type="text" id="auth-r-user" class="search-input glass-panel" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" enterkeyhint="next">
@@ -1526,6 +1528,7 @@
                             <button type="button" class="auth-eye" data-eye="auth-r-pass2" onclick="toggleAuthEye(this)" data-at="show"></button>
                         </div>
                         <div class="auth-err" id="auth-r-err" role="alert" aria-live="polite"></div>
+                        <p class="auth-note alpha-note" data-at="note.alpha"></p>
                         <button type="submit" class="cat-btn-main active" id="auth-r-btn" data-at="btn.register">Создать аккаунт</button>
                         <p class="auth-note" data-at="note.local"></p>
                     </form>
@@ -1538,8 +1541,8 @@
                     <div class="auth-user-meta" id="auth-user-meta"></div>
                     <p class="pro-label" data-i18n="admin.visits">УНИКАЛЬНЫЕ ПОСЕТИТЕЛИ</p>
                     <div class="visit-num" id="visit-counter">0</div>
+                    <a class="hero-support" style="width:100%;margin:0 0 10px;" href="https://www.donationalerts.com/r/m1ts0" target="_blank" rel="noopener noreferrer"><span class="heart" aria-hidden="true">♥</span><span data-i18n="home.support">ПОДДЕРЖАТЬ АВТОРА</span></a>
                     <button type="button" class="cat-btn-main" id="admin-open-btn" style="display:none;width:100%;margin-bottom:10px;" onclick="openAdminPanel()">ПАНЕЛЬ АДМИНИСТРАТОРА</button>
-                    <a class="cat-btn-main donate-link" style="width:100%;margin-bottom:10px;" href="https://www.donationalerts.com/r/m1ts0" target="_blank" rel="noopener noreferrer" data-i18n="donate.btn">♥ ПОДДЕРЖАТЬ АВТОРА</a>
                     <button class="cat-btn-main btn-red" style="width:100%;" onclick="logout()" data-i18n="admin.logout">ВЫЙТИ ИЗ АККАУНТА</button>
                     <button type="button" class="link-btn" id="auth-delete" onclick="deleteAccount()" data-at="btn.delete"></button>
                 </div>
@@ -1755,7 +1758,7 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_yFQF-VF1LGeTUOhK0Kj61A_YDAAGg3W';
         const SB_CONFIGURED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
         const sb = (SB_CONFIGURED && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-        let userTierUntil = null;
+        var userTierUntil = null; // дата окончания PRO (для альфа-теста), null = без срока
         let userTier = 'free'; // free | pro: в режиме Supabase приходит из profiles.tier
 
         // =========================================================
@@ -1831,6 +1834,7 @@
             'f.newpass': ['Новый пароль', 'New password'],
             'btn.newpass': ['Сохранить пароль', 'Save password'],
             'hint.user': ['3–20 символов: буквы, цифры, _ . -', '3–20 characters: letters, digits, _ . -'],
+            'note.alpha': ['АЛЬФА-ТЕСТ: 10 дней полного доступа ко всему после регистрации.', 'ALPHA TEST: 10 days of full access to everything after you sign up.'],
             'note.noacc': ['Нет аккаунта?', 'No account yet?'],
             'note.create': ['Создать', 'Create one'],
             'note.local': ['Аккаунт сохраняется на этом устройстве. Пароль хранится только в зашифрованном виде.', 'Your account is stored on this device. The password is kept only in hashed form.'],
@@ -2134,9 +2138,9 @@
                     if (d && TIER_RANK[d.tier] !== undefined && !(d.tier_until && Date.parse(d.tier_until) < Date.now())) { t = d.tier; until = d.tier_until || null; }
                 } catch (e) {}
             }
-            const untilChanged = until !== userTierUntil;
+            const untilChanged = (until !== userTierUntil);
             userTierUntil = until;
-            if (untilChanged && t === userTier) updateAuthStateUI();
+            if (t === userTier && untilChanged) updateAuthStateUI();
             if (t !== userTier) {
                 userTier = t;
                 try {
@@ -2147,14 +2151,14 @@
         }
 
         function authAfterLogin(msg) {
-            if (sb) { sbLoadTier(); refreshUserCount(); }
+            if (sb) sbLoadTier();
             ['auth-l-user', 'auth-l-pass'].forEach(id => { const e = $a(id); if (e) e.value = ''; });
             updateAuthStateUI();
             showToast(msg || L('ДОСТУП РАЗРЕШЕН', 'ACCESS GRANTED'));
         }
 
         function logout() {
-            isAuth = false; authUser = null; userTier = 'free'; stripRatings();
+            isAuth = false; authUser = null; userTier = 'free'; userTierUntil = null; stripRatings();
             if (sb) sb.auth.signOut().catch(function () {});
             try { localStorage.removeItem(AUTH_SESSION_KEY); localStorage.setItem('mw_auth', 'false'); } catch (e) {}
             setAuthMode('login');
@@ -2201,13 +2205,14 @@
                 $a('auth-user-name').textContent = authUser.username;
                 const tt = $a('auth-tier-title');
                 if (tt) {
-                    let left = '';
-                    if (userTier === 'pro' && userTierUntil) {
-                        const dl = Math.max(0, Math.ceil((Date.parse(userTierUntil) - Date.now()) / 86400000));
-                        left = L(' · ОСТАЛОСЬ ДНЕЙ: ' + dl, ' · DAYS LEFT: ' + dl);
-                    }
-                    tt.textContent = userTier === 'pro' ? L('PRO ДОСТУП АКТИВЕН', 'PRO ACCESS ACTIVE') + left : L('АККАУНТ АКТИВЕН', 'ACCOUNT ACTIVE');
+                if (userTier === 'pro' && userTierUntil) {
+                    let ds = '';
+                    try { ds = new Date(userTierUntil).toLocaleDateString(LANG === 'en' ? 'en-GB' : 'ru-RU'); } catch (e) { ds = String(userTierUntil); }
+                    tt.textContent = L('PRO ДО ' + ds + ' · АЛЬФА-ТЕСТ', 'PRO UNTIL ' + ds + ' · ALPHA TEST');
+                } else {
+                    tt.textContent = userTier === 'pro' ? L('PRO ДОСТУП АКТИВЕН', 'PRO ACCESS ACTIVE') : L('АККАУНТ АКТИВЕН', 'ACCOUNT ACTIVE');
                 }
+            }
                 const d = authUser.created ? new Date(authUser.created).toLocaleDateString(LANG === 'en' ? 'en' : 'ru') : '';
                 $a('auth-user-meta').textContent = authUser.legacy
                     ? L('Тестовый аккаунт', 'Test account')
@@ -2215,9 +2220,7 @@
                 $a('auth-delete').hidden = !!authUser.legacy;
             } else if (authMode === 'register') {
                 t.textContent = L('РЕГИСТРАЦИЯ', 'SIGN UP');
-                s.textContent = L('Альфа-тест: 10 дней полного доступа ко всему за регистрацию.', 'Alpha test: 10 days of full access to everything for signing up.');
-                const ab = $a('alpha-badge');
-                if (ab) ab.innerHTML = LANG === 'en' ? '<b>ALPHA TEST.</b> Sign up and get <b>10 days of full PRO access</b>: meta ratings, breakdowns and the build constructor.' : '<b>АЛЬФА-ТЕСТ.</b> Зарегистрируйтесь и получите <b>10 дней полного PRO-доступа</b>: рейтинг меты, разбор и конструктор сборок.';
+                s.textContent = L('Создайте аккаунт, чтобы открыть диаграммы, индекс меты и конструктор сборок.', 'Create an account to unlock charts, the meta index, and the build constructor.');
             } else {
                 t.textContent = L('ВХОД', 'LOG IN');
                 s.textContent = L('Войдите, чтобы открыть диаграммы, индекс меты и конструктор сборок.', 'Log in to unlock charts, the meta index, and the build constructor.');
@@ -2279,11 +2282,9 @@
             if (!sb) return;
             try {
                 const r = await sb.rpc('get_user_count');
-                if (!r.error && r.data !== null && r.data !== undefined) {
-                    const el = document.getElementById('user-count');
-                    if (el) el.textContent = String(r.data);
-                }
-            } catch (e) { console.error(e); }
+                const e = document.getElementById('hud-users');
+                if (e && r.data !== null && r.data !== undefined) e.textContent = String(r.data);
+            } catch (err) { console.error(err); }
         }
         async function trackVisit() {
             if (!sb) return;
@@ -2292,7 +2293,6 @@
                 if (vid) await sb.rpc('track_visit', { p_visitor: vid });
             } catch (e) { console.error(e); }
             await refreshVisitCounter();
-            refreshUserCount();
         }
 
         // ===== Админ-панель (видна только аккаунтам из таблицы admins) =====
@@ -2596,8 +2596,7 @@
             'nav.help.title': { ru: 'Справка', en: 'Help' },
             'home.desc': { ru: 'Продвинутая система анализа, конструирования сборок и оценки боевого потенциала в условиях актуальной меты.', en: 'An advanced system for analysis, build construction, and combat-potential assessment in the current meta.' },
             'home.cta': { ru: 'ОТКРЫТЬ АРСЕНАЛ', en: 'OPEN ARSENAL' },
-            'donate.link': { ru: '♥ ПОДДЕРЖАТЬ АВТОРА', en: '♥ SUPPORT THE AUTHOR' },
-            'donate.btn': { ru: '♥ ПОДДЕРЖАТЬ АВТОРА', en: '♥ SUPPORT THE AUTHOR' },
+            'home.support': { ru: 'ПОДДЕРЖАТЬ АВТОРА', en: 'SUPPORT THE AUTHOR' },
             'cmp.download': { ru: 'СКАЧАТЬ ОТЧЕТ', en: 'DOWNLOAD REPORT' },
             'cmp.slot1': { ru: 'СЛОТ 1', en: 'SLOT 1' },
             'cmp.slot2': { ru: 'СЛОТ 2', en: 'SLOT 2' },
@@ -4730,6 +4729,7 @@
             }
             bootHide();
             initApp();
+            refreshUserCount();
             trackVisit();
         };
     </script>
@@ -4760,6 +4760,7 @@
             var s3 = String(n).padStart(3, '0');
             var a = $('hud-units'); if (a) a.textContent = s3;
             var b = $('hud-units-2'); if (b) b.textContent = s3;
+            
         }
         fillUnits();
 
