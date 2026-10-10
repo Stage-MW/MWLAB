@@ -1227,7 +1227,7 @@
                 </div>
 
                 <div class="hero-foot" aria-hidden="true">
-                    <span>V 1.1 (ALPHA)</span><span id="hud-users">—</span><span>//</span><span>MWLAB</span>
+                    <span>V 1.0 (ALPHA)</span><span id="hud-users">—</span><span>//</span><span>MWLAB</span>
                 </div>
             </section>
         </main>
@@ -2764,6 +2764,7 @@
             "Штраф: мёртвая зона": "Penalty: dead zone", "Штраф: отдача": "Penalty: recoil",
             "Штраф: ручной режим": "Penalty: manual mode", "Штраф: уязвимость к ловушкам": "Penalty: decoy vulnerability",
             "Эффективный DPM": "Effective DPM", "Эффективный альфа-страйк": "Effective alpha strike",
+            "Ближняя дистанция (0–4 км)": "Close range (0–4 km)", "Средняя дистанция (4–8 км)": "Mid range (4–8 km)", "Дальняя дистанция (8–12 км)": "Far range (8–12 km)",
             "лучшему общему балансу характеристик в этой категории": "the best overall stat balance in this category"
         };
         function trLabel(ru) { return LANG === 'en' ? (LABEL_EN[ru] || ru) : ru; }
@@ -3994,7 +3995,7 @@
                 const zmin = Math.min.apply(null, zt), zmax = Math.max.apply(null, zt);
                 const zoneTxt = Math.abs(zmax - zmin) < 0.005 ? zmin.toFixed(2) : (zmin.toFixed(2) + '–' + zmax.toFixed(2));
                 return `<div style="margin-bottom:4px;"><b style="color:var(--secondary);">${itemName(m.mis)}</b> ×${m.qty}
-                    — ${L('сбито','destroyed')} <b style="color:var(--text-main);">${m.destroyed}</b> ${L('из','of')} <b style="color:var(--text-main);">${m.total}</b><br>
+                    — ${L('сбито','destroyed')} <b style="color:var(--text-main);">${fmtKill(m.destroyed)}</b> ${L('из','of')} <b style="color:var(--text-main);">${m.total}</b><br>
                     <span style="font-size:0.85rem; color:var(--text-muted);">${L('скорость','speed')} ${m.speed.toFixed(2)} ${L('км/с','km/s')} · ${L('пролёт зоны ПВО','zone crossing')} ${zoneTxt} ${sec}</span></div>`;
             }).join('');
             let warnings = [];
@@ -4014,7 +4015,7 @@
                     </div>
                     <div style="margin: 15px 0 0 0; border-top: 1px solid var(--line); padding-top: 15px; text-align:center;">
                         <span style="font-weight:900; font-size:1.4rem; color:${resColor};">${verdict}</span><br>
-                        ${L('Сбито ракет','Missiles destroyed')}: <b style="font-size:1.2rem;">${R.destroyedMissiles}</b> ${L('из','of')} <b style="font-size:1.2rem;">${R.totalMissiles}</b><br>
+                        ${L('Сбито ракет (ожидаемо)','Missiles destroyed (expected)')}: <b style="font-size:1.2rem;">${fmtKill(R.destroyedMissiles)}</b> ${L('из','of')} <b style="font-size:1.2rem;">${R.totalMissiles}</b><br>
                         ${L('Проходимость урона','Damage that gets through')}: <b style="font-size:1.8rem; color:${resColor};">${R.survivalProbability.toFixed(1)}%</b>
                     </div>
                     ${warnHTML}
@@ -4052,8 +4053,8 @@
             const { zoneTime, aaRange, misSpeed, retargetTime, engageTime, reactionTime, speedFactor, accuracy, totalAADamage, shotsFired, shotsLanded, totalMissiles, totalMissileHP,
                     destroyedMissiles, survivedMissiles, survivalProbability, aaHasMissileProfile } = R;
 
-            let resColor = survivalProbability > 0 ? 'var(--primary)' : 'var(--secondary)';
-            let verdict = survivalProbability === 0 ? L("ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА","SALVO FULLY INTERCEPTED") : L("ПРОРЫВ ПВО УСПЕШЕН!","AA BREAKTHROUGH SUCCESSFUL!");
+            let resColor = survivalProbability >= 0.5 ? 'var(--primary)' : 'var(--secondary)';
+            let verdict = survivalProbability < 0.5 ? L("ПОЛНЫЙ ПЕРЕХВАТ ЗАЛПА","SALVO FULLY INTERCEPTED") : L("ПРОРЫВ ПВО УСПЕШЕН!","AA BREAKTHROUGH SUCCESSFUL!");
 
             let speedWarning = '';
             if (aaHasMissileProfile && speedFactor < 0.5) {
@@ -4080,7 +4081,7 @@
                     ${L('Прочность роя ракет','Missile swarm HP')} (${totalMissiles} ${L('шт.','pcs')}): <b style="color:var(--secondary);">${Math.round(totalMissileHP).toLocaleString(LANG === 'en' ? 'en' : 'ru')} HP</b><br>
                     <div style="margin: 15px 0; border-top: 1px solid var(--line); padding-top: 15px;">
                         <span style="font-family:'Inter'; font-weight:900; font-size:1.4rem; color:${resColor};">${verdict}</span><br>
-                        ${L('Сбито ракет','Missiles destroyed')}: <b style="color:var(--text-main); font-size:1.2rem;">${destroyedMissiles}</b> ${L('из','of')} <b style="color:var(--text-main); font-size:1.2rem;">${totalMissiles}</b><br>
+                        ${L('Сбито ракет (ожидаемо)','Missiles destroyed (expected)')}: <b style="color:var(--text-main); font-size:1.2rem;">${fmtKill(destroyedMissiles)}</b> ${L('из','of')} <b style="color:var(--text-main); font-size:1.2rem;">${totalMissiles}</b><br>
                         ${L('Проходимость урона','Damage that gets through')}: <b style="font-size:1.8rem; color:${resColor};">${survivalProbability.toFixed(1)}%</b>
                     </div>
                     ${speedWarning}
@@ -4150,6 +4151,8 @@
             closeModal('breakdown-modal');
         }
 
+        // Сбитые ракеты теперь считаются по вероятности: показываем ожидаемое число с одним знаком
+        const fmtKill = v => (Math.round((v || 0) * 10) / 10).toLocaleString(LANG === 'en' ? 'en' : 'ru', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
         async function openRatingBreakdown(itemId) {
             if (!itemId || !DB[itemId]) return;
             if (!isPro()) {
@@ -4190,6 +4193,11 @@
             if (bd.eff.burst !== undefined && item.damage_burst) chips.push([L('Эфф. альфа-страйк','Eff. alpha strike'), Math.round(bd.eff.burst).toLocaleString(LANG === 'en' ? 'en' : 'ru'), Math.round(bd.eff.burst / item.damage_burst * 100) + '% ' + L('от паспортного','of rated')]);
             if (bd.eff.accuracy !== undefined) chips.push([L('Индекс точности','Accuracy index'), Math.round(bd.eff.accuracy) + '%', '']);
             if (bd.eff.kill !== undefined) chips.push([L('Шанс сбить ракету','Missile kill chance'), Math.round(bd.eff.kill * 100) + '%', L('типичную из базы','a typical one from the database')]);
+            if (bd.bands) {
+                [['close', 'Ближняя 0–4 км', 'Close 0–4 km'], ['mid', 'Средняя 4–8 км', 'Mid 4–8 km'], ['far', 'Дальняя 8–12 км', 'Far 8–12 km']].forEach(function (b) {
+                    chips.push([L(b[1], b[2]), Math.round(Math.min(1.3, bd.bands[b[0]]) * 100) + '%', L('от лидера', 'of the leader')]);
+                });
+            }
             const chipsHtml = chips.length ? `<div class="bd-eff">${chips.map(c => `<div class="bd-chip">${c[0]}<b>${c[1]}</b>${c[2]}</div>`).join('')}</div>` : '';
 
             const clampNote = bd.clamped ? `<div class="bd-note">${L('Сумма очков','The point total')} (${Math.round(bd.raw)}) ${L('вышла за границы шкалы 50–1000, поэтому итог обрезан до','fell outside the 50–1000 scale, so the result was clamped to')} ${bd.final}.</div>` : '';
