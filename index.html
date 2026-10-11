@@ -361,6 +361,16 @@
             font-family: var(--f-display); font-weight: 800; font-size: clamp(0.9rem, 2.4vw, 1.9rem); letter-spacing: 0.04em; transform-origin: left; text-transform: uppercase;
         }
         .hero-foot span { display: inline-block; transform: scaleY(0.82); }
+        .ver-help {
+            display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; margin-left: 0.7em;
+            border-radius: 50%; border: 1px solid var(--line); background: var(--surface-alt); color: var(--text-main);
+            font: inherit; font-size: 0.62em; line-height: 1; cursor: pointer; vertical-align: middle; -webkit-tap-highlight-color: transparent;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+        .ver-help:hover { border-color: var(--secondary); transform: scale(1.08); }
+        .changelog-list { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+        .changelog-list li { position: relative; padding-left: 18px; font-size: 0.85rem; line-height: 1.5; color: var(--text-main); }
+        .changelog-list li::before { content: ""; position: absolute; left: 2px; top: 0.6em; width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); }
 
         /* =====================================================================
            ПОЛЯ, КНОПКИ, ФИЛЬТРЫ
@@ -1226,8 +1236,8 @@
                     </dl>
                 </div>
 
-                <div class="hero-foot" aria-hidden="true">
-                    <span>V 1.0 (ALPHA)</span><span id="hud-users">—</span><span>//</span><span>MWLAB</span>
+                <div class="hero-foot">
+                    <span>V 1.0 (ALPHA)<button type="button" class="ver-help" onclick="openChangelog()" aria-label="Что нового в этой версии" title="Что нового">?</button></span><span id="hud-users">—</span><span>//</span><span>MWLAB</span>
                 </div>
             </section>
         </main>
@@ -1553,6 +1563,14 @@
                 <button type="button" class="cat-btn-main active" onclick="mwInstall()" data-pt="inst.btn"></button>
             </div>
         </main>
+    </div>
+
+    <!-- ЧТО НОВОГО В ВЕРСИИ -->
+    <div id="changelog-modal" class="modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:560px;" role="dialog" aria-modal="true" aria-label="Что нового">
+            <button class="modal-close" onclick="closeModal('changelog-modal')" aria-label="Закрыть">×</button>
+            <div id="changelog-body"></div>
+        </div>
     </div>
 
     <!-- ПАНЕЛЬ АДМИНИСТРАТОРА (данные приходят только админу, проверка на сервере) -->
@@ -4151,6 +4169,30 @@
             closeModal('breakdown-modal');
         }
 
+        // ===== Что нового в версии (новые версии добавляйте в начало списка) =====
+        const CHANGELOG = [
+            {
+                version: '1.0 (Alpha)',
+                title: ['Перерасчёт гранатомётов', 'Grenade launcher recalculation'],
+                items: [
+                    ['Эффективность считается отдельно на ближней (0–4 км), средней (4–8 км) и дальней (8–12 км) дистанции.', 'Effectiveness is now calculated separately for close (0–4 km), mid (4–8 km) and far (8–12 km) range.'],
+                    ['Учтены скорость снаряда и скорострельность залпа: на дальней дистанции враг успевает спрятаться, пока снаряды летят.', 'Projectile speed and volley fire rate are taken into account: at long range the enemy hides while shells are still flying.'],
+                    ['Ракетные: отводимые режутся ловушками, неотводимые может сбить ПВО. PHL-191 теперь ракетный.', 'Missile types: divertible ones are cut by decoys, non-divertible ones can be shot down by AA. PHL-191 is now a missile type.'],
+                    ['Ручной огонь (A-22, H/JJ30, PINAKA): при зажатии больше разброс, при нажатиях стрельба медленнее и требует контроля.', 'Manual fire (A-22, H/JJ30, PINAKA): holding the trigger adds spread, tapping is slower and needs more control.'],
+                    ['ПВО: шанс сбить считается по вероятностям попаданий, исправлено время полёта ракет на разгоне.', 'AA: kill chance is based on hit probabilities; missile flight time during acceleration is fixed.']
+                ]
+            }
+        ];
+        function openChangelog() {
+            const body = document.getElementById('changelog-body');
+            if (!body) return;
+            body.innerHTML = CHANGELOG.map(function (c, i) {
+                return '<p class="pro-label" style="margin:0 0 6px">' + L('ЧТО НОВОГО В ВЕРСИИ', 'WHAT\'S NEW IN VERSION') + ' ' + adminEsc(c.version) + '</p>'
+                    + '<h2 style="font-family:var(--f-display);font-weight:800;font-size:1.15rem;margin:0">' + adminEsc(L(c.title[0], c.title[1])) + '</h2>'
+                    + '<ul class="changelog-list">' + c.items.map(function (it) { return '<li>' + adminEsc(L(it[0], it[1])) + '</li>'; }).join('') + '</ul>';
+            }).join('<hr style="border:0;border-top:1px solid var(--line);margin:20px 0">');
+            openModal('changelog-modal');
+        }
         // Сбитые ракеты теперь считаются по вероятности: показываем ожидаемое число с одним знаком
         const fmtKill = v => (Math.round((v || 0) * 10) / 10).toLocaleString(LANG === 'en' ? 'en' : 'ru', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
         async function openRatingBreakdown(itemId) {
@@ -4197,6 +4239,9 @@
                 [['close', 'Ближняя 0–4 км', 'Close 0–4 km'], ['mid', 'Средняя 4–8 км', 'Mid 4–8 km'], ['far', 'Дальняя 8–12 км', 'Far 8–12 km']].forEach(function (b) {
                     chips.push([L(b[1], b[2]), Math.round(Math.min(1.3, bd.bands[b[0]]) * 100) + '%', L('от лидера', 'of the leader')]);
                 });
+            }
+            if (bd.manual) {
+                chips.push([L('Ручной огонь', 'Manual fire'), '50/50', L('зажим: больше разброс; нажатия: медленнее и нужен контроль', 'hold: more spread; taps: slower and needs control')]);
             }
             if (bd.survive) {
                 const v = bd.survive;
