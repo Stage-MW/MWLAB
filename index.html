@@ -2549,7 +2549,8 @@
             anti_jamming: { label: "Помехозащита", label_en: "Jam resistance", higherIsBetter: true },
             air_target: { label: "Атака авиации", label_en: "Anti-air", isBool: true, higherIsBetter: true },
             sub_launch: { label: "Подводный пуск", label_en: "Sub-launched", isBool: true, higherIsBetter: true },
-            can_hit_subs: { label: "Атака подлодок", label_en: "Anti-sub", isBool: true, higherIsBetter: true },
+can_hit_subs: { label: "Атака подлодок", label_en: "Anti-sub", isBool: true, higherIsBetter: true },
+can_hit_torpedoes: { label: "Перехват торпед", label_en: "Torpedo intercept", isBool: true, higherIsBetter: true },
             cluster: { label: "Кластерная БЧ", label_en: "Cluster warhead", isBool: true, higherIsBetter: true },
             splash_damage: { label: "Сплэш-урон", label_en: "Splash damage", higherIsBetter: true },
             splash_radius: { label: "Радиус взрыва (м)", label_en: "Blast radius (m)", higherIsBetter: true },
@@ -2782,7 +2783,8 @@
             "Штраф: мёртвая зона": "Penalty: dead zone", "Штраф: отдача": "Penalty: recoil",
             "Штраф: ручной режим": "Penalty: manual mode", "Штраф: уязвимость к ловушкам": "Penalty: decoy vulnerability",
             "Эффективный DPM": "Effective DPM", "Эффективный альфа-страйк": "Effective alpha strike",
-            "Ближняя дистанция (0–4 км)": "Close range (0–4 km)", "Средняя дистанция (4–8 км)": "Mid range (4–8 km)", "Дальняя дистанция (8–12 км)": "Far range (8–12 km)",
+"Штраф: ловушки врага": "Penalty: enemy decoys", "Штраф: сбивает ПВО": "Penalty: shot down by AA",
+"Ближняя дистанция (0–4 км)": "Close range (0–4 km)", "Средняя дистанция (4–8 км)": "Mid range (4–8 km)", "Дальняя дистанция (8–12 км)": "Far range (8–12 km)",
             "лучшему общему балансу характеристик в этой категории": "the best overall stat balance in this category"
         };
         function trLabel(ru) { return LANG === 'en' ? (LABEL_EN[ru] || ru) : ru; }
@@ -2843,12 +2845,13 @@
             });
         }
 
-        // Подкатегории гранатометов: СЗО (ствольные), РСЗО (ракетные/лазерные), Гибрид
+// Подкатегории гранатометов: СЗО (залповые безнаправляемые), РСЗО (ракетные), Гибрид, Лазерные
         const GL_SUBTABS = [
-            { key: "",        ru: "ВСЕ",    en: "ALL" },
-            { key: "gun",     ru: "СЗО",    en: "SZO" },
-            { key: "missile", ru: "РСЗО",   en: "RSZO" },
-            { key: "mixed",   ru: "ГИБРИД", en: "HYBRID" }
+            { key: "",        ru: "ВСЕ",      en: "ALL" },
+            { key: "gun",     ru: "СЗО",      en: "SZO" },
+            { key: "missile", ru: "РСЗО",     en: "RSZO" },
+            { key: "mixed",   ru: "ГИБРИД",   en: "HYBRID" },
+            { key: "laser",   ru: "ЛАЗЕРНЫЕ", en: "LASER" }
         ];
         function renderGLSubTabs() {
             const wrap = document.getElementById('gl-subtabs-bar');
@@ -2997,9 +3000,7 @@
                     const cbJam = document.getElementById('cb-jamming'); if (cbJam && cbJam.checked && item.anti_jamming !== 1) return false;
                     const cbClip = document.getElementById('cb-clip'); if (cbClip && cbClip.checked && (!item.ammo_clip || item.ammo_clip <= 1)) return false;
                 } else if (currentCategory === "Гранатометы") {
-                    if (currentGLType === "missile") {
-                        if (item.gl_type !== "missile" && item.gl_type !== "laser") return false;
-                    } else if (currentGLType) {
+if (currentGLType) {
                         if (item.gl_type !== currentGLType) return false;
                     }
                     const cbFlared = document.getElementById('cb-gl-flared'); if (cbFlared && cbFlared.checked && item.anti_jamming !== 0) return false;
@@ -4128,7 +4129,7 @@
             if (val === undefined || val === null) return '—';
             if (['dpm', 'damage_burst', 'splash_damage', 'fragmentation_damage', 'damage'].indexOf(key) >= 0) return Number(val).toLocaleString('ru');
             if (key === 'anti_jamming') return val === 1 ? L('АКТИВНО','ACTIVE') : L('НЕТ','NO');
-            if (['cluster', 'air_target', 'sub_launch', 'can_hit_subs'].indexOf(key) >= 0) return val === 1 ? L('ДА','YES') : L('НЕТ','NO');
+if (['cluster', 'air_target', 'sub_launch', 'can_hit_subs', 'can_hit_torpedoes'].indexOf(key) >= 0) return val === 1 ? L('ДА','YES') : L('НЕТ','NO');
             if (['fire_penalty', 'accuracy', 'dispersion'].indexOf(key) >= 0) return val + '%';
             if (key === 'killChanceVsMissile') return Math.round((val || 0) * 100) + '%';
             return val;
@@ -4175,10 +4176,11 @@
                 version: '1.0 (Alpha)',
                 title: ['Перерасчёт гранатомётов', 'Grenade launcher recalculation'],
                 items: [
-                    ['Эффективность считается отдельно на ближней (0–4 км), средней (4–8 км) и дальней (8–12 км) дистанции.', 'Effectiveness is now calculated separately for close (0–4 km), mid (4–8 km) and far (8–12 km) range.'],
-                    ['Учтены скорость снаряда и скорострельность залпа: на дальней дистанции враг успевает спрятаться, пока снаряды летят.', 'Projectile speed and volley fire rate are taken into account: at long range the enemy hides while shells are still flying.'],
-                    ['Ракетные: отводимые режутся ловушками, неотводимые может сбить ПВО. PHL-191 теперь ракетный.', 'Missile types: divertible ones are cut by decoys, non-divertible ones can be shot down by AA. PHL-191 is now a missile type.'],
-                    ['Ручной огонь (A-22, H/JJ30, PINAKA): при зажатии больше разброс, при нажатиях стрельба медленнее и требует контроля.', 'Manual fire (A-22, H/JJ30, PINAKA): holding the trigger adds spread, tapping is slower and needs more control.'],
+                    ['Эффективность считается отдельно на ближней (0–4 км), средней (4–8 км) и дальней (8–12 км) дистанции: учтены скорость снаряда и скорострельность залпа, на дальней враг успевает спрятаться.', 'Effectiveness is calculated separately for close (0–4 km), mid (4–8 km) and far (8–12 km) range, with projectile speed and volley fire rate; at long range the enemy hides.'],
+                    ['РСЗО: штраф за захват цели; отводимые теряют урон на ловушках, неотводимые может сбить ПВО. У СЗО нет захвата и ловушек, ПВО их не сбивает; лазерные ПВО сбивает.', 'RSZO: lock-on penalty; divertible rockets lose damage to decoys, non-divertible ones can be shot down by AA. SZO have no lock-on or decoys and AA cannot shoot them down; lasers can be shot down.'],
+                    ['Подводные цели: TRG-230 и все РСЗО бьют только подлодки; A-22, H/JJ30, PINAKA, TRG-300 и лазерные не бьют под воду; SR-5 бьёт подлодки, но не торпеды.', 'Underwater: TRG-230 and all RSZO hit submarines only; A-22, H/JJ30, PINAKA, TRG-300 and lasers cannot hit underwater; SR-5 hits submarines but not torpedoes.'],
+                    ['Добавлен штраф маскировки за выстрел. Ручной огонь (A-22, H/JJ30, PINAKA): при зажатии больше разброс, при нажатиях медленнее и нужен контроль.', 'Added a firing visibility penalty. Manual fire (A-22, H/JJ30, PINAKA): holding adds spread, tapping is slower and needs control.'],
+                    ['Подтипы: СЗО, РСЗО, Гибрид, Лазерные. PHL-191 теперь РСЗО.', 'Subtypes: SZO, RSZO, Hybrid, Laser. PHL-191 is now an RSZO.'],
                     ['ПВО: шанс сбить считается по вероятностям попаданий, исправлено время полёта ракет на разгоне.', 'AA: kill chance is based on hit probabilities; missile flight time during acceleration is fixed.']
                 ]
             }
@@ -4512,11 +4514,11 @@
                 return item.aa_type || L('Прочее', 'Other');
             }
             if (item.category === 'Гранатометы') {
-                const typeLabel = {
-                    gun: L('Пушечные', 'Gun'),
-                    missile: L('Ракетные', 'Missile'),
+const typeLabel = {
+                    gun: L('СЗО', 'SZO'),
+                    missile: L('РСЗО', 'RSZO'),
                     laser: L('Лазерные', 'Laser'),
-                    mixed: L('Смешанные', 'Mixed')
+                    mixed: L('Гибрид', 'Hybrid')
                 }[item.gl_type] || L('Прочие', 'Other');
                 // fire_mode: 'burst' — стреляет залпом сразу всем боекомплектом (пока не перезарядится),
                 // 'manual' — по одному снаряду за выстрел.
@@ -4541,10 +4543,10 @@
         const TIER_SUBTYPE_ORDER = {
             'ПВО': [L('Лазерное', 'Laser'), L('Пулеметное', 'Machine-gun'), L('Ракетное', 'Missile'), L('Гибрид', 'Hybrid')],
             'Гранатометы': [
-                `${L('Пушечные', 'Gun')} · ${L('Залповые', 'Salvo')}`, `${L('Пушечные', 'Gun')} · ${L('Одиночные', 'Single-fire')}`,
-                `${L('Ракетные', 'Missile')} · ${L('Залповые', 'Salvo')}`, `${L('Ракетные', 'Missile')} · ${L('Одиночные', 'Single-fire')}`,
-                `${L('Лазерные', 'Laser')} · ${L('Залповые', 'Salvo')}`, `${L('Лазерные', 'Laser')} · ${L('Одиночные', 'Single-fire')}`,
-                `${L('Смешанные', 'Mixed')} · ${L('Залповые', 'Salvo')}`, `${L('Смешанные', 'Mixed')} · ${L('Одиночные', 'Single-fire')}`
+`${L('СЗО', 'SZO')} · ${L('Залповые', 'Salvo')}`, `${L('СЗО', 'SZO')} · ${L('Одиночные', 'Single-fire')}`,
+                `${L('РСЗО', 'RSZO')} · ${L('Залповые', 'Salvo')}`, `${L('РСЗО', 'RSZO')} · ${L('Одиночные', 'Single-fire')}`,
+                `${L('Гибрид', 'Hybrid')} · ${L('Залповые', 'Salvo')}`, `${L('Гибрид', 'Hybrid')} · ${L('Одиночные', 'Single-fire')}`,
+                `${L('Лазерные', 'Laser')} · ${L('Залповые', 'Salvo')}`, `${L('Лазерные', 'Laser')} · ${L('Одиночные', 'Single-fire')}`
             ],
             'Автопушки': [L('Пушечные', 'Gun'), L('Ракетные', 'Missile'), L('Гибрид', 'Hybrid')]
         };
